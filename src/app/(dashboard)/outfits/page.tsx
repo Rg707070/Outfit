@@ -1,0 +1,143 @@
+'use client'
+import { useEffect, useState } from 'react'
+import { createClient } from '@/lib/supabase/client'
+import { Outfit, WardrobeItem } from '@/types/database'
+import { Button } from '@/components/ui/button'
+import { WeatherWidget } from '@/components/weather/weather-widget'
+import { Plus, Heart, Share2, Calendar, Shuffle } from 'lucide-react'
+
+export default function OutfitsPage() {
+  const [outfits, setOutfits] = useState<Outfit[]>([])
+  const [loading, setLoading] = useState(true)
+  const supabase = createClient()
+
+  useEffect(() => { loadOutfits() }, [])
+
+  async function loadOutfits() {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    const { data } = await supabase
+      .from('outfits')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+    setOutfits(data ?? [])
+    setLoading(false)
+  }
+
+  async function toggleFavorite(outfit: Outfit) {
+    await supabase.from('outfits').update({ is_favorite: !outfit.is_favorite }).eq('id', outfit.id)
+    setOutfits(prev => prev.map(o => o.id === outfit.id ? { ...o, is_favorite: !o.is_favorite } : o))
+  }
+
+  async function shareOutfit(outfit: Outfit) {
+    const url = `${window.location.origin}/share/${outfit.share_token}`
+    await navigator.clipboard.writeText(url)
+    alert('Share link copied to clipboard!')
+  }
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">My Outfits</h1>
+          <p className="text-gray-500 text-sm mt-1">{outfits.length} outfits saved</p>
+        </div>
+        <Button><Plus size={16} />Create outfit</Button>
+      </div>
+
+      <WeatherWidget />
+
+      <div className="mt-8">
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="bg-gray-100 rounded-2xl h-64 animate-pulse" />
+            ))}
+          </div>
+        ) : outfits.length === 0 ? (
+          <div className="text-center py-20">
+            <span className="text-5xl">✨</span>
+            <p className="text-gray-500 mt-4 text-lg font-medium">No outfits yet</p>
+            <p className="text-gray-400 text-sm mt-1">Create your first outfit by combining items from your wardrobe</p>
+            <Button className="mt-6"><Plus size={16} />Create first outfit</Button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {outfits.map(outfit => (
+              <OutfitCard
+                key={outfit.id}
+                outfit={outfit}
+                onToggleFavorite={toggleFavorite}
+                onShare={shareOutfit}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function OutfitCard({
+  outfit,
+  onToggleFavorite,
+  onShare,
+}: {
+  outfit: Outfit
+  onToggleFavorite: (o: Outfit) => void
+  onShare: (o: Outfit) => void
+}) {
+  return (
+    <div className="group bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
+      <div className="h-48 bg-gradient-to-br from-gray-50 to-gray-100 relative flex items-center justify-center">
+        {outfit.image_url ? (
+          <img src={outfit.image_url} alt={outfit.name} className="w-full h-full object-cover" />
+        ) : (
+          <span className="text-5xl">👔</span>
+        )}
+        {outfit.is_favorite && (
+          <div className="absolute top-3 left-3">
+            <span className="text-red-500">❤️</span>
+          </div>
+        )}
+        <div className="absolute top-3 right-3 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+          <button
+            onClick={() => onToggleFavorite(outfit)}
+            className="p-1.5 bg-white rounded-full shadow-sm"
+          >
+            <Heart size={14} className={outfit.is_favorite ? 'fill-red-500 text-red-500' : 'text-gray-400'} />
+          </button>
+          <button
+            onClick={() => onShare(outfit)}
+            className="p-1.5 bg-white rounded-full shadow-sm"
+          >
+            <Share2 size={14} className="text-gray-400" />
+          </button>
+        </div>
+      </div>
+
+      <div className="p-4">
+        <h3 className="font-semibold text-gray-900">{outfit.name}</h3>
+        {outfit.description && <p className="text-sm text-gray-500 mt-1 line-clamp-2">{outfit.description}</p>}
+        <div className="flex items-center gap-2 mt-3">
+          {outfit.occasion && (
+            <span className="text-xs bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full">{outfit.occasion}</span>
+          )}
+          {outfit.season && (
+            <span className="text-xs bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full capitalize">{outfit.season}</span>
+          )}
+        </div>
+        <div className="flex gap-2 mt-4">
+          <Button size="sm" variant="secondary" className="flex-1">
+            <Calendar size={14} />
+            Schedule
+          </Button>
+          <Button size="sm" variant="ghost">
+            <Share2 size={14} />
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
+}
