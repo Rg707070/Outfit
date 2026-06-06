@@ -172,16 +172,52 @@ function AddItemModal({ onClose, onAdded }: { onClose: () => void; onAdded: () =
   const [category, setCategory] = useState<ClothingCategory>('tops')
   const [brand, setBrand] = useState('')
   const [color, setColor] = useState('')
-  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [imageFile, setImageFile] = useState<File | Blob | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [removeBgEnabled, setRemoveBgEnabled] = useState(true)
+  const [processing, setProcessing] = useState(false)
+  const [processMsg, setProcessMsg] = useState('')
+  const [originalFile, setOriginalFile] = useState<File | null>(null)
   const supabase = createClient()
 
   function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
-    setImageFile(file)
-    setImagePreview(URL.createObjectURL(file))
+    setOriginalFile(file)
+    if (removeBgEnabled) {
+      processBg(file)
+    } else {
+      setImageFile(file)
+      setImagePreview(URL.createObjectURL(file))
+    }
+  }
+
+  async function processBg(file: File) {
+    setProcessing(true)
+    setProcessMsg('Loading model…')
+    try {
+      const { removeBg } = await import('@/lib/remove-bg')
+      const result = await removeBg(file, msg => setProcessMsg(msg))
+      setImageFile(result)
+      setImagePreview(URL.createObjectURL(result))
+    } catch {
+      // Fall back to original on failure
+      setImageFile(file)
+      setImagePreview(URL.createObjectURL(file))
+    } finally {
+      setProcessing(false)
+      setProcessMsg('')
+    }
+  }
+
+  function toggleRemoveBg() {
+    const next = !removeBgEnabled
+    setRemoveBgEnabled(next)
+    if (originalFile) {
+      if (next) processBg(originalFile)
+      else { setImageFile(originalFile); setImagePreview(URL.createObjectURL(originalFile)) }
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -192,9 +228,12 @@ function AddItemModal({ onClose, onAdded }: { onClose: () => void; onAdded: () =
 
     let image_url: string | null = null
     if (imageFile) {
-      const ext = imageFile.name.split('.').pop()
+      const ext = imageFile.type === 'image/png' ? 'png'
+        : (originalFile?.name.split('.').pop() ?? 'jpg')
       const path = `${user.id}/${Date.now()}.${ext}`
-      const { error } = await supabase.storage.from('wardrobe').upload(path, imageFile)
+      const { error } = await supabase.storage.from('wardrobe').upload(path, imageFile, {
+        contentType: imageFile.type || 'image/jpeg',
+      })
       if (!error) {
         const { data } = supabase.storage.from('wardrobe').getPublicUrl(path)
         image_url = data.publicUrl
@@ -223,19 +262,45 @@ function AddItemModal({ onClose, onAdded }: { onClose: () => void; onAdded: () =
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {/* Image upload */}
           <label className="block">
-            <div className={`border-2 border-dashed rounded-2xl flex items-center justify-center cursor-pointer transition-colors ${
-              imagePreview ? 'border-transparent' : 'border-gray-200 hover:border-gray-300 h-40'
-            }`}>
+            <div
+              className={`border-2 border-dashed rounded-2xl flex items-center justify-center cursor-pointer transition-colors relative overflow-hidden ${
+                imagePreview ? 'border-transparent' : 'border-gray-200 hover:border-gray-300 h-40'
+              }`}
+              style={imagePreview ? {
+                backgroundImage: 'linear-gradient(45deg,#f3f4f6 25%,transparent 25%),linear-gradient(-45deg,#f3f4f6 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#f3f4f6 75%),linear-gradient(-45deg,transparent 75%,#f3f4f6 75%)',
+                backgroundSize: '16px 16px',
+                backgroundPosition: '0 0,0 8px,8px -8px,-8px 0',
+              } : undefined}
+            >
               {imagePreview ? (
-                <img src={imagePreview} alt="Preview" className="w-full h-40 object-cover rounded-2xl" />
+                <img src={imagePreview} alt="Preview" className="w-full h-40 object-contain" />
               ) : (
                 <div className="text-center">
                   <Upload size={24} className="mx-auto text-gray-400 mb-2" />
                   <p className="text-sm text-gray-400">Upload photo</p>
                 </div>
               )}
+              {processing && (
+                <div className="absolute inset-0 bg-white/80 flex flex-col items-center justify-center">
+                  <div className="w-6 h-6 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                  <p className="text-xs text-gray-600 mt-2">{processMsg || 'Removing background…'}</p>
+                </div>
+              )}
             </div>
-            <input type="file" accept="image/*" onChange={handleFile} className="sr-only" />
+            <input type="file" accept="image/*" onChange={handleFile} className="sr-only" disabled={processing} />
+          </label>
+
+          {/* Background removal toggle */}
+          <label className="flex items-center gap-3 cursor-pointer -mt-1">
+            <button
+              type="button"
+              onClick={toggleRemoveBg}
+              disabled={processing}
+              className={`w-10 h-6 rounded-full transition-colors flex-shrink-0 disabled:opacity-50 ${removeBgEnabled ? 'bg-black' : 'bg-gray-200'}`}
+            >
+              <div className={`w-4 h-4 bg-white rounded-full shadow transition-transform mx-1 ${removeBgEnabled ? 'translate-x-4' : 'translate-x-0'}`} />
+            </button>
+            <span className="text-sm text-gray-700">✂️ Remove background (keep only the garment)</span>
           </label>
 
           <div>
@@ -269,7 +334,7 @@ function AddItemModal({ onClose, onAdded }: { onClose: () => void; onAdded: () =
 
           <div className="flex gap-3 pt-2">
             <Button type="button" variant="secondary" onClick={onClose} className="flex-1">Cancel</Button>
-            <Button type="submit" disabled={loading || !name} className="flex-1">
+            <Button type="submit" disabled={loading || processing || !name} className="flex-1">
               {loading ? 'Adding…' : 'Add item'}
             </Button>
           </div>
