@@ -1,10 +1,11 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Outfit, WardrobeItem } from '@/types/database'
+import { Outfit } from '@/types/database'
 import { Button } from '@/components/ui/button'
 import { WeatherWidget } from '@/components/weather/weather-widget'
-import { Plus, Heart, Share2, Calendar, Shuffle } from 'lucide-react'
+import { Plus, Heart, Share2, Calendar } from 'lucide-react'
+import Link from 'next/link'
 
 export default function OutfitsPage() {
   const [outfits, setOutfits] = useState<Outfit[]>([])
@@ -43,7 +44,7 @@ export default function OutfitsPage() {
           <h1 className="text-2xl font-bold text-gray-900">My Outfits</h1>
           <p className="text-gray-500 text-sm mt-1">{outfits.length} outfits saved</p>
         </div>
-        <Button><Plus size={16} />Create outfit</Button>
+        <Link href="/outfits/new"><Button><Plus size={16} />Create outfit</Button></Link>
       </div>
 
       <WeatherWidget />
@@ -60,7 +61,7 @@ export default function OutfitsPage() {
             <span className="text-5xl">✨</span>
             <p className="text-gray-500 mt-4 text-lg font-medium">No outfits yet</p>
             <p className="text-gray-400 text-sm mt-1">Create your first outfit by combining items from your wardrobe</p>
-            <Button className="mt-6"><Plus size={16} />Create first outfit</Button>
+            <Link href="/outfits/new"><Button className="mt-6"><Plus size={16} />Create first outfit</Button></Link>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
