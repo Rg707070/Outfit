@@ -3,8 +3,10 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Outfit, WardrobeItem } from '@/types/database'
 import { Heart } from 'lucide-react'
+import { useLang } from '@/lib/lang-context'
 
 export default function FavoritesPage() {
+  const { t } = useLang()
   const [favoriteOutfits, setFavoriteOutfits] = useState<Outfit[]>([])
   const [favoriteItems, setFavoriteItems] = useState<WardrobeItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -28,14 +30,14 @@ export default function FavoritesPage() {
   return (
     <div>
       <div className="flex items-center gap-3 mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">מועדפים</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t.favorites.title}</h1>
         <span className="text-2xl">❤️</span>
       </div>
 
       <div className="flex gap-2 mb-6">
         {[
-          { key: 'outfits', label: `לוקים (${favoriteOutfits.length})` },
-          { key: 'items', label: `פריטים (${favoriteItems.length})` },
+          { key: 'outfits', label: t.favorites.outfits(favoriteOutfits.length) },
+          { key: 'items', label: t.favorites.items(favoriteItems.length) },
         ].map(({ key, label }) => (
           <button
             key={key}
@@ -57,7 +59,7 @@ export default function FavoritesPage() {
         </div>
       ) : tab === 'outfits' ? (
         favoriteOutfits.length === 0 ? (
-          <EmptyFav text="אין לוקים מועדפים עדיין" sub="לחץ על לב כדי לראות אותו כאן" />
+          <EmptyFav text={t.favorites.noFavOutfits} sub={t.favorites.noFavOutfitsSub} />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {favoriteOutfits.map(outfit => (
@@ -75,7 +77,7 @@ export default function FavoritesPage() {
         )
       ) : (
         favoriteItems.length === 0 ? (
-          <EmptyFav text="אין פריטים מועדפים עדיין" sub="לחץ על לב כדי לראות אותו כאן" />
+          <EmptyFav text={t.favorites.noFavItems} sub={t.favorites.noFavItemsSub} />
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {favoriteItems.map(item => (

@@ -9,6 +9,7 @@ import { useToast } from '@/components/ui/toast'
 import { ArrowLeft, Save, Trash2, Plus, ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useLang } from '@/lib/lang-context'
 
 type CanvasItem = {
   id: string
@@ -52,6 +53,7 @@ export default function CanvasBuilderPage() {
   const dragRef = useRef<{ id: string; startX: number; startY: number; itemX: number; itemY: number } | null>(null)
 
   const { toast } = useToast()
+  const { t } = useLang()
   const router = useRouter()
   const supabase = createClient()
 
@@ -185,7 +187,7 @@ export default function CanvasBuilderPage() {
       <div className="flex items-center gap-3 mb-4 flex-shrink-0">
         <Link href="/outfits" className="flex items-center gap-1.5 text-gray-500 hover:text-gray-900 transition-colors">
           <ArrowLeft size={16} />
-          <span className="text-sm">Back</span>
+          <span className="text-sm">{t.wardrobe.cancel}</span>
         </Link>
 
         <div className="flex-1 flex items-center justify-center gap-2 flex-wrap">
@@ -208,7 +210,7 @@ export default function CanvasBuilderPage() {
 
         <Button onClick={() => setShowSaveModal(true)} disabled={canvasItems.length === 0}>
           <Save size={15} />
-          Save outfit
+          {t.newOutfit.save}
         </Button>
       </div>
 
@@ -230,7 +232,7 @@ export default function CanvasBuilderPage() {
                   onClick={() => setActiveCategory('all')}
                   className={`text-xs px-3 py-1.5 rounded-lg text-left font-medium transition-colors ${activeCategory === 'all' ? 'bg-black text-white' : 'text-gray-600 hover:bg-gray-50'}`}
                 >
-                  All items
+                  {t.newOutfit.all}
                 </button>
                 {usedCategories.map(cat => (
                   <button
@@ -239,7 +241,7 @@ export default function CanvasBuilderPage() {
                     className={`text-xs px-3 py-1.5 rounded-lg text-left transition-colors flex items-center gap-1.5 ${activeCategory === cat.value ? 'bg-black text-white' : 'text-gray-600 hover:bg-gray-50'}`}
                   >
                     <span>{cat.emoji}</span>
-                    {cat.label}
+                    {t.categories[cat.value as keyof typeof t.categories] ?? cat.label}
                   </button>
                 ))}
               </div>
@@ -279,7 +281,7 @@ export default function CanvasBuilderPage() {
 
                 {wardrobeItems.length === 0 && !loading && (
                   <Link href="/wardrobe" className="block text-xs text-gray-400 underline text-center mt-4">
-                    Add items to wardrobe first
+                    {t.newOutfit.goToWardrobe}
                   </Link>
                 )}
               </div>
@@ -391,36 +393,36 @@ export default function CanvasBuilderPage() {
       {showSaveModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl w-full max-w-sm p-6 shadow-xl">
-            <h2 className="text-lg font-semibold text-gray-900 mb-5">Save outfit</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-5">{t.newOutfit.save}</h2>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Name <span className="text-red-500">*</span>
+                  {t.newOutfit.outfitName}
                 </label>
                 <Input
                   value={outfitName}
                   onChange={e => setOutfitName(e.target.value)}
-                  placeholder="e.g. Summer weekend look"
+                  placeholder={t.newOutfit.outfitName}
                   autoFocus
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Occasion</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">{t.newOutfit.occasion}</label>
                 <Input
                   value={outfitOccasion}
                   onChange={e => setOutfitOccasion(e.target.value)}
-                  placeholder="casual, work, evening…"
+                  placeholder={t.newOutfit.occasion}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Season</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">{t.seasons.all}</label>
                 <select
                   value={outfitSeason}
                   onChange={e => setOutfitSeason(e.target.value as Season)}
                   className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black"
                 >
-                  <option value="">Any season</option>
-                  {SEASONS.map(s => <option key={s.value} value={s.value}>{s.emoji} {s.label}</option>)}
+                  <option value="">{t.newOutfit.anySeason}</option>
+                  {SEASONS.map(s => <option key={s.value} value={s.value}>{s.emoji} {t.seasons[s.value as keyof typeof t.seasons] ?? s.label}</option>)}
                 </select>
               </div>
               <label className="flex items-center gap-3 cursor-pointer">
@@ -431,15 +433,15 @@ export default function CanvasBuilderPage() {
                 >
                   <div className={`w-4 h-4 bg-white rounded-full shadow transition-transform mx-1 ${isPublic ? 'translate-x-4' : 'translate-x-0'}`} />
                 </button>
-                <span className="text-sm text-gray-700">Allow sharing (public link)</span>
+                <span className="text-sm text-gray-700">{t.newOutfit.makeShareable}</span>
               </label>
             </div>
             <div className="flex gap-3 mt-6">
               <Button variant="secondary" onClick={() => setShowSaveModal(false)} className="flex-1">
-                Cancel
+                {t.wardrobe.cancel}
               </Button>
               <Button onClick={saveOutfit} disabled={!outfitName.trim() || saving} className="flex-1">
-                {saving ? 'Saving…' : 'Save outfit'}
+                {saving ? t.newOutfit.saving : t.newOutfit.save}
               </Button>
             </div>
           </div>

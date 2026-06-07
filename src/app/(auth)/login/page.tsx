@@ -5,8 +5,10 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { useLang } from '@/lib/lang-context'
 
 export default function LoginPage() {
+  const { t } = useLang()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -29,15 +31,15 @@ export default function LoginPage() {
         <div className="text-center mb-8">
           <span className="text-5xl">👗</span>
           <h1 className="text-3xl font-bold text-gray-900 mt-4">Outfit</h1>
-          <p className="text-gray-500 mt-2">ארון הבגדים הדיגיטלי שלך</p>
+          <p className="text-gray-500 mt-2">{t.auth.tagline}</p>
         </div>
 
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">התחברות</h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-6">{t.auth.signIn}</h2>
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">אימייל</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">{t.auth.email}</label>
               <Input
                 type="email"
                 placeholder="you@example.com"
@@ -47,7 +49,7 @@ export default function LoginPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">סיסמה</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">{t.auth.password}</label>
               <Input
                 type="password"
                 placeholder="••••••••"
@@ -60,14 +62,14 @@ export default function LoginPage() {
             {error && <p className="text-sm text-red-500 bg-red-50 rounded-lg px-3 py-2">{error}</p>}
 
             <Button type="submit" size="lg" disabled={loading} className="w-full">
-              {loading ? 'מתחבר…' : 'התחבר'}
+              {loading ? t.auth.signingIn : t.auth.signIn}
             </Button>
           </form>
 
           <p className="text-center text-sm text-gray-500 mt-6">
-            אין חשבון?{' '}
+            {t.auth.noAccount}{' '}
             <Link href="/signup" className="text-black font-medium hover:underline">
-              הרשם בחינם
+              {t.auth.signUpFree}
             </Link>
           </p>
         </div>

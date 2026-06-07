@@ -7,8 +7,10 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useToast } from '@/components/ui/toast'
 import { Plus, ShoppingBag, Star, Check, ExternalLink, Trash2 } from 'lucide-react'
+import { useLang } from '@/lib/lang-context'
 
 export default function WishlistPage() {
+  const { t } = useLang()
   const [items, setItems] = useState<ShoppingItem[]>([])
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState<'shopping' | 'wishlist'>('shopping')
@@ -47,19 +49,19 @@ export default function WishlistPage() {
     <div>
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">קניות ורשימת משאלות</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t.wishlist.title}</h1>
           {tab === 'shopping' && shoppingCount > 0 && (
             <p className="text-gray-500 text-sm mt-1">{purchasedCount} מתוך {shoppingCount} נרכשו</p>
           )}
         </div>
-        <Button onClick={() => setShowAdd(true)}><Plus size={16} />הוסף פריט</Button>
+        <Button onClick={() => setShowAdd(true)}><Plus size={16} />{t.wishlist.addItem}</Button>
       </div>
 
       {/* Tabs */}
       <div className="flex gap-2 mb-6">
         {[
-          { key: 'shopping', label: 'רשימת קניות', icon: ShoppingBag, count: shoppingCount },
-          { key: 'wishlist', label: 'רשימת משאלות', icon: Star, count: wishlistCount },
+          { key: 'shopping', label: t.wishlist.shoppingTab, icon: ShoppingBag, count: shoppingCount },
+          { key: 'wishlist', label: t.wishlist.wishlistTab, icon: Star, count: wishlistCount },
         ].map(({ key, label, icon: Icon, count }) => (
           <button
             key={key}
@@ -84,12 +86,9 @@ export default function WishlistPage() {
           <div className="text-center py-16">
             <span className="text-4xl">{tab === 'wishlist' ? '⭐' : '🛍️'}</span>
             <p className="text-gray-500 mt-3 font-medium">
-              {tab === 'wishlist' ? 'רשימת המשאלות שלך ריקה' : 'רשימת הקניות ריקה'}
+              {tab === 'wishlist' ? t.wishlist.wishlistEmpty : t.wishlist.shoppingEmpty}
             </p>
-            <p className="text-gray-400 text-sm mt-1">
-              {tab === 'wishlist' ? 'הוסף פריטים שאת/ה רוצה לעתיד' : 'הוסף פריטים שאת/ה צריך לקנות'}
-            </p>
-            <Button className="mt-4" onClick={() => setShowAdd(true)}><Plus size={16} />הוסף פריט</Button>
+            <Button className="mt-4" onClick={() => setShowAdd(true)}><Plus size={16} />{t.wishlist.addItem}</Button>
           </div>
         ) : (
           <>
@@ -168,6 +167,7 @@ export default function WishlistPage() {
 }
 
 function AddShoppingModal({ onClose, onAdded, defaultWishlist }: { onClose: () => void; onAdded: () => void; defaultWishlist: boolean }) {
+  const { t } = useLang()
   const [name, setName] = useState('')
   const [brand, setBrand] = useState('')
   const [price, setPrice] = useState('')
@@ -199,7 +199,7 @@ function AddShoppingModal({ onClose, onAdded, defaultWishlist }: { onClose: () =
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl w-full max-w-md shadow-xl">
         <div className="flex items-center justify-between p-6 border-b border-gray-100">
-          <h2 className="text-lg font-semibold">הוסף פריט</h2>
+          <h2 className="text-lg font-semibold">{t.wishlist.modalTitle}</h2>
           <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 transition-colors">✕</button>
         </div>
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
@@ -222,37 +222,37 @@ function AddShoppingModal({ onClose, onAdded, defaultWishlist }: { onClose: () =
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">שם הפריט <span className="text-red-500">*</span></label>
-            <Input value={name} onChange={e => setName(e.target.value)} placeholder="לדוג׳ ג׳קט עור שחור" required />
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">{t.wishlist.itemName}</label>
+            <Input value={name} onChange={e => setName(e.target.value)} placeholder={t.wishlist.itemPlaceholder} required />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">מותג</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">{t.wishlist.brand}</label>
               <Input value={brand} onChange={e => setBrand(e.target.value)} placeholder="לדוג׳ Zara" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">מחיר (₪)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">{t.wishlist.price} (₪)</label>
               <Input type="number" value={price} onChange={e => setPrice(e.target.value)} placeholder="0" min="0" />
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">קישור לרכישה</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">{t.wishlist.link}</label>
             <Input type="url" value={url} onChange={e => setUrl(e.target.value)} placeholder="https://…" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">קטגוריה</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">{t.wishlist.category}</label>
             <select
               value={category}
               onChange={e => setCategory(e.target.value as ClothingCategory)}
               className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black"
             >
-              <option value="">בחר קטגוריה</option>
+              <option value="">{t.wishlist.selectCategory}</option>
               {CLOTHING_CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.emoji} {c.label}</option>)}
             </select>
           </div>
           <div className="flex gap-3 pt-2">
-            <Button type="button" variant="secondary" onClick={onClose} className="flex-1">ביטול</Button>
-            <Button type="submit" disabled={loading || !name} className="flex-1">{loading ? 'מוסיף…' : 'הוסף פריט'}</Button>
+            <Button type="button" variant="secondary" onClick={onClose} className="flex-1">{t.wishlist.cancel}</Button>
+            <Button type="submit" disabled={loading || !name} className="flex-1">{loading ? t.wishlist.adding : t.wishlist.addBtn}</Button>
           </div>
         </form>
       </div>

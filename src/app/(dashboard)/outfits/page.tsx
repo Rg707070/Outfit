@@ -7,6 +7,7 @@ import { WeatherWidget } from '@/components/weather/weather-widget'
 import { useToast } from '@/components/ui/toast'
 import { Plus, Heart, Share2, Calendar, Trash2, AlertTriangle, Zap } from 'lucide-react'
 import Link from 'next/link'
+import { useLang } from '@/lib/lang-context'
 
 export default function OutfitsPage() {
   const [outfits, setOutfits] = useState<Outfit[]>([])
@@ -14,6 +15,7 @@ export default function OutfitsPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const { toast } = useToast()
   const supabase = createClient()
+  const { t } = useLang()
 
   useEffect(() => { loadOutfits() }, [])
 
@@ -68,10 +70,10 @@ export default function OutfitsPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">My Outfits</h1>
-          <p className="text-gray-500 text-sm mt-1">{outfits.length} outfits saved</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t.outfits.title}</h1>
+          <p className="text-gray-500 text-sm mt-1">{t.outfits.saved(outfits.length)}</p>
         </div>
-        <Link href="/outfits/new"><Button><Plus size={16} />Create outfit</Button></Link>
+        <Link href="/outfits/new"><Button><Plus size={16} />{t.outfits.create}</Button></Link>
       </div>
 
       <WeatherWidget />
@@ -82,8 +84,8 @@ export default function OutfitsPage() {
           <Zap size={22} className="text-white" />
         </div>
         <div className="flex-1">
-          <p className="font-semibold text-base">Discover outfit combos</p>
-          <p className="text-white/60 text-sm mt-0.5">Swipe through auto-generated outfits from your wardrobe</p>
+          <p className="font-semibold text-base">{t.nav.discover}</p>
+          <p className="text-white/60 text-sm mt-0.5">{t.outfits.discoverSub}</p>
         </div>
         <span className="text-white/40 text-xl group-hover:text-white/70 transition-colors">→</span>
       </Link>
@@ -98,11 +100,11 @@ export default function OutfitsPage() {
         ) : outfits.length === 0 ? (
           <div className="text-center py-20">
             <span className="text-5xl">✨</span>
-            <p className="text-gray-500 mt-4 text-lg font-medium">No outfits yet</p>
-            <p className="text-gray-400 text-sm mt-1">First, add clothes to your wardrobe, then create your first outfit</p>
+            <p className="text-gray-500 mt-4 text-lg font-medium">{t.outfits.noOutfits}</p>
+            <p className="text-gray-400 text-sm mt-1">{t.outfits.noOutfitsSub2}</p>
             <div className="flex items-center justify-center gap-3 mt-6">
-              <Link href="/wardrobe"><Button variant="secondary"><Plus size={16} />Add to wardrobe</Button></Link>
-              <Link href="/outfits/new"><Button><Plus size={16} />Create outfit</Button></Link>
+              <Link href="/wardrobe"><Button variant="secondary"><Plus size={16} />{t.outfits.addToWardrobe}</Button></Link>
+              <Link href="/outfits/new"><Button><Plus size={16} />{t.outfits.create}</Button></Link>
             </div>
           </div>
         ) : (
@@ -133,13 +135,13 @@ export default function OutfitsPage() {
                   <AlertTriangle size={18} className="text-red-600" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900">Delete outfit?</h3>
-                  <p className="text-sm text-gray-500">"{outfit.name}" will be permanently removed.</p>
+                  <h3 className="font-semibold text-gray-900">{t.outfits.deleteOutfit}</h3>
+                  <p className="text-sm text-gray-500">{t.outfits.deleteConfirmSub(outfit.name)}</p>
                 </div>
               </div>
               <div className="flex gap-3">
-                <Button variant="secondary" className="flex-1" onClick={() => setDeletingId(null)}>Cancel</Button>
-                <Button variant="danger" className="flex-1" onClick={() => confirmDelete(outfit)}>Delete</Button>
+                <Button variant="secondary" className="flex-1" onClick={() => setDeletingId(null)}>{t.wardrobe.cancel}</Button>
+                <Button variant="danger" className="flex-1" onClick={() => confirmDelete(outfit)}>{t.outfits.deleteBtn}</Button>
               </div>
             </div>
           </div>
@@ -162,6 +164,7 @@ function OutfitCard({
   onDelete: (o: Outfit) => void
   onScheduleToday: (o: Outfit) => void
 }) {
+  const { t } = useLang()
   return (
     <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
       <div className="h-48 bg-gradient-to-br from-gray-50 to-gray-100 relative flex items-center justify-center">
@@ -172,7 +175,7 @@ function OutfitCard({
         )}
         <div className="absolute top-3 left-3 flex gap-1.5">
           {outfit.is_public && (
-            <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">Public</span>
+            <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">{t.outfits.public}</span>
           )}
         </div>
         {/* Action buttons — always visible */}
@@ -180,7 +183,7 @@ function OutfitCard({
           <button
             onClick={() => onToggleFavorite(outfit)}
             className="p-1.5 bg-white rounded-full shadow-sm hover:scale-110 transition-transform"
-            title={outfit.is_favorite ? 'Remove from favorites' : 'Add to favorites'}
+            title={outfit.is_favorite ? t.outfits.deleteBtn : t.outfits.addToWardrobe}
           >
             <Heart size={14} className={outfit.is_favorite ? 'fill-red-500 text-red-500' : 'text-gray-400'} />
           </button>
@@ -214,7 +217,7 @@ function OutfitCard({
         </div>
         <Button size="sm" variant="secondary" className="w-full mt-4" onClick={() => onScheduleToday(outfit)}>
           <Calendar size={14} />
-          Wear today
+          {t.outfits.wearToday}
         </Button>
       </div>
     </div>

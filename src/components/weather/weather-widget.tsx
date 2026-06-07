@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { Cloud, Sun, CloudRain, Snowflake, Wind } from 'lucide-react'
+import { useLang } from '@/lib/lang-context'
 
 interface WeatherData {
   temp: number
@@ -20,6 +21,7 @@ function WeatherIcon({ description }: { description: string }) {
 }
 
 export function WeatherWidget() {
+  const { t } = useLang()
   const [weather, setWeather] = useState<WeatherData | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -31,7 +33,7 @@ export function WeatherWidget() {
           const apiKey = process.env.NEXT_PUBLIC_WEATHER_API_KEY
           if (!apiKey || apiKey === 'demo') {
             // Demo data
-            setWeather({ temp: 22, feels_like: 20, description: 'מעונן חלקית', city: 'עירך', icon: '02d' })
+            setWeather({ temp: 22, feels_like: 20, description: t.weather.demo, city: t.weather.demoCity, icon: '02d' })
             return
           }
           const res = await fetch(
@@ -46,13 +48,13 @@ export function WeatherWidget() {
             icon: data.weather[0].icon,
           })
         } catch {
-          setWeather({ temp: 22, feels_like: 20, description: 'מעונן חלקית', city: 'עירך', icon: '02d' })
+          setWeather({ temp: 22, feels_like: 20, description: t.weather.demo, city: t.weather.demoCity, icon: '02d' })
         } finally {
           setLoading(false)
         }
       },
       () => {
-        setWeather({ temp: 22, feels_like: 20, description: 'מעונן חלקית', city: 'עירך', icon: '02d' })
+        setWeather({ temp: 22, feels_like: 20, description: t.weather.demo, city: t.weather.demoCity, icon: '02d' })
         setLoading(false)
       }
     )
@@ -67,7 +69,7 @@ export function WeatherWidget() {
       <WeatherIcon description={weather.description} />
       <div>
         <p className="text-sm font-semibold text-gray-900">{weather.temp}°C — {weather.description}</p>
-        <p className="text-xs text-gray-500">מרגיש כמו {weather.feels_like}°C · {weather.city}</p>
+        <p className="text-xs text-gray-500">{t.weather.feelsLike(weather.feels_like, weather.city)}</p>
       </div>
     </div>
   )
