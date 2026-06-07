@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/client'
 import { WardrobeItem } from '@/types/database'
 import { CLOTHING_CATEGORIES } from '@/lib/utils'
 import { useToast } from '@/components/ui/toast'
-import { X, Heart, Calendar, ArrowLeft, RefreshCw, Shuffle } from 'lucide-react'
+import { X, Heart, Calendar, ArrowRight, RefreshCw, Shuffle } from 'lucide-react'
 import Link from 'next/link'
 
 type Combo = { id: string; items: WardrobeItem[] }
@@ -64,11 +64,11 @@ function generateCombos(items: WardrobeItem[]): Combo[] {
 
 function getComboName(items: WardrobeItem[]): string {
   const cats = items.map(i => i.category)
-  if (cats.includes('dresses')) return 'Dress Look'
-  if (cats.includes('activewear')) return 'Active Look'
-  if (cats.includes('outerwear') && cats.includes('tops')) return 'Layered Look'
-  if (cats.includes('accessories')) return 'Styled Look'
-  return 'Casual Look'
+  if (cats.includes('dresses')) return 'לוק שמלה'
+  if (cats.includes('activewear')) return 'לוק ספורטיבי'
+  if (cats.includes('outerwear') && cats.includes('tops')) return 'לוק שכבות'
+  if (cats.includes('accessories')) return 'לוק מסוגנן'
+  return 'לוק יומי'
 }
 
 function getCatEmoji(cat: string): string {
@@ -173,15 +173,15 @@ function SwipeCard({
         {/* Swipe labels */}
         <div className="absolute top-6 left-6 z-20 border-4 border-green-400 text-green-400 rounded-2xl px-4 py-2 text-xl font-black rotate-[-15deg]"
           style={{ opacity: likeOpacity, transition: 'opacity 0.08s' }}>
-          SAVE ❤️
+          שמור ❤️
         </div>
         <div className="absolute top-6 right-6 z-20 border-4 border-red-400 text-red-400 rounded-2xl px-4 py-2 text-xl font-black rotate-[15deg]"
           style={{ opacity: nopeOpacity, transition: 'opacity 0.08s' }}>
-          SKIP ✕
+          דלג ✕
         </div>
         <div className="absolute top-6 left-1/2 -translate-x-1/2 z-20 border-4 border-blue-400 text-blue-400 rounded-2xl px-4 py-2 text-xl font-black"
           style={{ opacity: wearOpacity, transition: 'opacity 0.08s' }}>
-          WEAR TODAY 📅
+          לביש היום 📅
         </div>
 
         {/* Item grid */}
@@ -252,7 +252,8 @@ export default function DiscoverPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    const name = `${getComboName(combo.items)} · ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
+    const now = new Date().toLocaleDateString('he-IL', { month: 'short', day: 'numeric' })
+    const name = `${getComboName(combo.items)} · ${now}`
     const { data: outfit } = await supabase.from('outfits').insert({
       user_id: user.id,
       name,
@@ -268,7 +269,7 @@ export default function DiscoverPage() {
         }))
       )
     }
-    toast('Outfit saved! ❤️')
+    toast('הלוק נשמר! ❤️')
   }
 
   async function handleWearToday() {
@@ -281,7 +282,7 @@ export default function DiscoverPage() {
       worn_date: new Date().toISOString().slice(0, 10),
       category_label: getComboName(combo.items),
     })
-    toast('Logged as worn today! 📅')
+    toast('נרשם כלוק של היום! 📅')
   }
 
   function handleSkip() {
@@ -293,23 +294,10 @@ export default function DiscoverPage() {
     setTriggerDir(dir)
   }
 
-  function onCardLeft() {
-    setTriggerDir(null)
-    handleSkip()
-  }
-  function onCardRight() {
-    setTriggerDir(null)
-    setIndex(i => i + 1)
-    handleSave()
-  }
-  function onCardUp() {
-    setTriggerDir(null)
-    setIndex(i => i + 1)
-    handleWearToday()
-  }
-  function onTriggered() {
-    setTriggerDir(null)
-  }
+  function onCardLeft() { setTriggerDir(null); handleSkip() }
+  function onCardRight() { setTriggerDir(null); setIndex(i => i + 1); handleSave() }
+  function onCardUp() { setTriggerDir(null); setIndex(i => i + 1); handleWearToday() }
+  function onTriggered() { setTriggerDir(null) }
 
   function reshuffle() {
     setCombos(generateCombos(items))
@@ -329,18 +317,18 @@ export default function DiscoverPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-4 flex-shrink-0">
         <Link href="/outfits" className="flex items-center gap-2 text-gray-500 hover:text-gray-900 transition-colors">
-          <ArrowLeft size={18} />
-          <span className="text-sm font-medium">Back</span>
+          <ArrowRight size={18} />
+          <span className="text-sm font-medium">חזרה</span>
         </Link>
         <div className="text-center">
-          <h1 className="text-lg font-bold text-gray-900">Discover</h1>
+          <h1 className="text-lg font-bold text-gray-900">גלה לוקים</h1>
           {!isDone && !loading && (
-            <p className="text-xs text-gray-400">{index + 1} of {combos.length}</p>
+            <p className="text-xs text-gray-400">{index + 1} מתוך {combos.length}</p>
           )}
         </div>
         <button onClick={reshuffle} className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900 transition-colors">
           <RefreshCw size={15} />
-          Shuffle
+          ערבב
         </button>
       </div>
 
@@ -349,11 +337,11 @@ export default function DiscoverPage() {
         <div className="flex gap-4 mb-3 flex-shrink-0">
           <span className="flex items-center gap-1.5 text-sm text-gray-500">
             <span className="w-5 h-5 bg-green-50 text-green-600 rounded-full flex items-center justify-center text-xs font-bold">{saved}</span>
-            saved
+            נשמרו
           </span>
           <span className="flex items-center gap-1.5 text-sm text-gray-500">
             <span className="w-5 h-5 bg-gray-100 text-gray-500 rounded-full flex items-center justify-center text-xs font-bold">{skipped}</span>
-            skipped
+            דולגו
           </span>
         </div>
       )}
@@ -365,30 +353,29 @@ export default function DiscoverPage() {
         ) : !hasEnoughItems ? (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-white rounded-3xl border-2 border-dashed border-gray-200 gap-4 p-8 text-center">
             <span className="text-5xl">👗</span>
-            <p className="text-xl font-bold text-gray-900">Need more clothes</p>
+            <p className="text-xl font-bold text-gray-900">צריך עוד בגדים</p>
             <p className="text-gray-500 text-sm">
-              Add tops + bottoms, a dress, or activewear to start discovering outfit combos.
+              הוסף חולצות + מכנסיים, שמלה, או בגדי ספורט כדי להתחיל לגלות קומבינציות.
             </p>
             <Link href="/wardrobe" className="bg-black text-white px-6 py-3 rounded-2xl font-medium hover:bg-gray-800 transition-colors">
-              Add to wardrobe
+              הוסף לארון
             </Link>
           </div>
         ) : isDone ? (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-white rounded-3xl border-2 border-dashed border-gray-200 gap-4 p-8 text-center">
             <span className="text-5xl">🎉</span>
-            <p className="text-xl font-bold text-gray-900">You're all caught up!</p>
+            <p className="text-xl font-bold text-gray-900">ראית הכל!</p>
             <p className="text-gray-500 text-sm">
-              {saved > 0 && `You saved ${saved} ${saved === 1 ? 'outfit' : 'outfits'}. `}
-              Generate fresh combos anytime.
+              {saved > 0 && `שמרת ${saved} ${saved === 1 ? 'לוק' : 'לוקים'}. `}
+              ערבב שוב לקומבינציות חדשות.
             </p>
             <button onClick={reshuffle} className="flex items-center gap-2 bg-black text-white px-6 py-3 rounded-2xl font-medium hover:bg-gray-800 transition-colors">
               <Shuffle size={16} />
-              New combos
+              קומבינציות חדשות
             </button>
           </div>
         ) : (
           <>
-            {/* Stack depth cards */}
             {nextNextCombo && (
               <div className="absolute inset-0 bg-white rounded-3xl shadow border border-gray-100"
                 style={{ transform: 'scale(0.91) translateY(16px)', zIndex: 8 }} />
@@ -419,26 +406,26 @@ export default function DiscoverPage() {
             <button
               onClick={() => triggerSwipe('left')}
               className="w-14 h-14 bg-white border-2 border-gray-200 rounded-full flex items-center justify-center shadow-sm hover:border-red-300 hover:bg-red-50 transition-all group"
-              title="Skip"
+              title="דלג"
             >
               <X size={22} className="text-gray-400 group-hover:text-red-400 transition-colors" />
             </button>
             <button
               onClick={() => triggerSwipe('up')}
               className="w-12 h-12 bg-white border-2 border-gray-200 rounded-full flex items-center justify-center shadow-sm hover:border-blue-300 hover:bg-blue-50 transition-all group"
-              title="Wear today"
+              title="לביש היום"
             >
               <Calendar size={18} className="text-gray-400 group-hover:text-blue-500 transition-colors" />
             </button>
             <button
               onClick={() => triggerSwipe('right')}
               className="w-14 h-14 bg-black rounded-full flex items-center justify-center shadow-lg hover:bg-gray-800 transition-all"
-              title="Save outfit"
+              title="שמור לוק"
             >
               <Heart size={22} className="text-white" />
             </button>
           </div>
-          <p className="text-center text-xs text-gray-400">← skip · ↑ wear today · save →</p>
+          <p className="text-center text-xs text-gray-400">← דלג · ↑ לביש היום · שמור →</p>
         </div>
       )}
     </div>

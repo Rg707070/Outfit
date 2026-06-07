@@ -6,7 +6,7 @@ import { CLOTHING_CATEGORIES, SEASONS } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useToast } from '@/components/ui/toast'
-import { ArrowLeft, Save, Trash2, Plus, ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from 'lucide-react'
+import { ArrowRight, Save, Trash2, Plus, ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
@@ -20,13 +20,13 @@ type CanvasItem = {
 }
 
 const BG_OPTIONS = [
-  { label: 'White', value: '#ffffff' },
-  { label: 'Ivory', value: '#fdf8f2' },
-  { label: 'Cloud', value: '#f3f4f6' },
-  { label: 'Slate', value: '#1e293b' },
-  { label: 'Blush', value: '#fff0f3' },
-  { label: 'Sky', value: '#eff6ff' },
-  { label: 'Sage', value: '#f0fdf4' },
+  { label: 'לבן', value: '#ffffff' },
+  { label: 'שנהב', value: '#fdf8f2' },
+  { label: 'ענן', value: '#f3f4f6' },
+  { label: 'כהה', value: '#1e293b' },
+  { label: 'ורוד', value: '#fff0f3' },
+  { label: 'תכלת', value: '#eff6ff' },
+  { label: 'ירוק', value: '#f0fdf4' },
 ]
 
 function getCatEmoji(cat: string) {
@@ -156,7 +156,7 @@ export default function CanvasBuilderPage() {
     }).select().single()
 
     if (error || !outfit) {
-      toast('Failed to save outfit', 'error')
+      toast('שגיאה בשמירת הלוק', 'error')
       setSaving(false)
       return
     }
@@ -171,7 +171,7 @@ export default function CanvasBuilderPage() {
       }))
     )
 
-    toast('Outfit saved! 🎨')
+    toast('הלוק נשמר! 🎨')
     router.push('/outfits')
   }
 
@@ -184,12 +184,12 @@ export default function CanvasBuilderPage() {
       {/* Top bar */}
       <div className="flex items-center gap-3 mb-4 flex-shrink-0">
         <Link href="/outfits" className="flex items-center gap-1.5 text-gray-500 hover:text-gray-900 transition-colors">
-          <ArrowLeft size={16} />
-          <span className="text-sm">Back</span>
+          <ArrowRight size={16} />
+          <span className="text-sm">חזרה</span>
         </Link>
 
         <div className="flex-1 flex items-center justify-center gap-2 flex-wrap">
-          <span className="text-xs text-gray-400 font-medium">Background:</span>
+          <span className="text-xs text-gray-400 font-medium">רקע:</span>
           {BG_OPTIONS.map(opt => (
             <button
               key={opt.value}
@@ -208,7 +208,7 @@ export default function CanvasBuilderPage() {
 
         <Button onClick={() => setShowSaveModal(true)} disabled={canvasItems.length === 0}>
           <Save size={15} />
-          Save outfit
+          שמור לוק
         </Button>
       </div>
 
@@ -219,8 +219,9 @@ export default function CanvasBuilderPage() {
           <button
             onClick={() => setPickerOpen(!pickerOpen)}
             className="flex items-center justify-center p-2.5 border-b border-gray-100 text-gray-400 hover:text-gray-700 transition-colors flex-shrink-0"
+            title={pickerOpen ? 'כווץ' : 'הרחב'}
           >
-            {pickerOpen ? <ChevronLeft size={15} /> : <ChevronRight size={15} />}
+            {pickerOpen ? <ChevronRight size={15} /> : <ChevronLeft size={15} />}
           </button>
 
           {pickerOpen && (
@@ -228,15 +229,15 @@ export default function CanvasBuilderPage() {
               <div className="flex flex-col gap-0.5 p-2 border-b border-gray-100 flex-shrink-0">
                 <button
                   onClick={() => setActiveCategory('all')}
-                  className={`text-xs px-3 py-1.5 rounded-lg text-left font-medium transition-colors ${activeCategory === 'all' ? 'bg-black text-white' : 'text-gray-600 hover:bg-gray-50'}`}
+                  className={`text-xs px-3 py-1.5 rounded-lg text-right font-medium transition-colors ${activeCategory === 'all' ? 'bg-black text-white' : 'text-gray-600 hover:bg-gray-50'}`}
                 >
-                  All items
+                  כל הפריטים
                 </button>
                 {usedCategories.map(cat => (
                   <button
                     key={cat.value}
                     onClick={() => setActiveCategory(cat.value as ClothingCategory)}
-                    className={`text-xs px-3 py-1.5 rounded-lg text-left transition-colors flex items-center gap-1.5 ${activeCategory === cat.value ? 'bg-black text-white' : 'text-gray-600 hover:bg-gray-50'}`}
+                    className={`text-xs px-3 py-1.5 rounded-lg text-right transition-colors flex items-center gap-1.5 ${activeCategory === cat.value ? 'bg-black text-white' : 'text-gray-600 hover:bg-gray-50'}`}
                   >
                     <span>{cat.emoji}</span>
                     {cat.label}
@@ -252,7 +253,7 @@ export default function CanvasBuilderPage() {
                     ))}
                   </div>
                 ) : filtered.length === 0 ? (
-                  <p className="text-xs text-gray-400 text-center py-6">No items</p>
+                  <p className="text-xs text-gray-400 text-center py-6">אין פריטים</p>
                 ) : (
                   <div className="grid grid-cols-2 gap-2">
                     {filtered.map(item => (
@@ -279,7 +280,7 @@ export default function CanvasBuilderPage() {
 
                 {wardrobeItems.length === 0 && !loading && (
                   <Link href="/wardrobe" className="block text-xs text-gray-400 underline text-center mt-4">
-                    Add items to wardrobe first
+                    הוסף פריטים לארון תחילה
                   </Link>
                 )}
               </div>
@@ -300,26 +301,26 @@ export default function CanvasBuilderPage() {
                   onClick={() => resizeSelected(-20)}
                   className="flex items-center gap-1 text-xs px-2.5 py-1 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors whitespace-nowrap"
                 >
-                  <ZoomOut size={11} /> Smaller
+                  <ZoomOut size={11} /> קטן
                 </button>
                 <button
                   onClick={() => resizeSelected(20)}
                   className="flex items-center gap-1 text-xs px-2.5 py-1 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors whitespace-nowrap"
                 >
-                  <ZoomIn size={11} /> Larger
+                  <ZoomIn size={11} /> גדול
                 </button>
                 <button
                   onClick={deleteSelected}
                   className="flex items-center gap-1 text-xs px-2.5 py-1 bg-red-50 border border-red-200 text-red-600 rounded-lg hover:bg-red-100 transition-colors whitespace-nowrap"
                 >
-                  <Trash2 size={11} /> Remove
+                  <Trash2 size={11} /> הסר
                 </button>
-                <button onClick={() => setSelectedId(null)} className="text-xs text-gray-400 hover:text-gray-600 ml-1">
+                <button onClick={() => setSelectedId(null)} className="text-xs text-gray-400 hover:text-gray-600 mr-1">
                   ✕
                 </button>
               </>
             ) : canvasItems.length > 0 ? (
-              <span className="text-xs text-gray-400">Click an item to select · drag to move · Del key to remove</span>
+              <span className="text-xs text-gray-400">לחץ על פריט לבחירה · גרור להזזה · Delete להסרה</span>
             ) : null}
           </div>
 
@@ -335,8 +336,8 @@ export default function CanvasBuilderPage() {
                 <div className="w-20 h-20 rounded-3xl bg-black/5 flex items-center justify-center">
                   <span className="text-4xl opacity-30">👗</span>
                 </div>
-                <p className="text-sm text-gray-400 font-medium">Click items to add them to the canvas</p>
-                <p className="text-xs text-gray-300">Drag to arrange · Resize to compose · Save when done</p>
+                <p className="text-sm text-gray-400 font-medium">לחץ על פריטים כדי להוסיף אותם ללוח</p>
+                <p className="text-xs text-gray-300">גרור לסידור · שנה גודל · שמור כשמוכן</p>
               </div>
             )}
 
@@ -391,35 +392,35 @@ export default function CanvasBuilderPage() {
       {showSaveModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl w-full max-w-sm p-6 shadow-xl">
-            <h2 className="text-lg font-semibold text-gray-900 mb-5">Save outfit</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-5">שמור לוק</h2>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Name <span className="text-red-500">*</span>
+                  שם הלוק <span className="text-red-500">*</span>
                 </label>
                 <Input
                   value={outfitName}
                   onChange={e => setOutfitName(e.target.value)}
-                  placeholder="e.g. Summer weekend look"
+                  placeholder="לדוג׳ לוק קז׳ואל של סוף שבוע"
                   autoFocus
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Occasion</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">אירוע</label>
                 <Input
                   value={outfitOccasion}
                   onChange={e => setOutfitOccasion(e.target.value)}
-                  placeholder="casual, work, evening…"
+                  placeholder="קז׳ואל, עבודה, ערב…"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Season</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">עונה</label>
                 <select
                   value={outfitSeason}
                   onChange={e => setOutfitSeason(e.target.value as Season)}
                   className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black"
                 >
-                  <option value="">Any season</option>
+                  <option value="">כל העונות</option>
                   {SEASONS.map(s => <option key={s.value} value={s.value}>{s.emoji} {s.label}</option>)}
                 </select>
               </div>
@@ -431,15 +432,15 @@ export default function CanvasBuilderPage() {
                 >
                   <div className={`w-4 h-4 bg-white rounded-full shadow transition-transform mx-1 ${isPublic ? 'translate-x-4' : 'translate-x-0'}`} />
                 </button>
-                <span className="text-sm text-gray-700">Allow sharing (public link)</span>
+                <span className="text-sm text-gray-700">אפשר שיתוף (קישור ציבורי)</span>
               </label>
             </div>
             <div className="flex gap-3 mt-6">
               <Button variant="secondary" onClick={() => setShowSaveModal(false)} className="flex-1">
-                Cancel
+                ביטול
               </Button>
               <Button onClick={saveOutfit} disabled={!outfitName.trim() || saving} className="flex-1">
-                {saving ? 'Saving…' : 'Save outfit'}
+                {saving ? 'שומר…' : 'שמור לוק'}
               </Button>
             </div>
           </div>
