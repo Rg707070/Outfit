@@ -4,12 +4,15 @@ import { createClient } from '@/lib/supabase/client'
 import { Outfit } from '@/types/database'
 import { Button } from '@/components/ui/button'
 import { WeatherWidget } from '@/components/weather/weather-widget'
-import { Plus, Heart, Share2, Calendar, Trash2 } from 'lucide-react'
+import { useToast } from '@/components/ui/toast'
+import { Plus, Heart, Share2, Calendar, Trash2, AlertTriangle } from 'lucide-react'
 import Link from 'next/link'
 
 export default function OutfitsPage() {
   const [outfits, setOutfits] = useState<Outfit[]>([])
   const [loading, setLoading] = useState(true)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const { toast } = useToast()
   const supabase = createClient()
 
   useEffect(() => { loadOutfits() }, [])
@@ -29,23 +32,24 @@ export default function OutfitsPage() {
   async function toggleFavorite(outfit: Outfit) {
     await supabase.from('outfits').update({ is_favorite: !outfit.is_favorite }).eq('id', outfit.id)
     setOutfits(prev => prev.map(o => o.id === outfit.id ? { ...o, is_favorite: !o.is_favorite } : o))
+    toast(outfit.is_favorite ? 'Removed from favorites' : 'Added to favorites ❤️')
   }
 
   async function shareOutfit(outfit: Outfit) {
-    // Sharing requires the outfit to be public — enable it on the fly.
     if (!outfit.is_public) {
       await supabase.from('outfits').update({ is_public: true }).eq('id', outfit.id)
       setOutfits(prev => prev.map(o => o.id === outfit.id ? { ...o, is_public: true } : o))
     }
     const url = `${window.location.origin}/share/${outfit.share_token}`
     await navigator.clipboard.writeText(url)
-    alert('Share link copied! Anyone with this link can view your outfit.')
+    toast('Share link copied to clipboard!')
   }
 
-  async function deleteOutfit(outfit: Outfit) {
-    if (!confirm(`Delete "${outfit.name}"? This can't be undone.`)) return
+  async function confirmDelete(outfit: Outfit) {
     await supabase.from('outfits').delete().eq('id', outfit.id)
     setOutfits(prev => prev.filter(o => o.id !== outfit.id))
+    setDeletingId(null)
+    toast('Outfit deleted', 'info')
   }
 
   async function scheduleToday(outfit: Outfit) {
@@ -57,7 +61,7 @@ export default function OutfitsPage() {
       outfit_id: outfit.id,
       date: today,
     }, { onConflict: 'user_id,date' })
-    alert(`"${outfit.name}" scheduled for today!`)
+    toast(`"${outfit.name}" scheduled for today! 📅`)
   }
 
   return (
@@ -83,8 +87,11 @@ export default function OutfitsPage() {
           <div className="text-center py-20">
             <span className="text-5xl">✨</span>
             <p className="text-gray-500 mt-4 text-lg font-medium">No outfits yet</p>
-            <p className="text-gray-400 text-sm mt-1">Create your first outfit by combining items from your wardrobe</p>
-            <Link href="/outfits/new"><Button className="mt-6"><Plus size={16} />Create first outfit</Button></Link>
+            <p className="text-gray-400 text-sm mt-1">First, add clothes to your wardrobe, then create your first outfit</p>
+            <div className="flex items-center justify-center gap-3 mt-6">
+              <Link href="/wardrobe"><Button variant="secondary"><Plus size={16} />Add to wardrobe</Button></Link>
+              <Link href="/outfits/new"><Button><Plus size={16} />Create outfit</Button></Link>
+            </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -94,13 +101,38 @@ export default function OutfitsPage() {
                 outfit={outfit}
                 onToggleFavorite={toggleFavorite}
                 onShare={shareOutfit}
-                onDelete={deleteOutfit}
+                onDelete={() => setDeletingId(outfit.id)}
                 onScheduleToday={scheduleToday}
               />
             ))}
           </div>
         )}
       </div>
+
+      {/* Delete confirmation dialog */}
+      {deletingId && (() => {
+        const outfit = outfits.find(o => o.id === deletingId)
+        if (!outfit) return null
+        return (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <AlertTriangle size={18} className="text-red-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900">Delete outfit?</h3>
+                  <p className="text-sm text-gray-500">"{outfit.name}" will be permanently removed.</p>
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <Button variant="secondary" className="flex-1" onClick={() => setDeletingId(null)}>Cancel</Button>
+                <Button variant="danger" className="flex-1" onClick={() => confirmDelete(outfit)}>Delete</Button>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
     </div>
   )
 }
@@ -119,7 +151,7 @@ function OutfitCard({
   onScheduleToday: (o: Outfit) => void
 }) {
   return (
-    <div className="group bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
+    <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
       <div className="h-48 bg-gradient-to-br from-gray-50 to-gray-100 relative flex items-center justify-center">
         {outfit.image_url ? (
           <img src={outfit.image_url} alt={outfit.name} className="w-full h-full object-cover" />
@@ -127,19 +159,31 @@ function OutfitCard({
           <span className="text-5xl">👔</span>
         )}
         <div className="absolute top-3 left-3 flex gap-1.5">
-          {outfit.is_favorite && <span className="text-red-500">❤️</span>}
           {outfit.is_public && (
             <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">Public</span>
           )}
         </div>
-        <div className="absolute top-3 right-3 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button onClick={() => onToggleFavorite(outfit)} className="p-1.5 bg-white rounded-full shadow-sm" title="Favorite">
+        {/* Action buttons — always visible */}
+        <div className="absolute top-3 right-3 flex gap-1.5">
+          <button
+            onClick={() => onToggleFavorite(outfit)}
+            className="p-1.5 bg-white rounded-full shadow-sm hover:scale-110 transition-transform"
+            title={outfit.is_favorite ? 'Remove from favorites' : 'Add to favorites'}
+          >
             <Heart size={14} className={outfit.is_favorite ? 'fill-red-500 text-red-500' : 'text-gray-400'} />
           </button>
-          <button onClick={() => onShare(outfit)} className="p-1.5 bg-white rounded-full shadow-sm" title="Copy share link">
+          <button
+            onClick={() => onShare(outfit)}
+            className="p-1.5 bg-white rounded-full shadow-sm hover:scale-110 transition-transform"
+            title="Copy share link"
+          >
             <Share2 size={14} className="text-gray-400" />
           </button>
-          <button onClick={() => onDelete(outfit)} className="p-1.5 bg-white rounded-full shadow-sm" title="Delete">
+          <button
+            onClick={() => onDelete(outfit)}
+            className="p-1.5 bg-white rounded-full shadow-sm hover:scale-110 transition-transform hover:bg-red-50"
+            title="Delete outfit"
+          >
             <Trash2 size={14} className="text-gray-400 hover:text-red-500" />
           </button>
         </div>
@@ -148,7 +192,7 @@ function OutfitCard({
       <div className="p-4">
         <h3 className="font-semibold text-gray-900">{outfit.name}</h3>
         {outfit.description && <p className="text-sm text-gray-500 mt-1 line-clamp-2">{outfit.description}</p>}
-        <div className="flex items-center gap-2 mt-3">
+        <div className="flex items-center gap-2 mt-3 flex-wrap">
           {outfit.occasion && (
             <span className="text-xs bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full">{outfit.occasion}</span>
           )}
@@ -156,15 +200,10 @@ function OutfitCard({
             <span className="text-xs bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full capitalize">{outfit.season}</span>
           )}
         </div>
-        <div className="flex gap-2 mt-4">
-          <Button size="sm" variant="secondary" className="flex-1" onClick={() => onScheduleToday(outfit)}>
-            <Calendar size={14} />
-            Wear today
-          </Button>
-          <Button size="sm" variant="ghost" onClick={() => onShare(outfit)}>
-            <Share2 size={14} />
-          </Button>
-        </div>
+        <Button size="sm" variant="secondary" className="w-full mt-4" onClick={() => onScheduleToday(outfit)}>
+          <Calendar size={14} />
+          Wear today
+        </Button>
       </div>
     </div>
   )
