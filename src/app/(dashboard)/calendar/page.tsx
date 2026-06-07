@@ -5,7 +5,8 @@ import { CalendarOutfit, Outfit } from '@/types/database'
 import { Button } from '@/components/ui/button'
 import { WeatherWidget } from '@/components/weather/weather-widget'
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react'
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths, isToday } from 'date-fns'
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths, isToday } from 'date-fns'
+import { useLang } from '@/lib/lang-context'
 
 export default function CalendarPage() {
   const [currentMonth, setCurrentMonth] = useState(new Date())
@@ -14,11 +15,9 @@ export default function CalendarPage() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [showAssign, setShowAssign] = useState(false)
   const supabase = createClient()
+  const { t } = useLang()
 
-  const days = eachDayOfInterval({
-    start: startOfMonth(currentMonth),
-    end: endOfMonth(currentMonth),
-  })
+  const days = eachDayOfInterval({ start: startOfMonth(currentMonth), end: endOfMonth(currentMonth) })
   const startDayOfWeek = startOfMonth(currentMonth).getDay()
 
   useEffect(() => { loadData() }, [currentMonth])
@@ -43,12 +42,11 @@ export default function CalendarPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">לוח שנה של לוקים</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t.calendar.title}</h1>
         <WeatherWidget />
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        {/* Month navigation */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
           <button onClick={() => setCurrentMonth(subMonths(currentMonth, 1))} className="p-2 hover:bg-gray-50 rounded-xl">
             <ChevronRight size={20} />
@@ -59,32 +57,21 @@ export default function CalendarPage() {
           </button>
         </div>
 
-        {/* Day labels */}
         <div className="grid grid-cols-7 border-b border-gray-100">
-          {['א׳', 'ב׳', 'ג׳', 'ד׳', 'ה׳', 'ו׳', 'ש׳'].map(d => (
+          {t.calendar.days.map(d => (
             <div key={d} className="text-center text-xs font-medium text-gray-400 py-3">{d}</div>
           ))}
         </div>
 
-        {/* Calendar grid */}
         <div className="grid grid-cols-7">
-          {Array.from({ length: startDayOfWeek }).map((_, i) => (
-            <div key={`empty-${i}`} className="h-24 border-b border-r border-gray-50" />
-          ))}
+          {Array.from({ length: startDayOfWeek }).map((_, i) => <div key={`empty-${i}`} className="h-24 border-b border-r border-gray-50" />)}
           {days.map((day, i) => {
             const outfitForDay = getOutfitForDay(day)
             const isLast = (startDayOfWeek + i + 1) % 7 === 0
             return (
-              <div
-                key={day.toISOString()}
-                onClick={() => { setSelectedDate(day); setShowAssign(true) }}
-                className={`h-24 border-b border-r border-gray-50 p-2 cursor-pointer hover:bg-gray-50 transition-colors ${
-                  isLast ? 'border-r-0' : ''
-                }`}
-              >
-                <span className={`text-sm font-medium inline-flex items-center justify-center w-7 h-7 rounded-full ${
-                  isToday(day) ? 'bg-black text-white' : 'text-gray-700'
-                }`}>
+              <div key={day.toISOString()} onClick={() => { setSelectedDate(day); setShowAssign(true) }}
+                className={`h-24 border-b border-r border-gray-50 p-2 cursor-pointer hover:bg-gray-50 transition-colors ${isLast ? 'border-r-0' : ''}`}>
+                <span className={`text-sm font-medium inline-flex items-center justify-center w-7 h-7 rounded-full ${isToday(day) ? 'bg-black text-white' : 'text-gray-700'}`}>
                   {format(day, 'd')}
                 </span>
                 {outfitForDay ? (
@@ -96,7 +83,7 @@ export default function CalendarPage() {
                     ) : (
                       <div className="bg-black text-white text-xs rounded-lg px-2 py-1 truncate">
                         {/* @ts-ignore */}
-                        {outfitForDay.outfits?.name ?? 'לוק'}
+                        {outfitForDay.outfits?.name ?? t.calendar.outfit}
                       </div>
                     )}
                   </div>
@@ -112,39 +99,24 @@ export default function CalendarPage() {
       </div>
 
       {showAssign && selectedDate && (
-        <AssignOutfitModal
-          date={selectedDate}
-          outfits={outfits}
-          onClose={() => setShowAssign(false)}
-          onAssigned={loadData}
-        />
+        <AssignOutfitModal date={selectedDate} outfits={outfits} onClose={() => setShowAssign(false)} onAssigned={loadData} />
       )}
     </div>
   )
 }
 
-function AssignOutfitModal({
-  date, outfits, onClose, onAssigned
-}: {
-  date: Date
-  outfits: Outfit[]
-  onClose: () => void
-  onAssigned: () => void
-}) {
+function AssignOutfitModal({ date, outfits, onClose, onAssigned }: { date: Date; outfits: Outfit[]; onClose: () => void; onAssigned: () => void }) {
   const [selected, setSelected] = useState<string>('')
   const [loading, setLoading] = useState(false)
   const supabase = createClient()
+  const { t } = useLang()
 
   async function handleAssign() {
     if (!selected) return
     setLoading(true)
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
-    await supabase.from('calendar_outfits').upsert({
-      user_id: user.id,
-      outfit_id: selected,
-      date: format(date, 'yyyy-MM-dd'),
-    }, { onConflict: 'user_id,date' })
+    await supabase.from('calendar_outfits').upsert({ user_id: user.id, outfit_id: selected, date: format(date, 'yyyy-MM-dd') }, { onConflict: 'user_id,date' })
     onAssigned()
     onClose()
   }
@@ -153,33 +125,26 @@ function AssignOutfitModal({
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl w-full max-w-sm shadow-xl">
         <div className="flex items-center justify-between p-6 border-b border-gray-100">
-          <h2 className="text-lg font-semibold">שייך לוק — {format(date, 'd/M')}</h2>
+          <h2 className="text-lg font-semibold">{t.calendar.assignTitle(format(date, 'd/M'))}</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">✕</button>
         </div>
         <div className="p-6 space-y-3 max-h-80 overflow-y-auto">
           {outfits.length === 0 ? (
-            <p className="text-sm text-gray-400 text-center py-4">אין לוקים עדיין. צור אחד תחילה!</p>
+            <p className="text-sm text-gray-400 text-center py-4">{t.calendar.noOutfits}</p>
           ) : outfits.map(outfit => (
-            <button
-              key={outfit.id}
-              onClick={() => setSelected(outfit.id)}
-              className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-colors ${
-                selected === outfit.id ? 'border-black bg-gray-50' : 'border-gray-100 hover:border-gray-200'
-              }`}
-            >
+            <button key={outfit.id} onClick={() => setSelected(outfit.id)}
+              className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-colors ${selected === outfit.id ? 'border-black bg-gray-50' : 'border-gray-100 hover:border-gray-200'}`}>
               <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
-                {outfit.image_url ? (
-                  <img src={outfit.image_url} alt="" className="w-full h-full object-cover rounded-lg" />
-                ) : <span>👔</span>}
+                {outfit.image_url ? <img src={outfit.image_url} alt="" className="w-full h-full object-cover rounded-lg" /> : <span>👔</span>}
               </div>
               <span className="text-sm font-medium text-gray-900">{outfit.name}</span>
             </button>
           ))}
         </div>
         <div className="flex gap-3 p-6 border-t border-gray-100">
-          <Button variant="secondary" onClick={onClose} className="flex-1">ביטול</Button>
+          <Button variant="secondary" onClick={onClose} className="flex-1">{t.calendar.cancel}</Button>
           <Button onClick={handleAssign} disabled={!selected || loading} className="flex-1">
-            {loading ? 'שומר…' : 'שייך'}
+            {loading ? t.calendar.saving : t.calendar.assign}
           </Button>
         </div>
       </div>

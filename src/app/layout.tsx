@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { LangProvider } from "@/lib/lang-context";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -15,9 +16,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="he" dir="rtl" className="h-full antialiased">
+    <html lang="he" dir="rtl" className="h-full antialiased" suppressHydrationWarning>
       <body className={`${inter.className} min-h-full bg-gray-50 text-gray-900`}>
-        {children}
+        <LangProvider>
+          {children}
+        </LangProvider>
       </body>
     </html>
   );
