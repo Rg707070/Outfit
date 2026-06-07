@@ -5,8 +5,8 @@ import { WardrobeItem, ClothingCategory } from '@/types/database'
 import { CLOTHING_CATEGORIES } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
-import { Plus, Search, Filter, Heart, Upload } from 'lucide-react'
+import { useToast } from '@/components/ui/toast'
+import { Plus, Search, Heart, Upload, Trash2, AlertTriangle } from 'lucide-react'
 
 export default function WardrobePage() {
   const [items, setItems] = useState<WardrobeItem[]>([])
@@ -14,11 +14,11 @@ export default function WardrobePage() {
   const [search, setSearch] = useState('')
   const [activeCategory, setActiveCategory] = useState<ClothingCategory | 'all'>('all')
   const [showAdd, setShowAdd] = useState(false)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const { toast } = useToast()
   const supabase = createClient()
 
-  useEffect(() => {
-    loadItems()
-  }, [])
+  useEffect(() => { loadItems() }, [])
 
   async function loadItems() {
     const { data: { user } } = await supabase.auth.getUser()
@@ -35,6 +35,14 @@ export default function WardrobePage() {
   async function toggleFavorite(item: WardrobeItem) {
     await supabase.from('wardrobe_items').update({ is_favorite: !item.is_favorite }).eq('id', item.id)
     setItems(prev => prev.map(i => i.id === item.id ? { ...i, is_favorite: !i.is_favorite } : i))
+    toast(item.is_favorite ? 'Removed from favorites' : 'Added to favorites ❤️')
+  }
+
+  async function confirmDelete(item: WardrobeItem) {
+    await supabase.from('wardrobe_items').delete().eq('id', item.id)
+    setItems(prev => prev.filter(i => i.id !== item.id))
+    setDeletingId(null)
+    toast('Item removed from wardrobe', 'info')
   }
 
   const filtered = items.filter(item => {
@@ -49,16 +57,18 @@ export default function WardrobePage() {
     return acc
   }, {} as Record<string, number>)
 
+  const deletingItem = deletingId ? items.find(i => i.id === deletingId) : null
+
   return (
     <div>
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">ארון בגדים</h1>
-          <p className="text-gray-500 text-sm mt-1">{items.length} פריטים בסך הכל</p>
+          <h1 className="text-2xl font-bold text-gray-900">Wardrobe</h1>
+          <p className="text-gray-500 text-sm mt-1">{items.length} items total</p>
         </div>
         <Button onClick={() => setShowAdd(true)}>
           <Plus size={16} />
-          הוסף פריט
+          Add item
         </Button>
       </div>
 
@@ -70,7 +80,7 @@ export default function WardrobePage() {
             activeCategory === 'all' ? 'bg-black text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
           }`}
         >
-          הכל ({items.length})
+          All ({items.length})
         </button>
         {CLOTHING_CATEGORIES.map(cat => (
           <button
@@ -93,12 +103,12 @@ export default function WardrobePage() {
 
       {/* Search */}
       <div className="relative mb-6">
-        <Search size={16} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+        <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
         <Input
-          placeholder="חפש לפי שם או מותג…"
+          placeholder="Search by name or brand…"
           value={search}
           onChange={e => setSearch(e.target.value)}
-          className="pr-9"
+          className="pl-9"
         />
       </div>
 
@@ -109,15 +119,23 @@ export default function WardrobePage() {
             <div key={i} className="aspect-square bg-gray-100 rounded-2xl animate-pulse" />
           ))}
         </div>
-      ) : filtered.length === 0 ? (
+      ) : items.length === 0 ? (
         <div className="text-center py-20">
           <span className="text-5xl">👗</span>
-          <p className="text-gray-500 mt-4 text-lg font-medium">אין פריטים עדיין</p>
-          <p className="text-gray-400 text-sm mt-1">הוסף את פריט הלבוש הראשון שלך כדי להתחיל</p>
+          <p className="text-gray-500 mt-4 text-lg font-medium">Your wardrobe is empty</p>
+          <p className="text-gray-400 text-sm mt-1">Add your clothing items here first — then you can build outfits from them</p>
           <Button className="mt-6" onClick={() => setShowAdd(true)}>
             <Plus size={16} />
-            הוסף פריט ראשון
+            Add first item
           </Button>
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="text-center py-16">
+          <span className="text-4xl">🔍</span>
+          <p className="text-gray-500 mt-3 font-medium">No items match your search</p>
+          <button onClick={() => { setSearch(''); setActiveCategory('all') }} className="text-sm text-gray-400 underline mt-2">
+            Clear filters
+          </button>
         </div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
@@ -133,15 +151,28 @@ export default function WardrobePage() {
                     </span>
                   </div>
                 )}
-                <button
-                  onClick={() => toggleFavorite(item)}
-                  className="absolute top-2 left-2 p-1.5 bg-white rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <Heart
-                    size={14}
-                    className={item.is_favorite ? 'fill-red-500 text-red-500' : 'text-gray-400'}
-                  />
-                </button>
+                {/* Action buttons — always visible on mobile, hover on desktop */}
+                <div className="absolute top-2 right-2 flex flex-col gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                  <button
+                    onClick={() => toggleFavorite(item)}
+                    className="p-1.5 bg-white rounded-full shadow-sm hover:scale-110 transition-transform"
+                    title={item.is_favorite ? 'Remove from favorites' : 'Add to favorites'}
+                  >
+                    <Heart size={12} className={item.is_favorite ? 'fill-red-500 text-red-500' : 'text-gray-400'} />
+                  </button>
+                  <button
+                    onClick={() => setDeletingId(item.id)}
+                    className="p-1.5 bg-white rounded-full shadow-sm hover:bg-red-50 hover:scale-110 transition-all"
+                    title="Remove item"
+                  >
+                    <Trash2 size={12} className="text-gray-400 hover:text-red-500" />
+                  </button>
+                </div>
+                {item.is_favorite && (
+                  <div className="absolute top-2 left-2">
+                    <Heart size={14} className="fill-red-500 text-red-500" />
+                  </div>
+                )}
               </div>
               <div className="p-3">
                 <p className="text-sm font-medium text-gray-900 truncate">{item.name}</p>
@@ -149,10 +180,10 @@ export default function WardrobePage() {
                 {item.color && (
                   <div className="flex items-center gap-1 mt-1.5">
                     <div
-                      className="w-3 h-3 rounded-full border border-gray-200"
+                      className="w-3 h-3 rounded-full border border-gray-200 flex-shrink-0"
                       style={{ backgroundColor: item.color }}
                     />
-                    <span className="text-xs text-gray-400">{item.color}</span>
+                    <span className="text-xs text-gray-400 truncate">{item.color}</span>
                   </div>
                 )}
               </div>
@@ -162,7 +193,33 @@ export default function WardrobePage() {
       )}
 
       {/* Add Item Modal */}
-      {showAdd && <AddItemModal onClose={() => setShowAdd(false)} onAdded={loadItems} />}
+      {showAdd && (
+        <AddItemModal
+          onClose={() => setShowAdd(false)}
+          onAdded={() => { loadItems(); toast('Item added to wardrobe! 🎉') }}
+        />
+      )}
+
+      {/* Delete confirmation */}
+      {deletingItem && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <AlertTriangle size={18} className="text-red-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900">Remove item?</h3>
+                <p className="text-sm text-gray-500">"{deletingItem.name}" will be removed from your wardrobe.</p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <Button variant="secondary" className="flex-1" onClick={() => setDeletingId(null)}>Cancel</Button>
+              <Button variant="danger" className="flex-1" onClick={() => confirmDelete(deletingItem)}>Remove</Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -171,7 +228,8 @@ function AddItemModal({ onClose, onAdded }: { onClose: () => void; onAdded: () =
   const [name, setName] = useState('')
   const [category, setCategory] = useState<ClothingCategory>('tops')
   const [brand, setBrand] = useState('')
-  const [color, setColor] = useState('')
+  const [color, setColor] = useState('#000000')
+  const [hasColor, setHasColor] = useState(false)
   const [imageFile, setImageFile] = useState<File | Blob | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -195,7 +253,7 @@ function AddItemModal({ onClose, onAdded }: { onClose: () => void; onAdded: () =
 
   async function processBg(file: File) {
     setProcessing(true)
-    setProcessMsg('טוען מודל…')
+    setProcessMsg('Loading model…')
     try {
       const { removeBg } = await import('@/lib/remove-bg')
       const result = await removeBg(file, msg => setProcessMsg(msg))
@@ -244,7 +302,7 @@ function AddItemModal({ onClose, onAdded }: { onClose: () => void; onAdded: () =
       name,
       category,
       brand: brand || null,
-      color: color || null,
+      color: hasColor ? color : null,
       image_url,
     })
     onAdded()
@@ -253,10 +311,10 @@ function AddItemModal({ onClose, onAdded }: { onClose: () => void; onAdded: () =
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl w-full max-w-md shadow-xl">
-        <div className="flex items-center justify-between p-6 border-b border-gray-100">
-          <h2 className="text-lg font-semibold">הוסף פריט לבוש</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">✕</button>
+      <div className="bg-white rounded-2xl w-full max-w-md shadow-xl max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between p-6 border-b border-gray-100 sticky top-0 bg-white rounded-t-2xl">
+          <h2 className="text-lg font-semibold">Add clothing item</h2>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors">✕</button>
         </div>
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {/* Image upload */}
@@ -272,17 +330,18 @@ function AddItemModal({ onClose, onAdded }: { onClose: () => void; onAdded: () =
               } : undefined}
             >
               {imagePreview ? (
-                <img src={imagePreview} alt="תצוגה מקדימה" className="w-full h-40 object-contain" />
+                <img src={imagePreview} alt="Preview" className="w-full h-40 object-contain" />
               ) : (
                 <div className="text-center">
                   <Upload size={24} className="mx-auto text-gray-400 mb-2" />
-                  <p className="text-sm text-gray-400">העלה תמונה</p>
+                  <p className="text-sm text-gray-500 font-medium">Click to upload a photo</p>
+                  <p className="text-xs text-gray-400 mt-1">JPG, PNG, WEBP accepted</p>
                 </div>
               )}
               {processing && (
                 <div className="absolute inset-0 bg-white/80 flex flex-col items-center justify-center">
                   <div className="w-6 h-6 border-2 border-black border-t-transparent rounded-full animate-spin" />
-                  <p className="text-xs text-gray-600 mt-2">{processMsg || 'מסיר רקע…'}</p>
+                  <p className="text-xs text-gray-600 mt-2">{processMsg || 'Removing background…'}</p>
                 </div>
               )}
             </div>
@@ -290,7 +349,7 @@ function AddItemModal({ onClose, onAdded }: { onClose: () => void; onAdded: () =
           </label>
 
           {/* Background removal toggle */}
-          <label className="flex items-center gap-3 cursor-pointer -mt-1">
+          <label className="flex items-center gap-3 cursor-pointer">
             <button
               type="button"
               onClick={toggleRemoveBg}
@@ -299,16 +358,20 @@ function AddItemModal({ onClose, onAdded }: { onClose: () => void; onAdded: () =
             >
               <div className={`w-4 h-4 bg-white rounded-full shadow transition-transform mx-1 ${removeBgEnabled ? 'translate-x-4' : 'translate-x-0'}`} />
             </button>
-            <span className="text-sm text-gray-700">✂️ הסר רקע (השאר רק את הבגד)</span>
+            <span className="text-sm text-gray-700">✂️ Remove background automatically</span>
           </label>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">שם *</label>
-            <Input value={name} onChange={e => setName(e.target.value)} placeholder="לדוג׳ חולצת פשתן לבנה" required />
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              Name <span className="text-red-500">*</span>
+            </label>
+            <Input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. White linen shirt" required />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">קטגוריה *</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              Category <span className="text-red-500">*</span>
+            </label>
             <select
               value={category}
               onChange={e => setCategory(e.target.value as ClothingCategory)}
@@ -320,21 +383,40 @@ function AddItemModal({ onClose, onAdded }: { onClose: () => void; onAdded: () =
             </select>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">מותג</label>
-              <Input value={brand} onChange={e => setBrand(e.target.value)} placeholder="לדוג׳ Zara" />
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Brand</label>
+            <Input value={brand} onChange={e => setBrand(e.target.value)} placeholder="e.g. Zara, H&M…" />
+          </div>
+
+          {/* Color picker */}
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-sm font-medium text-gray-700">Color</label>
+              <button
+                type="button"
+                onClick={() => setHasColor(!hasColor)}
+                className="text-xs text-gray-400 hover:text-gray-600"
+              >
+                {hasColor ? 'Remove color' : '+ Add color'}
+              </button>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">צבע</label>
-              <Input value={color} onChange={e => setColor(e.target.value)} placeholder="לדוג׳ #ffffff" />
-            </div>
+            {hasColor && (
+              <div className="flex items-center gap-3">
+                <input
+                  type="color"
+                  value={color}
+                  onChange={e => setColor(e.target.value)}
+                  className="w-10 h-10 rounded-lg border border-gray-200 cursor-pointer p-0.5 bg-white"
+                />
+                <span className="text-sm text-gray-600 font-mono">{color}</span>
+              </div>
+            )}
           </div>
 
           <div className="flex gap-3 pt-2">
-            <Button type="button" variant="secondary" onClick={onClose} className="flex-1">ביטול</Button>
+            <Button type="button" variant="secondary" onClick={onClose} className="flex-1">Cancel</Button>
             <Button type="submit" disabled={loading || processing || !name} className="flex-1">
-              {loading ? 'מוסיף…' : 'הוסף פריט'}
+              {loading ? 'Adding…' : 'Add item'}
             </Button>
           </div>
         </form>
