@@ -34,25 +34,25 @@ export default function SignupPage() {
         <div className="text-center mb-8">
           <span className="text-5xl">👗</span>
           <h1 className="text-3xl font-bold text-gray-900 mt-4">Outfit</h1>
-          <p className="text-gray-500 mt-2">Build your digital wardrobe — free</p>
+          <p className="text-gray-500 mt-2">בנה את ארון הבגדים הדיגיטלי שלך — בחינם</p>
         </div>
 
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">Create account</h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-6">יצירת חשבון</h2>
 
           <form onSubmit={handleSignup} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Full name</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">שם מלא</label>
               <Input
                 type="text"
-                placeholder="Your name"
+                placeholder="השם שלך"
                 value={fullName}
                 onChange={e => setFullName(e.target.value)}
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">אימייל</label>
               <Input
                 type="email"
                 placeholder="you@example.com"
@@ -62,10 +62,10 @@ export default function SignupPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">סיסמה</label>
               <Input
                 type="password"
-                placeholder="Min. 6 characters"
+                placeholder="לפחות 6 תווים"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 required
@@ -76,14 +76,14 @@ export default function SignupPage() {
             {error && <p className="text-sm text-red-500 bg-red-50 rounded-lg px-3 py-2">{error}</p>}
 
             <Button type="submit" size="lg" disabled={loading} className="w-full">
-              {loading ? 'Creating account…' : 'Create account'}
+              {loading ? 'יוצר חשבון…' : 'צור חשבון'}
             </Button>
           </form>
 
           <p className="text-center text-sm text-gray-500 mt-6">
-            Already have an account?{' '}
+            כבר יש לך חשבון?{' '}
             <Link href="/login" className="text-black font-medium hover:underline">
-              Sign in
+              התחבר
             </Link>
           </p>
         </div>

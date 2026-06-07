@@ -41,7 +41,7 @@ export default async function SharePage({ params }: { params: Promise<{ token: s
             <span className="text-xl font-bold text-gray-900">Outfit</span>
           </Link>
           <Link href="/signup" className="text-sm font-medium text-black hover:underline">
-            Create your own — free
+            צור שלך — בחינם
           </Link>
         </div>
       </header>
@@ -53,7 +53,7 @@ export default async function SharePage({ params }: { params: Promise<{ token: s
               <div>
                 <h1 className="text-3xl font-bold text-gray-900">{outfit.name}</h1>
                 {profile?.full_name && (
-                  <p className="text-gray-500 mt-1">Shared by {profile.full_name}</p>
+                  <p className="text-gray-500 mt-1">שותף על ידי {profile.full_name}</p>
                 )}
               </div>
               {outfit.is_favorite && <span className="text-2xl">❤️</span>}
@@ -76,10 +76,10 @@ export default async function SharePage({ params }: { params: Promise<{ token: s
           {/* Flat-lay grid */}
           <div className="px-8 pb-8">
             <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-4">
-              {items.length} pieces
+              {items.length} פריטים
             </h2>
             {items.length === 0 ? (
-              <p className="text-gray-400">No items in this outfit.</p>
+              <p className="text-gray-400">אין פריטים בלוק זה.</p>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                 {items.map((item) => (
@@ -105,10 +105,10 @@ export default async function SharePage({ params }: { params: Promise<{ token: s
         </div>
 
         <div className="text-center mt-8">
-          <p className="text-gray-500 text-sm">Build and share your own outfits</p>
+          <p className="text-gray-500 text-sm">בנה ושתף לוקים שלך</p>
           <Link href="/signup">
             <button className="mt-3 bg-black text-white px-6 py-3 rounded-xl font-medium hover:bg-gray-800 transition-colors">
-              Get started free
+              התחל בחינם
             </button>
           </Link>
         </div>

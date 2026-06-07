@@ -6,22 +6,22 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export const CLOTHING_CATEGORIES = [
-  { value: 'tops', label: 'Tops', emoji: '👕' },
-  { value: 'bottoms', label: 'Bottoms', emoji: '👖' },
-  { value: 'dresses', label: 'Dresses', emoji: '👗' },
-  { value: 'outerwear', label: 'Outerwear', emoji: '🧥' },
-  { value: 'shoes', label: 'Shoes', emoji: '👟' },
-  { value: 'accessories', label: 'Accessories', emoji: '👒' },
-  { value: 'bags', label: 'Bags', emoji: '👜' },
-  { value: 'underwear', label: 'Underwear', emoji: '🩲' },
-  { value: 'activewear', label: 'Activewear', emoji: '🏃' },
-  { value: 'other', label: 'Other', emoji: '🎁' },
+  { value: 'tops', label: 'חולצות', emoji: '👕' },
+  { value: 'bottoms', label: 'מכנסיים', emoji: '👖' },
+  { value: 'dresses', label: 'שמלות', emoji: '👗' },
+  { value: 'outerwear', label: 'מעילים', emoji: '🧥' },
+  { value: 'shoes', label: 'נעליים', emoji: '👟' },
+  { value: 'accessories', label: 'אביזרים', emoji: '👒' },
+  { value: 'bags', label: 'תיקים', emoji: '👜' },
+  { value: 'underwear', label: 'הלבשה תחתונה', emoji: '🩲' },
+  { value: 'activewear', label: 'בגדי ספורט', emoji: '🏃' },
+  { value: 'other', label: 'אחר', emoji: '🎁' },
 ] as const
 
 export const SEASONS = [
-  { value: 'spring', label: 'Spring', emoji: '🌸' },
-  { value: 'summer', label: 'Summer', emoji: '☀️' },
-  { value: 'autumn', label: 'Autumn', emoji: '🍂' },
-  { value: 'winter', label: 'Winter', emoji: '❄️' },
-  { value: 'all', label: 'All seasons', emoji: '🌍' },
+  { value: 'spring', label: 'אביב', emoji: '🌸' },
+  { value: 'summer', label: 'קיץ', emoji: '☀️' },
+  { value: 'autumn', label: 'סתיו', emoji: '🍂' },
+  { value: 'winter', label: 'חורף', emoji: '❄️' },
+  { value: 'all', label: 'כל העונות', emoji: '🌍' },
 ] as const

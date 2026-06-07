@@ -43,7 +43,7 @@ export default function CalendarPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Outfit Calendar</h1>
+        <h1 className="text-2xl font-bold text-gray-900">לוח שנה של לוקים</h1>
         <WeatherWidget />
       </div>
 
@@ -51,17 +51,17 @@ export default function CalendarPage() {
         {/* Month navigation */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
           <button onClick={() => setCurrentMonth(subMonths(currentMonth, 1))} className="p-2 hover:bg-gray-50 rounded-xl">
-            <ChevronLeft size={20} />
+            <ChevronRight size={20} />
           </button>
           <h2 className="text-lg font-semibold">{format(currentMonth, 'MMMM yyyy')}</h2>
           <button onClick={() => setCurrentMonth(addMonths(currentMonth, 1))} className="p-2 hover:bg-gray-50 rounded-xl">
-            <ChevronRight size={20} />
+            <ChevronLeft size={20} />
           </button>
         </div>
 
         {/* Day labels */}
         <div className="grid grid-cols-7 border-b border-gray-100">
-          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
+          {['א׳', 'ב׳', 'ג׳', 'ד׳', 'ה׳', 'ו׳', 'ש׳'].map(d => (
             <div key={d} className="text-center text-xs font-medium text-gray-400 py-3">{d}</div>
           ))}
         </div>
@@ -96,7 +96,7 @@ export default function CalendarPage() {
                     ) : (
                       <div className="bg-black text-white text-xs rounded-lg px-2 py-1 truncate">
                         {/* @ts-ignore */}
-                        {outfitForDay.outfits?.name ?? 'Outfit'}
+                        {outfitForDay.outfits?.name ?? 'לוק'}
                       </div>
                     )}
                   </div>
@@ -153,12 +153,12 @@ function AssignOutfitModal({
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl w-full max-w-sm shadow-xl">
         <div className="flex items-center justify-between p-6 border-b border-gray-100">
-          <h2 className="text-lg font-semibold">Assign outfit — {format(date, 'MMM d')}</h2>
+          <h2 className="text-lg font-semibold">שייך לוק — {format(date, 'd/M')}</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">✕</button>
         </div>
         <div className="p-6 space-y-3 max-h-80 overflow-y-auto">
           {outfits.length === 0 ? (
-            <p className="text-sm text-gray-400 text-center py-4">No outfits yet. Create one first!</p>
+            <p className="text-sm text-gray-400 text-center py-4">אין לוקים עדיין. צור אחד תחילה!</p>
           ) : outfits.map(outfit => (
             <button
               key={outfit.id}
@@ -177,9 +177,9 @@ function AssignOutfitModal({
           ))}
         </div>
         <div className="flex gap-3 p-6 border-t border-gray-100">
-          <Button variant="secondary" onClick={onClose} className="flex-1">Cancel</Button>
+          <Button variant="secondary" onClick={onClose} className="flex-1">ביטול</Button>
           <Button onClick={handleAssign} disabled={!selected || loading} className="flex-1">
-            {loading ? 'Saving…' : 'Assign'}
+            {loading ? 'שומר…' : 'שייך'}
           </Button>
         </div>
       </div>

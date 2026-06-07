@@ -42,10 +42,10 @@ export default function HistoryPage() {
     <div>
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Outfit History</h1>
-          <p className="text-gray-500 text-sm mt-1">{history.length} entries recorded</p>
+          <h1 className="text-2xl font-bold text-gray-900">היסטוריית לוקים</h1>
+          <p className="text-gray-500 text-sm mt-1">{history.length} רשומות</p>
         </div>
-        <Button onClick={() => setShowAdd(true)}><Plus size={16} />Log outfit</Button>
+        <Button onClick={() => setShowAdd(true)}><Plus size={16} />רשום לוק</Button>
       </div>
 
       {/* Category filters */}
@@ -59,7 +59,7 @@ export default function HistoryPage() {
             }`}
           >
             {cat !== 'all' && <Tag size={12} />}
-            {cat}
+            {cat === 'all' ? 'הכל' : cat}
           </button>
         ))}
       </div>
@@ -70,8 +70,8 @@ export default function HistoryPage() {
         ) : filtered.length === 0 ? (
           <div className="text-center py-16">
             <span className="text-4xl">📅</span>
-            <p className="text-gray-500 mt-3 font-medium">No history yet</p>
-            <Button className="mt-4" onClick={() => setShowAdd(true)}><Plus size={16} />Log first outfit</Button>
+            <p className="text-gray-500 mt-3 font-medium">אין היסטוריה עדיין</p>
+            <Button className="mt-4" onClick={() => setShowAdd(true)}><Plus size={16} />רשום לוק ראשון</Button>
           </div>
         ) : filtered.map(entry => (
           <div key={entry.id} className="flex items-center gap-4 bg-white rounded-xl border border-gray-100 p-4 group">
@@ -81,7 +81,7 @@ export default function HistoryPage() {
               ) : <span className="text-xl">👔</span>}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-gray-900">{entry.outfits?.name ?? 'Custom outfit'}</p>
+              <p className="text-sm font-semibold text-gray-900">{entry.outfits?.name ?? 'לוק מותאם'}</p>
               <div className="flex items-center gap-2 mt-0.5">
                 <span className="text-xs text-gray-400">{format(new Date(entry.worn_date), 'EEEE, MMMM d, yyyy')}</span>
                 {entry.category_label && (
@@ -132,23 +132,23 @@ function LogOutfitModal({ outfits, onClose, onAdded }: { outfits: Outfit[]; onCl
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl w-full max-w-md shadow-xl">
         <div className="flex items-center justify-between p-6 border-b border-gray-100">
-          <h2 className="text-lg font-semibold">Log outfit worn</h2>
+          <h2 className="text-lg font-semibold">רשום לוק שנלבש</h2>
           <button onClick={onClose} className="text-gray-400">✕</button>
         </div>
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Outfit (optional)</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">לוק (אופציונלי)</label>
             <select
               value={outfitId}
               onChange={e => setOutfitId(e.target.value)}
               className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black"
             >
-              <option value="">Select outfit…</option>
+              <option value="">בחר לוק…</option>
               {outfits.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Date *</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">תאריך *</label>
             <input
               type="date"
               value={date}
@@ -158,28 +158,28 @@ function LogOutfitModal({ outfits, onClose, onAdded }: { outfits: Outfit[]; onCl
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Category label</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">תווית קטגוריה</label>
             <input
               type="text"
               value={categoryLabel}
               onChange={e => setCategoryLabel(e.target.value)}
-              placeholder="e.g. Work, Casual, Date night…"
+              placeholder="לדוג׳ עבודה, קז׳ואל, ערב דייט…"
               className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Notes</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">הערות</label>
             <textarea
               value={notes}
               onChange={e => setNotes(e.target.value)}
               rows={2}
-              placeholder="How did it feel? Any notes…"
+              placeholder="איך זה הרגיש? הערות…"
               className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black resize-none"
             />
           </div>
           <div className="flex gap-3 pt-2">
-            <Button type="button" variant="secondary" onClick={onClose} className="flex-1">Cancel</Button>
-            <Button type="submit" disabled={loading} className="flex-1">{loading ? 'Saving…' : 'Log outfit'}</Button>
+            <Button type="button" variant="secondary" onClick={onClose} className="flex-1">ביטול</Button>
+            <Button type="submit" disabled={loading} className="flex-1">{loading ? 'שומר…' : 'רשום לוק'}</Button>
           </div>
         </form>
       </div>
