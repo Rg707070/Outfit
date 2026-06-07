@@ -1,4 +1,5 @@
 'use client'
+import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
@@ -8,7 +9,6 @@ import {
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
 
 const navItems = [
   { href: '/wardrobe', label: 'ארון בגדים', icon: Shirt },
@@ -81,20 +81,23 @@ export function Sidebar() {
 
   return (
     <>
-      {/* ── Mobile hamburger button ── */}
-      <button
-        onClick={() => setIsOpen(true)}
-        style={{ position: 'fixed', top: 16, right: 16, zIndex: 50 }}
-        className={cn(
-          'md:hidden p-2 rounded-lg bg-white shadow-md border border-gray-100',
-          isOpen && 'hidden'
-        )}
-        aria-label="פתח תפריט"
-      >
-        <Menu size={22} />
-      </button>
+      {/* Mobile top bar */}
+      <header className="md:hidden fixed top-0 right-0 left-0 h-14 bg-white border-b border-gray-100 flex items-center justify-between px-4 z-30">
+        <button
+          onClick={() => setIsOpen(true)}
+          className="p-2 rounded-xl hover:bg-gray-50 text-gray-600"
+          aria-label="פתח תפריט"
+        >
+          <Menu size={22} />
+        </button>
+        <Link href="/outfits" className="flex items-center gap-2">
+          <span className="text-xl">👗</span>
+          <span className="text-lg font-bold text-gray-900">Outfit</span>
+        </Link>
+        <div className="w-10" />
+      </header>
 
-      {/* ── Mobile backdrop ── */}
+      {/* Mobile backdrop */}
       <div
         onClick={close}
         className="md:hidden fixed inset-0 z-40 bg-black/50 transition-opacity duration-300"
@@ -104,7 +107,7 @@ export function Sidebar() {
         }}
       />
 
-      {/* ── Mobile sliding panel ── */}
+      {/* Mobile sliding panel */}
       <div
         className="md:hidden fixed top-0 bottom-0 bg-white flex flex-col z-50 shadow-2xl"
         style={{
@@ -132,7 +135,7 @@ export function Sidebar() {
         <BottomLinks onNavigate={close} onSignOut={handleSignOut} />
       </div>
 
-      {/* ── Desktop fixed sidebar ── */}
+      {/* Desktop fixed sidebar */}
       <aside className="hidden md:flex fixed top-0 bottom-0 right-0 w-64 bg-white border-s border-gray-100 flex-col z-40">
         <div className="p-6 border-b border-gray-100">
           <Link href="/outfits" className="flex items-center gap-2">
