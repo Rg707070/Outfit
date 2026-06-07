@@ -5,7 +5,7 @@ import { Outfit } from '@/types/database'
 import { Button } from '@/components/ui/button'
 import { WeatherWidget } from '@/components/weather/weather-widget'
 import { useToast } from '@/components/ui/toast'
-import { Plus, Heart, Share2, Calendar, Trash2, AlertTriangle } from 'lucide-react'
+import { Plus, Heart, Share2, Calendar, Trash2, AlertTriangle, Zap } from 'lucide-react'
 import Link from 'next/link'
 
 export default function OutfitsPage() {
@@ -75,6 +75,18 @@ export default function OutfitsPage() {
       </div>
 
       <WeatherWidget />
+
+      {/* Discover banner */}
+      <Link href="/outfits/discover" className="group mt-6 flex items-center gap-4 bg-gradient-to-r from-gray-900 to-gray-700 text-white rounded-2xl p-5 hover:from-black hover:to-gray-800 transition-all">
+        <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-white/20 transition-colors">
+          <Zap size={22} className="text-white" />
+        </div>
+        <div className="flex-1">
+          <p className="font-semibold text-base">Discover outfit combos</p>
+          <p className="text-white/60 text-sm mt-0.5">Swipe through auto-generated outfits from your wardrobe</p>
+        </div>
+        <span className="text-white/40 text-xl group-hover:text-white/70 transition-colors">→</span>
+      </Link>
 
       <div className="mt-8">
         {loading ? (
