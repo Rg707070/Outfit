@@ -6,7 +6,7 @@ import { CLOTHING_CATEGORIES } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useToast } from '@/components/ui/toast'
-import { Plus, Search, Heart, Upload, Trash2, AlertTriangle } from 'lucide-react'
+import { Plus, Search, Heart, Upload, Trash2, AlertTriangle, MapPin } from 'lucide-react'
 
 export default function WardrobePage() {
   const [items, setItems] = useState<WardrobeItem[]>([])
@@ -186,6 +186,12 @@ export default function WardrobePage() {
                     <span className="text-xs text-gray-400 truncate">{item.color}</span>
                   </div>
                 )}
+                {item.location && (
+                  <div className="flex items-center gap-1 mt-1">
+                    <MapPin size={10} className="text-gray-400 flex-shrink-0" />
+                    <span className="text-xs text-gray-400 truncate">{item.location}</span>
+                  </div>
+                )}
               </div>
             </div>
           ))}
@@ -228,6 +234,7 @@ function AddItemModal({ onClose, onAdded }: { onClose: () => void; onAdded: () =
   const [name, setName] = useState('')
   const [category, setCategory] = useState<ClothingCategory>('tops')
   const [brand, setBrand] = useState('')
+  const [location, setLocation] = useState('')
   const [color, setColor] = useState('#000000')
   const [hasColor, setHasColor] = useState(false)
   const [imageFile, setImageFile] = useState<File | Blob | null>(null)
@@ -303,6 +310,7 @@ function AddItemModal({ onClose, onAdded }: { onClose: () => void; onAdded: () =
       category,
       brand: brand || null,
       color: hasColor ? color : null,
+      location: location || null,
       image_url,
     })
     onAdded()
@@ -386,6 +394,13 @@ function AddItemModal({ onClose, onAdded }: { onClose: () => void; onAdded: () =
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Brand</label>
             <Input value={brand} onChange={e => setBrand(e.target.value)} placeholder="e.g. Zara, H&M…" />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              <span className="flex items-center gap-1.5"><MapPin size={14} />Location</span>
+            </label>
+            <Input value={location} onChange={e => setLocation(e.target.value)} placeholder="e.g. Top shelf, Bedroom drawer…" />
           </div>
 
           {/* Color picker */}
