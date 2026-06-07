@@ -5,15 +5,22 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Eye, EyeOff, Check } from 'lucide-react'
 
 export default function SignupPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [fullName, setFullName] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const router = useRouter()
   const supabase = createClient()
+
+  const passwordStrength = password.length === 0 ? null
+    : password.length < 6 ? 'weak'
+    : password.length < 10 ? 'medium'
+    : 'strong'
 
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault()
@@ -49,6 +56,7 @@ export default function SignupPage() {
                 value={fullName}
                 onChange={e => setFullName(e.target.value)}
                 required
+                autoComplete="name"
               />
             </div>
             <div>
@@ -59,26 +67,80 @@ export default function SignupPage() {
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 required
+                autoComplete="email"
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">סיסמה</label>
-              <Input
-                type="password"
-                placeholder="לפחות 6 תווים"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                required
-                minLength={6}
-              />
+              <div className="relative">
+                <Input
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="לפחות 6 תווים"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  required
+                  minLength={6}
+                  autoComplete="new-password"
+                  className="pl-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                  tabIndex={-1}
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+              {/* Password strength indicator */}
+              {passwordStrength && (
+                <div className="mt-2">
+                  <div className="flex gap-1 mb-1">
+                    {['weak', 'medium', 'strong'].map((level, i) => (
+                      <div
+                        key={level}
+                        className={`h-1 flex-1 rounded-full transition-colors ${
+                          passwordStrength === 'weak' && i === 0 ? 'bg-red-400' :
+                          passwordStrength === 'medium' && i <= 1 ? 'bg-yellow-400' :
+                          passwordStrength === 'strong' ? 'bg-green-500' :
+                          'bg-gray-100'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <p className={`text-xs ${
+                    passwordStrength === 'weak' ? 'text-red-500' :
+                    passwordStrength === 'medium' ? 'text-yellow-600' :
+                    'text-green-600'
+                  }`}>
+                    {passwordStrength === 'weak' ? 'סיסמה חלשה' :
+                     passwordStrength === 'medium' ? 'סיסמה בינונית' :
+                     '✓ סיסמה חזקה'}
+                  </p>
+                </div>
+              )}
             </div>
 
-            {error && <p className="text-sm text-red-500 bg-red-50 rounded-lg px-3 py-2">{error}</p>}
+            {error && (
+              <div className="text-sm text-red-600 bg-red-50 rounded-xl px-4 py-3 border border-red-100">
+                {error}
+              </div>
+            )}
 
             <Button type="submit" size="lg" disabled={loading} className="w-full">
               {loading ? 'יוצר חשבון…' : 'צור חשבון'}
             </Button>
           </form>
+
+          {/* Benefits */}
+          <div className="mt-6 pt-6 border-t border-gray-100 space-y-2">
+            {['ארון בגדים דיגיטלי מלא', 'בניית לוקים בקלות', 'תובנות סגנון אישי'].map(benefit => (
+              <div key={benefit} className="flex items-center gap-2 text-sm text-gray-500">
+                <Check size={14} className="text-green-500 flex-shrink-0" />
+                {benefit}
+              </div>
+            ))}
+          </div>
 
           <p className="text-center text-sm text-gray-500 mt-6">
             כבר יש לך חשבון?{' '}
