@@ -3,8 +3,8 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import {
-  Shirt, CalendarDays, ShoppingBag, Clock, Heart,
-  LayoutGrid, LogOut, User, Star
+  Shirt, CalendarDays, ShoppingBag, Clock,
+  LayoutGrid, LogOut, User, Star, BarChart3, Zap
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -12,10 +12,12 @@ import { useRouter } from 'next/navigation'
 const navItems = [
   { href: '/wardrobe', label: 'ארון בגדים', icon: Shirt },
   { href: '/outfits', label: 'לוקים', icon: LayoutGrid },
+  { href: '/outfits/discover', label: 'Discover', icon: Zap },
   { href: '/calendar', label: 'לוח שנה', icon: CalendarDays },
   { href: '/wishlist', label: 'קניות ורשימת משאלות', icon: ShoppingBag },
   { href: '/history', label: 'היסטוריה', icon: Clock },
   { href: '/favorites', label: 'מועדפים', icon: Star },
+  { href: '/insights', label: 'Insights', icon: BarChart3 },
 ]
 
 export function Sidebar() {
@@ -44,7 +46,7 @@ export function Sidebar() {
             href={href}
             className={cn(
               'flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors',
-              pathname.startsWith(href)
+              pathname === href || (href !== '/outfits' && pathname.startsWith(href))
                 ? 'bg-black text-white'
                 : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
             )}
