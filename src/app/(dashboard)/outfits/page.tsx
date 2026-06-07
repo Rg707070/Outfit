@@ -32,18 +32,17 @@ export default function OutfitsPage() {
   }
 
   async function shareOutfit(outfit: Outfit) {
-    // Sharing requires the outfit to be public — enable it on the fly.
     if (!outfit.is_public) {
       await supabase.from('outfits').update({ is_public: true }).eq('id', outfit.id)
       setOutfits(prev => prev.map(o => o.id === outfit.id ? { ...o, is_public: true } : o))
     }
     const url = `${window.location.origin}/share/${outfit.share_token}`
     await navigator.clipboard.writeText(url)
-    alert('Share link copied! Anyone with this link can view your outfit.')
+    alert('קישור השיתוף הועתק! כל מי שיש לו קישור זה יכול לראות את הלוק שלך.')
   }
 
   async function deleteOutfit(outfit: Outfit) {
-    if (!confirm(`Delete "${outfit.name}"? This can't be undone.`)) return
+    if (!confirm(`למחוק את "${outfit.name}"? לא ניתן לבטל פעולה זו.`)) return
     await supabase.from('outfits').delete().eq('id', outfit.id)
     setOutfits(prev => prev.filter(o => o.id !== outfit.id))
   }
@@ -57,17 +56,17 @@ export default function OutfitsPage() {
       outfit_id: outfit.id,
       date: today,
     }, { onConflict: 'user_id,date' })
-    alert(`"${outfit.name}" scheduled for today!`)
+    alert(`"${outfit.name}" תוכנן להיום!`)
   }
 
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">My Outfits</h1>
-          <p className="text-gray-500 text-sm mt-1">{outfits.length} outfits saved</p>
+          <h1 className="text-2xl font-bold text-gray-900">הלוקים שלי</h1>
+          <p className="text-gray-500 text-sm mt-1">{outfits.length} לוקים שמורים</p>
         </div>
-        <Link href="/outfits/new"><Button><Plus size={16} />Create outfit</Button></Link>
+        <Link href="/outfits/new"><Button><Plus size={16} />צור לוק</Button></Link>
       </div>
 
       <WeatherWidget />
@@ -82,9 +81,9 @@ export default function OutfitsPage() {
         ) : outfits.length === 0 ? (
           <div className="text-center py-20">
             <span className="text-5xl">✨</span>
-            <p className="text-gray-500 mt-4 text-lg font-medium">No outfits yet</p>
-            <p className="text-gray-400 text-sm mt-1">Create your first outfit by combining items from your wardrobe</p>
-            <Link href="/outfits/new"><Button className="mt-6"><Plus size={16} />Create first outfit</Button></Link>
+            <p className="text-gray-500 mt-4 text-lg font-medium">אין לוקים עדיין</p>
+            <p className="text-gray-400 text-sm mt-1">צור את הלוק הראשון שלך על ידי שילוב פריטים מהארון</p>
+            <Link href="/outfits/new"><Button className="mt-6"><Plus size={16} />צור לוק ראשון</Button></Link>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -126,20 +125,20 @@ function OutfitCard({
         ) : (
           <span className="text-5xl">👔</span>
         )}
-        <div className="absolute top-3 left-3 flex gap-1.5">
+        <div className="absolute top-3 right-3 flex gap-1.5">
           {outfit.is_favorite && <span className="text-red-500">❤️</span>}
           {outfit.is_public && (
-            <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">Public</span>
+            <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">ציבורי</span>
           )}
         </div>
-        <div className="absolute top-3 right-3 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button onClick={() => onToggleFavorite(outfit)} className="p-1.5 bg-white rounded-full shadow-sm" title="Favorite">
+        <div className="absolute top-3 left-3 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+          <button onClick={() => onToggleFavorite(outfit)} className="p-1.5 bg-white rounded-full shadow-sm" title="מועדף">
             <Heart size={14} className={outfit.is_favorite ? 'fill-red-500 text-red-500' : 'text-gray-400'} />
           </button>
-          <button onClick={() => onShare(outfit)} className="p-1.5 bg-white rounded-full shadow-sm" title="Copy share link">
+          <button onClick={() => onShare(outfit)} className="p-1.5 bg-white rounded-full shadow-sm" title="העתק קישור שיתוף">
             <Share2 size={14} className="text-gray-400" />
           </button>
-          <button onClick={() => onDelete(outfit)} className="p-1.5 bg-white rounded-full shadow-sm" title="Delete">
+          <button onClick={() => onDelete(outfit)} className="p-1.5 bg-white rounded-full shadow-sm" title="מחק">
             <Trash2 size={14} className="text-gray-400 hover:text-red-500" />
           </button>
         </div>
@@ -159,7 +158,7 @@ function OutfitCard({
         <div className="flex gap-2 mt-4">
           <Button size="sm" variant="secondary" className="flex-1" onClick={() => onScheduleToday(outfit)}>
             <Calendar size={14} />
-            Wear today
+            ללבוש היום
           </Button>
           <Button size="sm" variant="ghost" onClick={() => onShare(outfit)}>
             <Share2 size={14} />

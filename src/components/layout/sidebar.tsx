@@ -10,12 +10,12 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 
 const navItems = [
-  { href: '/wardrobe', label: 'Wardrobe', icon: Shirt },
-  { href: '/outfits', label: 'Outfits', icon: LayoutGrid },
-  { href: '/calendar', label: 'Calendar', icon: CalendarDays },
-  { href: '/wishlist', label: 'Shopping & Wishlist', icon: ShoppingBag },
-  { href: '/history', label: 'History', icon: Clock },
-  { href: '/favorites', label: 'Favorites', icon: Star },
+  { href: '/wardrobe', label: 'ארון בגדים', icon: Shirt },
+  { href: '/outfits', label: 'לוקים', icon: LayoutGrid },
+  { href: '/calendar', label: 'לוח שנה', icon: CalendarDays },
+  { href: '/wishlist', label: 'קניות ורשימת משאלות', icon: ShoppingBag },
+  { href: '/history', label: 'היסטוריה', icon: Clock },
+  { href: '/favorites', label: 'מועדפים', icon: Star },
 ]
 
 export function Sidebar() {
@@ -29,7 +29,7 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-64 bg-white border-r border-gray-100 flex flex-col z-40">
+    <aside className="fixed right-0 top-0 h-screen w-64 bg-white border-l border-gray-100 flex flex-col z-40">
       <div className="p-6 border-b border-gray-100">
         <Link href="/outfits" className="flex items-center gap-2">
           <span className="text-2xl">👗</span>
@@ -61,14 +61,14 @@ export function Sidebar() {
           className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50"
         >
           <User size={18} />
-          Profile
+          פרופיל
         </Link>
         <button
           onClick={handleSignOut}
           className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-red-50 hover:text-red-600 transition-colors"
         >
           <LogOut size={18} />
-          Sign out
+          התנתק
         </button>
       </div>
     </aside>

@@ -31,7 +31,7 @@ export function WeatherWidget() {
           const apiKey = process.env.NEXT_PUBLIC_WEATHER_API_KEY
           if (!apiKey || apiKey === 'demo') {
             // Demo data
-            setWeather({ temp: 22, feels_like: 20, description: 'Partly cloudy', city: 'Your city', icon: '02d' })
+            setWeather({ temp: 22, feels_like: 20, description: 'מעונן חלקית', city: 'עירך', icon: '02d' })
             return
           }
           const res = await fetch(
@@ -46,13 +46,13 @@ export function WeatherWidget() {
             icon: data.weather[0].icon,
           })
         } catch {
-          setWeather({ temp: 22, feels_like: 20, description: 'Partly cloudy', city: 'Your city', icon: '02d' })
+          setWeather({ temp: 22, feels_like: 20, description: 'מעונן חלקית', city: 'עירך', icon: '02d' })
         } finally {
           setLoading(false)
         }
       },
       () => {
-        setWeather({ temp: 22, feels_like: 20, description: 'Partly cloudy', city: 'Your city', icon: '02d' })
+        setWeather({ temp: 22, feels_like: 20, description: 'מעונן חלקית', city: 'עירך', icon: '02d' })
         setLoading(false)
       }
     )
@@ -67,7 +67,7 @@ export function WeatherWidget() {
       <WeatherIcon description={weather.description} />
       <div>
         <p className="text-sm font-semibold text-gray-900">{weather.temp}°C — {weather.description}</p>
-        <p className="text-xs text-gray-500">Feels like {weather.feels_like}°C · {weather.city}</p>
+        <p className="text-xs text-gray-500">מרגיש כמו {weather.feels_like}°C · {weather.city}</p>
       </div>
     </div>
   )

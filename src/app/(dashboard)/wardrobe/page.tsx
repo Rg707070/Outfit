@@ -53,12 +53,12 @@ export default function WardrobePage() {
     <div>
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Wardrobe</h1>
-          <p className="text-gray-500 text-sm mt-1">{items.length} items total</p>
+          <h1 className="text-2xl font-bold text-gray-900">ארון בגדים</h1>
+          <p className="text-gray-500 text-sm mt-1">{items.length} פריטים בסך הכל</p>
         </div>
         <Button onClick={() => setShowAdd(true)}>
           <Plus size={16} />
-          Add item
+          הוסף פריט
         </Button>
       </div>
 
@@ -70,7 +70,7 @@ export default function WardrobePage() {
             activeCategory === 'all' ? 'bg-black text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
           }`}
         >
-          All ({items.length})
+          הכל ({items.length})
         </button>
         {CLOTHING_CATEGORIES.map(cat => (
           <button
@@ -93,12 +93,12 @@ export default function WardrobePage() {
 
       {/* Search */}
       <div className="relative mb-6">
-        <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+        <Search size={16} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
         <Input
-          placeholder="Search by name or brand…"
+          placeholder="חפש לפי שם או מותג…"
           value={search}
           onChange={e => setSearch(e.target.value)}
-          className="pl-9"
+          className="pr-9"
         />
       </div>
 
@@ -112,11 +112,11 @@ export default function WardrobePage() {
       ) : filtered.length === 0 ? (
         <div className="text-center py-20">
           <span className="text-5xl">👗</span>
-          <p className="text-gray-500 mt-4 text-lg font-medium">No items yet</p>
-          <p className="text-gray-400 text-sm mt-1">Add your first clothing item to get started</p>
+          <p className="text-gray-500 mt-4 text-lg font-medium">אין פריטים עדיין</p>
+          <p className="text-gray-400 text-sm mt-1">הוסף את פריט הלבוש הראשון שלך כדי להתחיל</p>
           <Button className="mt-6" onClick={() => setShowAdd(true)}>
             <Plus size={16} />
-            Add first item
+            הוסף פריט ראשון
           </Button>
         </div>
       ) : (
@@ -135,7 +135,7 @@ export default function WardrobePage() {
                 )}
                 <button
                   onClick={() => toggleFavorite(item)}
-                  className="absolute top-2 right-2 p-1.5 bg-white rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="absolute top-2 left-2 p-1.5 bg-white rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
                 >
                   <Heart
                     size={14}
@@ -195,14 +195,13 @@ function AddItemModal({ onClose, onAdded }: { onClose: () => void; onAdded: () =
 
   async function processBg(file: File) {
     setProcessing(true)
-    setProcessMsg('Loading model…')
+    setProcessMsg('טוען מודל…')
     try {
       const { removeBg } = await import('@/lib/remove-bg')
       const result = await removeBg(file, msg => setProcessMsg(msg))
       setImageFile(result)
       setImagePreview(URL.createObjectURL(result))
     } catch {
-      // Fall back to original on failure
       setImageFile(file)
       setImagePreview(URL.createObjectURL(file))
     } finally {
@@ -256,7 +255,7 @@ function AddItemModal({ onClose, onAdded }: { onClose: () => void; onAdded: () =
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl w-full max-w-md shadow-xl">
         <div className="flex items-center justify-between p-6 border-b border-gray-100">
-          <h2 className="text-lg font-semibold">Add clothing item</h2>
+          <h2 className="text-lg font-semibold">הוסף פריט לבוש</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">✕</button>
         </div>
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
@@ -273,17 +272,17 @@ function AddItemModal({ onClose, onAdded }: { onClose: () => void; onAdded: () =
               } : undefined}
             >
               {imagePreview ? (
-                <img src={imagePreview} alt="Preview" className="w-full h-40 object-contain" />
+                <img src={imagePreview} alt="תצוגה מקדימה" className="w-full h-40 object-contain" />
               ) : (
                 <div className="text-center">
                   <Upload size={24} className="mx-auto text-gray-400 mb-2" />
-                  <p className="text-sm text-gray-400">Upload photo</p>
+                  <p className="text-sm text-gray-400">העלה תמונה</p>
                 </div>
               )}
               {processing && (
                 <div className="absolute inset-0 bg-white/80 flex flex-col items-center justify-center">
                   <div className="w-6 h-6 border-2 border-black border-t-transparent rounded-full animate-spin" />
-                  <p className="text-xs text-gray-600 mt-2">{processMsg || 'Removing background…'}</p>
+                  <p className="text-xs text-gray-600 mt-2">{processMsg || 'מסיר רקע…'}</p>
                 </div>
               )}
             </div>
@@ -300,16 +299,16 @@ function AddItemModal({ onClose, onAdded }: { onClose: () => void; onAdded: () =
             >
               <div className={`w-4 h-4 bg-white rounded-full shadow transition-transform mx-1 ${removeBgEnabled ? 'translate-x-4' : 'translate-x-0'}`} />
             </button>
-            <span className="text-sm text-gray-700">✂️ Remove background (keep only the garment)</span>
+            <span className="text-sm text-gray-700">✂️ הסר רקע (השאר רק את הבגד)</span>
           </label>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Name *</label>
-            <Input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. White linen shirt" required />
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">שם *</label>
+            <Input value={name} onChange={e => setName(e.target.value)} placeholder="לדוג׳ חולצת פשתן לבנה" required />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Category *</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">קטגוריה *</label>
             <select
               value={category}
               onChange={e => setCategory(e.target.value as ClothingCategory)}
@@ -323,19 +322,19 @@ function AddItemModal({ onClose, onAdded }: { onClose: () => void; onAdded: () =
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Brand</label>
-              <Input value={brand} onChange={e => setBrand(e.target.value)} placeholder="e.g. Zara" />
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">מותג</label>
+              <Input value={brand} onChange={e => setBrand(e.target.value)} placeholder="לדוג׳ Zara" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Color</label>
-              <Input value={color} onChange={e => setColor(e.target.value)} placeholder="e.g. #ffffff" />
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">צבע</label>
+              <Input value={color} onChange={e => setColor(e.target.value)} placeholder="לדוג׳ #ffffff" />
             </div>
           </div>
 
           <div className="flex gap-3 pt-2">
-            <Button type="button" variant="secondary" onClick={onClose} className="flex-1">Cancel</Button>
+            <Button type="button" variant="secondary" onClick={onClose} className="flex-1">ביטול</Button>
             <Button type="submit" disabled={loading || processing || !name} className="flex-1">
-              {loading ? 'Adding…' : 'Add item'}
+              {loading ? 'מוסיף…' : 'הוסף פריט'}
             </Button>
           </div>
         </form>

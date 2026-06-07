@@ -92,8 +92,8 @@ export default function NewOutfitPage() {
         <div className="flex items-center gap-3 mb-6">
           <Link href="/outfits"><Button variant="ghost" size="sm"><ArrowLeft size={16} /></Button></Link>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Build an outfit</h1>
-            <p className="text-gray-500 text-sm">Pick items from your wardrobe</p>
+            <h1 className="text-2xl font-bold text-gray-900">בנה לוק</h1>
+            <p className="text-gray-500 text-sm">בחר פריטים מהארון שלך</p>
           </div>
         </div>
 
@@ -103,7 +103,7 @@ export default function NewOutfitPage() {
             className={`flex-shrink-0 px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
               activeCategory === 'all' ? 'bg-black text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
             }`}
-          >All</button>
+          >הכל</button>
           {CLOTHING_CATEGORIES.map(cat => (
             <button
               key={cat.value}
@@ -125,8 +125,8 @@ export default function NewOutfitPage() {
           ) : filtered.length === 0 ? (
             <div className="text-center py-20">
               <span className="text-4xl">👗</span>
-              <p className="text-gray-500 mt-3">No items in this category.</p>
-              <Link href="/wardrobe"><Button className="mt-4" variant="secondary">Go to wardrobe</Button></Link>
+              <p className="text-gray-500 mt-3">אין פריטים בקטגוריה זו.</p>
+              <Link href="/wardrobe"><Button className="mt-4" variant="secondary">עבור לארון</Button></Link>
             </div>
           ) : (
             <div className="grid grid-cols-3 lg:grid-cols-4 gap-3">
@@ -153,7 +153,7 @@ export default function NewOutfitPage() {
                       </div>
                     )}
                     <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/60 to-transparent p-2">
-                      <p className="text-xs text-white font-medium truncate text-left">{item.name}</p>
+                      <p className="text-xs text-white font-medium truncate text-right">{item.name}</p>
                     </div>
                   </button>
                 )
@@ -167,16 +167,16 @@ export default function NewOutfitPage() {
       <div className="w-80 flex-shrink-0 bg-white rounded-2xl border border-gray-100 flex flex-col">
         <div className="p-5 border-b border-gray-100">
           <h2 className="font-semibold text-gray-900 flex items-center gap-2">
-            <Sparkles size={16} /> Your outfit
+            <Sparkles size={16} /> הלוק שלך
           </h2>
-          <p className="text-xs text-gray-400 mt-0.5">{selectedList.length} item{selectedList.length !== 1 && 's'} selected</p>
+          <p className="text-xs text-gray-400 mt-0.5">{selectedList.length} פריט{selectedList.length !== 1 && 'ים'} נבחרו</p>
         </div>
 
         {/* Flat-lay preview */}
         <div className="p-5 flex-1 overflow-y-auto">
           {selectedList.length === 0 ? (
             <div className="h-40 border-2 border-dashed border-gray-200 rounded-2xl flex items-center justify-center">
-              <p className="text-sm text-gray-400 text-center px-4">Select items to see your flat-lay preview</p>
+              <p className="text-sm text-gray-400 text-center px-4">בחר פריטים לתצוגה מקדימה</p>
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-2 mb-4">
@@ -199,21 +199,21 @@ export default function NewOutfitPage() {
           )}
 
           <div className="space-y-3">
-            <Input placeholder="Outfit name *" value={name} onChange={e => setName(e.target.value)} />
+            <Input placeholder="שם הלוק *" value={name} onChange={e => setName(e.target.value)} />
             <textarea
-              placeholder="Description"
+              placeholder="תיאור"
               value={description}
               onChange={e => setDescription(e.target.value)}
               rows={2}
               className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black resize-none"
             />
-            <Input placeholder="Occasion (e.g. Work, Date)" value={occasion} onChange={e => setOccasion(e.target.value)} />
+            <Input placeholder="אירוע (לדוג׳ עבודה, דייט)" value={occasion} onChange={e => setOccasion(e.target.value)} />
             <select
               value={season}
               onChange={e => setSeason(e.target.value as Season)}
               className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black"
             >
-              <option value="">Any season</option>
+              <option value="">כל עונה</option>
               {SEASONS.map(s => <option key={s.value} value={s.value}>{s.emoji} {s.label}</option>)}
             </select>
             <label className="flex items-center gap-3 cursor-pointer">
@@ -224,7 +224,7 @@ export default function NewOutfitPage() {
               >
                 <div className={`w-4 h-4 bg-white rounded-full shadow transition-transform mx-1 ${isPublic ? 'translate-x-4' : 'translate-x-0'}`} />
               </button>
-              <span className="text-sm text-gray-700">Make shareable (public link)</span>
+              <span className="text-sm text-gray-700">אפשר שיתוף (קישור ציבורי)</span>
             </label>
           </div>
         </div>
@@ -236,7 +236,7 @@ export default function NewOutfitPage() {
             className="w-full"
             size="lg"
           >
-            {saving ? 'Saving…' : 'Save outfit'}
+            {saving ? 'שומר…' : 'שמור לוק'}
           </Button>
         </div>
       </div>
