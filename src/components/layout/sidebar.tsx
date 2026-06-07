@@ -3,11 +3,12 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import {
-  Shirt, CalendarDays, ShoppingBag, Clock, Heart,
-  LayoutGrid, LogOut, User, Star
+  Shirt, CalendarDays, ShoppingBag, Clock,
+  LayoutGrid, LogOut, User, Star, Menu, X
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 
 const navItems = [
   { href: '/wardrobe', label: 'ארון בגדים', icon: Shirt },
@@ -22,6 +23,7 @@ export function Sidebar() {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
+  const [isOpen, setIsOpen] = useState(false)
 
   async function handleSignOut() {
     await supabase.auth.signOut()
@@ -29,48 +31,82 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="fixed right-0 top-0 h-screen w-64 bg-white border-l border-gray-100 flex flex-col z-40">
-      <div className="p-6 border-b border-gray-100">
-        <Link href="/outfits" className="flex items-center gap-2">
-          <span className="text-2xl">👗</span>
-          <span className="text-xl font-bold text-gray-900">Outfit</span>
-        </Link>
-      </div>
+    <>
+      {/* Mobile hamburger button */}
+      <button
+        onClick={() => setIsOpen(true)}
+        className="md:hidden fixed top-4 right-4 z-50 p-2 rounded-lg bg-white shadow-md border border-gray-100"
+        aria-label="פתח תפריט"
+      >
+        <Menu size={22} />
+      </button>
 
-      <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-        {navItems.map(({ href, label, icon: Icon }) => (
-          <Link
-            key={href}
-            href={href}
-            className={cn(
-              'flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors',
-              pathname.startsWith(href)
-                ? 'bg-black text-white'
-                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-            )}
-          >
-            <Icon size={18} />
-            {label}
+      {/* Backdrop overlay - mobile only */}
+      {isOpen && (
+        <div
+          className="md:hidden fixed inset-0 bg-black/40 z-40"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside
+        className={cn(
+          'fixed right-0 top-0 h-screen w-64 bg-white border-l border-gray-100 flex flex-col z-40 transition-transform duration-300 ease-in-out',
+          isOpen ? 'translate-x-0' : 'translate-x-full md:translate-x-0'
+        )}
+      >
+        <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+          <Link href="/outfits" className="flex items-center gap-2">
+            <span className="text-2xl">👗</span>
+            <span className="text-xl font-bold text-gray-900">Outfit</span>
           </Link>
-        ))}
-      </nav>
+          <button
+            onClick={() => setIsOpen(false)}
+            className="md:hidden p-1 rounded-lg hover:bg-gray-100"
+            aria-label="סגור תפריט"
+          >
+            <X size={20} />
+          </button>
+        </div>
 
-      <div className="p-4 border-t border-gray-100 space-y-1">
-        <Link
-          href="/profile"
-          className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50"
-        >
-          <User size={18} />
-          פרופיל
-        </Link>
-        <button
-          onClick={handleSignOut}
-          className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-red-50 hover:text-red-600 transition-colors"
-        >
-          <LogOut size={18} />
-          התנתק
-        </button>
-      </div>
-    </aside>
+        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+          {navItems.map(({ href, label, icon: Icon }) => (
+            <Link
+              key={href}
+              href={href}
+              onClick={() => setIsOpen(false)}
+              className={cn(
+                'flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors',
+                pathname.startsWith(href)
+                  ? 'bg-black text-white'
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+              )}
+            >
+              <Icon size={18} />
+              {label}
+            </Link>
+          ))}
+        </nav>
+
+        <div className="p-4 border-t border-gray-100 space-y-1">
+          <Link
+            href="/profile"
+            onClick={() => setIsOpen(false)}
+            className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50"
+          >
+            <User size={18} />
+            פרופיל
+          </Link>
+          <button
+            onClick={handleSignOut}
+            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-red-50 hover:text-red-600 transition-colors"
+          >
+            <LogOut size={18} />
+            התנתק
+          </button>
+        </div>
+      </aside>
+    </>
   )
 }
