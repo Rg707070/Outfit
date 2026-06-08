@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Eye, EyeOff } from 'lucide-react'
 import { loginSchema } from '@/lib/validations'
+import { useLang } from '@/lib/lang-context'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -15,6 +16,7 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const router = useRouter()
+  const { t } = useLang()
   const supabase = createClient()
 
   async function handleLogin(e: React.FormEvent) {
@@ -48,15 +50,17 @@ export default function LoginPage() {
         <div className="text-center mb-8">
           <span className="text-5xl">👗</span>
           <h1 className="text-3xl font-bold text-gray-900 mt-4">Outfit</h1>
-          <p className="text-gray-500 mt-2">ארון הבגדים הדיגיטלי שלך</p>
+          <p className="text-gray-500 mt-2">{t.auth.tagline}</p>
         </div>
 
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">התחברות</h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-6">{t.auth.signIn}</h2>
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">אימייל</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                {t.auth.email}
+              </label>
               <Input
                 type="email"
                 placeholder="you@example.com"
@@ -68,7 +72,7 @@ export default function LoginPage() {
             </div>
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="text-sm font-medium text-gray-700">סיסמה</label>
+                <label className="text-sm font-medium text-gray-700">{t.auth.password}</label>
               </div>
               <div className="relative">
                 <Input
@@ -99,14 +103,14 @@ export default function LoginPage() {
             )}
 
             <Button type="submit" size="lg" disabled={loading} className="w-full">
-              {loading ? 'מתחבר…' : 'התחבר'}
+              {loading ? t.auth.signingIn : t.auth.signIn}
             </Button>
           </form>
 
           <p className="text-center text-sm text-gray-500 mt-6">
-            אין חשבון?{' '}
+            {t.auth.noAccount}{' '}
             <Link href="/signup" className="text-black font-medium hover:underline">
-              הרשם בחינם
+              {t.auth.signUpFree}
             </Link>
           </p>
         </div>

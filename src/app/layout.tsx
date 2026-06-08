@@ -5,6 +5,7 @@ import { ToastProvider } from '@/components/ui/toast'
 import { ReactQueryProvider } from '@/contexts/query-client'
 import { AuthProvider } from '@/contexts/auth-context'
 import { ThemeProvider } from '@/contexts/theme-context'
+import { LangProvider } from '@/lib/lang-context'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -26,7 +27,9 @@ export default function RootLayout({
         <ThemeProvider>
           <ReactQueryProvider>
             <AuthProvider>
-              <ToastProvider>{children}</ToastProvider>
+              <LangProvider>
+                <ToastProvider>{children}</ToastProvider>
+              </LangProvider>
             </AuthProvider>
           </ReactQueryProvider>
         </ThemeProvider>

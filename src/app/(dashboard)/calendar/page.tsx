@@ -17,6 +17,7 @@ import {
   subMonths,
   isToday,
 } from 'date-fns'
+import { useLang } from '@/lib/lang-context'
 
 type CalendarOutfitWithRelation = {
   id: string
@@ -36,6 +37,7 @@ export default function CalendarPage() {
   const [showAssign, setShowAssign] = useState(false)
   const { toast } = useToast()
   const { user } = useAuth()
+  const { t } = useLang()
   const supabase = createClient()
 
   const days = eachDayOfInterval({
@@ -98,7 +100,7 @@ export default function CalendarPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">לוח שנה של לוקים</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t.calendar.title}</h1>
         <WeatherWidget />
       </div>
 
@@ -126,7 +128,7 @@ export default function CalendarPage() {
 
         {/* Day labels */}
         <div className="grid grid-cols-7 border-b border-gray-100 dark:border-gray-800">
-          {['א׳', 'ב׳', 'ג׳', 'ד׳', 'ה׳', 'ו׳', 'ש׳'].map((d) => (
+          {t.calendar.days.map((d) => (
             <div key={d} className="text-center text-xs font-medium text-gray-400 py-3">
               {d}
             </div>
@@ -170,7 +172,7 @@ export default function CalendarPage() {
                       <div className="relative w-full h-12 rounded-lg overflow-hidden">
                         <Image
                           src={outfitForDay.outfits.image_url}
-                          alt={outfitForDay.outfits.name ?? 'לוק'}
+                          alt={outfitForDay.outfits.name ?? t.calendar.outfit}
                           fill
                           className="object-cover"
                           sizes="100px"
@@ -178,7 +180,7 @@ export default function CalendarPage() {
                       </div>
                     ) : (
                       <div className="bg-black text-white text-xs rounded-lg px-2 py-1 truncate dark:bg-white dark:text-black">
-                        {outfitForDay.outfits?.name ?? 'לוק'}
+                        {outfitForDay.outfits?.name ?? t.calendar.outfit}
                       </div>
                     )}
                     <button
@@ -213,7 +215,7 @@ export default function CalendarPage() {
         </div>
         <div className="flex items-center gap-1.5">
           <Plus size={12} />
-          <span>לחץ על יום כדי לשייך לוק</span>
+          <span>{t.calendar.assign}</span>
         </div>
       </div>
 
@@ -225,7 +227,7 @@ export default function CalendarPage() {
           onClose={() => setShowAssign(false)}
           onAssigned={() => {
             loadData()
-            toast(`לוק שויך ל-${format(selectedDate, 'd/M')} 📅`)
+            toast(`${t.calendar.outfit} ${format(selectedDate, 'd/M')} 📅`)
           }}
         />
       )}
@@ -251,6 +253,7 @@ function AssignOutfitModal({
   const [loading, setLoading] = useState(false)
   const { user } = useAuth()
   const { toast } = useToast()
+  const { t } = useLang()
   const supabase = createClient()
 
   async function handleAssign() {
@@ -278,7 +281,7 @@ function AssignOutfitModal({
       <div className="bg-white dark:bg-gray-900 rounded-2xl w-full max-w-sm shadow-xl">
         <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-800">
           <h2 className="text-lg font-semibold dark:text-white">
-            שייך לוק — {format(date, 'd/M/yyyy')}
+            {t.calendar.assignTitle(format(date, 'd/M/yyyy'))}
           </h2>
           <button
             onClick={onClose}
@@ -292,8 +295,7 @@ function AssignOutfitModal({
           {outfits.length === 0 ? (
             <div className="text-center py-8">
               <span className="text-3xl">👔</span>
-              <p className="text-sm text-gray-400 mt-2">אין לוקים עדיין.</p>
-              <p className="text-xs text-gray-400 mt-1">צור לוק תחילה מדף הלוקים.</p>
+              <p className="text-sm text-gray-400 mt-2">{t.calendar.noOutfits}</p>
             </div>
           ) : (
             outfits.map((outfit) => (
@@ -348,10 +350,10 @@ function AssignOutfitModal({
         </div>
         <div className="flex gap-3 p-6 border-t border-gray-100 dark:border-gray-800">
           <Button variant="secondary" onClick={onClose} className="flex-1">
-            ביטול
+            {t.calendar.cancel}
           </Button>
           <Button onClick={handleAssign} disabled={!selected || loading} className="flex-1">
-            {loading ? 'שומר…' : 'שייך לוק'}
+            {loading ? t.calendar.saving : t.calendar.assign}
           </Button>
         </div>
       </div>

@@ -16,6 +16,7 @@ import { useAuth } from '@/contexts/auth-context'
 import { Plus, Tag, Trash2 } from 'lucide-react'
 import { format } from 'date-fns'
 import { he } from 'date-fns/locale'
+import { useLang } from '@/lib/lang-context'
 
 export default function HistoryPage() {
   const [activeCategory, setActiveCategory] = useState<string>('all')
@@ -23,6 +24,7 @@ export default function HistoryPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [limit, setLimit] = useState(HISTORY_PAGE_SIZE)
   const { toast } = useToast()
+  const { t } = useLang()
 
   const { data, isLoading: loading, error } = useHistory(limit)
   const history = data?.entries ?? []
@@ -61,12 +63,12 @@ export default function HistoryPage() {
     <div>
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">היסטוריית לוקים</h1>
-          <p className="text-gray-500 text-sm mt-1">{total} רשומות</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t.history.title}</h1>
+          <p className="text-gray-500 text-sm mt-1">{t.history.entries(total)}</p>
         </div>
         <Button onClick={() => setShowAdd(true)}>
           <Plus size={16} />
-          רשום לוק
+          {t.history.log}
         </Button>
       </div>
 
@@ -83,7 +85,7 @@ export default function HistoryPage() {
             }`}
           >
             {cat !== 'all' && <Tag size={12} />}
-            {cat === 'all' ? 'הכל' : cat}
+            {cat === 'all' ? t.history.all : cat}
           </button>
         ))}
       </div>
@@ -96,13 +98,13 @@ export default function HistoryPage() {
         ) : filtered.length === 0 ? (
           <div className="text-center py-16">
             <span className="text-4xl">📅</span>
-            <p className="text-gray-500 mt-3 font-medium">אין היסטוריה עדיין</p>
+            <p className="text-gray-500 mt-3 font-medium">{t.history.noHistory}</p>
             <p className="text-gray-400 text-sm mt-1">
               רשום כאן לוקים שלבשת כדי לעקוב אחרי הסגנון שלך
             </p>
             <Button className="mt-4" onClick={() => setShowAdd(true)}>
               <Plus size={16} />
-              רשום לוק ראשון
+              {t.history.logFirst}
             </Button>
           </div>
         ) : (
@@ -115,7 +117,7 @@ export default function HistoryPage() {
                 {entry.outfits?.image_url ? (
                   <Image
                     src={entry.outfits.image_url}
-                    alt={entry.outfits.name ?? 'לוק'}
+                    alt={entry.outfits.name ?? t.history.customOutfit}
                     fill
                     className="object-cover"
                     sizes="48px"
@@ -126,7 +128,7 @@ export default function HistoryPage() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                  {entry.outfits?.name ?? 'לוק מותאם'}
+                  {entry.outfits?.name ?? t.history.customOutfit}
                 </p>
                 <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                   <span className="text-xs text-gray-400">
@@ -166,7 +168,7 @@ export default function HistoryPage() {
         <LogOutfitModal
           outfits={outfits}
           onClose={() => setShowAdd(false)}
-          onAdded={() => toast('הלוק נרשם! 📅')}
+          onAdded={() => toast(`${t.history.log} 📅`)}
         />
       )}
 
@@ -178,11 +180,11 @@ export default function HistoryPage() {
         title="מחיקת רשומה?"
         description={
           deletingEntry
-            ? `"${deletingEntry.outfits?.name ?? 'לוק מותאם'}" יוסר מההיסטוריה.`
+            ? `"${deletingEntry.outfits?.name ?? t.history.customOutfit}" יוסר מההיסטוריה.`
             : undefined
         }
-        confirmLabel="מחק"
-        cancelLabel="ביטול"
+        confirmLabel={t.history.logBtn}
+        cancelLabel={t.history.cancel}
         onConfirm={() => deletingEntry && confirmDelete(deletingEntry.id)}
         loading={deleteMutation.isPending}
       />
@@ -199,6 +201,7 @@ function LogOutfitModal({
   onClose: () => void
   onAdded: () => void
 }) {
+  const { t } = useLang()
   const [outfitId, setOutfitId] = useState('')
   const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'))
   const [notes, setNotes] = useState('')
@@ -234,7 +237,7 @@ function LogOutfitModal({
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white dark:bg-gray-900 rounded-2xl w-full max-w-md shadow-xl">
         <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-800">
-          <h2 className="text-lg font-semibold dark:text-white">רשום לוק שנלבש</h2>
+          <h2 className="text-lg font-semibold dark:text-white">{t.history.modalTitle}</h2>
           <button
             onClick={onClose}
             className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 transition-colors"
@@ -246,14 +249,14 @@ function LogOutfitModal({
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-              לוק (אופציונלי)
+              {t.history.outfitOptional}
             </label>
             <select
               value={outfitId}
               onChange={(e) => setOutfitId(e.target.value)}
               className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black dark:text-white"
             >
-              <option value="">בחר לוק…</option>
+              <option value="">{t.history.selectOutfit}</option>
               {outfits.map((o) => (
                 <option key={o.id} value={o.id}>
                   {o.name}
@@ -263,7 +266,7 @@ function LogOutfitModal({
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-              תאריך <span className="text-red-500">*</span>
+              {t.history.dateLabel}
             </label>
             <input
               type="date"
@@ -275,7 +278,7 @@ function LogOutfitModal({
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-              תווית קטגוריה
+              {t.history.categoryLabel}
             </label>
             <div className="flex gap-2 flex-wrap mb-2">
               {['עבודה', 'קז׳ואל', 'ערב', 'ספורט', 'דייט'].map((tag) => (
@@ -297,30 +300,30 @@ function LogOutfitModal({
               type="text"
               value={categoryLabel}
               onChange={(e) => setCategoryLabel(e.target.value)}
-              placeholder="או הקלד תווית מותאמת…"
+              placeholder={t.history.categoryPlaceholder}
               maxLength={60}
               className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black dark:text-white"
             />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-              הערות
+              {t.history.notesLabel}
             </label>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={2}
               maxLength={500}
-              placeholder="איך זה הרגיש? הערות…"
+              placeholder={t.history.notesPlaceholder}
               className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black dark:text-white resize-none"
             />
           </div>
           <div className="flex gap-3 pt-2">
             <Button type="button" variant="secondary" onClick={onClose} className="flex-1">
-              ביטול
+              {t.history.cancel}
             </Button>
             <Button type="submit" disabled={loading} className="flex-1">
-              {loading ? 'שומר…' : 'רשום לוק'}
+              {loading ? t.history.saving : t.history.logBtn}
             </Button>
           </div>
         </form>

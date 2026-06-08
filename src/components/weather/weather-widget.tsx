@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { Cloud, Sun, CloudRain, Snowflake, Wind } from 'lucide-react'
+import { useLang } from '@/lib/lang-context'
 
 interface WeatherData {
   temp: number
@@ -26,6 +27,7 @@ export function WeatherWidget() {
     if (typeof navigator === 'undefined') return false
     return !!navigator.geolocation
   })
+  const { t } = useLang()
 
   useEffect(() => {
     if (!navigator.geolocation) return
@@ -38,8 +40,8 @@ export function WeatherWidget() {
             setWeather({
               temp: 22,
               feels_like: 20,
-              description: 'מעונן חלקית',
-              city: 'עירך',
+              description: t.weather.demo,
+              city: t.weather.demoCity,
               icon: '02d',
             })
             return
@@ -59,8 +61,8 @@ export function WeatherWidget() {
           setWeather({
             temp: 22,
             feels_like: 20,
-            description: 'מעונן חלקית',
-            city: 'עירך',
+            description: t.weather.demo,
+            city: t.weather.demoCity,
             icon: '02d',
           })
         } finally {
@@ -71,14 +73,14 @@ export function WeatherWidget() {
         setWeather({
           temp: 22,
           feels_like: 20,
-          description: 'מעונן חלקית',
-          city: 'עירך',
+          description: t.weather.demo,
+          city: t.weather.demoCity,
           icon: '02d',
         })
         setLoading(false)
       }
     )
-  }, [])
+  }, [t])
 
   if (loading) return <div className="h-12 bg-gray-100 rounded-xl animate-pulse" />
 
@@ -92,7 +94,7 @@ export function WeatherWidget() {
           {weather.temp}°C — {weather.description}
         </p>
         <p className="text-xs text-gray-500">
-          מרגיש כמו {weather.feels_like}°C · {weather.city}
+          {t.weather.feelsLike(weather.feels_like, weather.city)}
         </p>
       </div>
     </div>

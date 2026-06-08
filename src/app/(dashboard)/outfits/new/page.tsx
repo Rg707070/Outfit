@@ -22,6 +22,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useLang } from '@/lib/lang-context'
 
 type CanvasItem = {
   id: string
@@ -174,6 +175,7 @@ export default function CanvasBuilderPage() {
   const { toast } = useToast()
   const router = useRouter()
   const { user } = useAuth()
+  const { t } = useLang()
   const supabase = createClient()
 
   async function loadItems() {
@@ -352,7 +354,7 @@ export default function CanvasBuilderPage() {
           className="flex items-center gap-1.5 text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
         >
           <ArrowRight size={16} />
-          <span className="text-sm">חזרה</span>
+          <span className="text-sm">{t.wardrobe.cancel}</span>
         </Link>
 
         <div className="flex-1 flex items-center justify-center gap-2 flex-wrap">
@@ -397,7 +399,7 @@ export default function CanvasBuilderPage() {
 
         <Button onClick={() => setShowSaveModal(true)} disabled={canvasState.items.length === 0}>
           <Save size={15} />
-          שמור לוק
+          {t.newOutfit.save}
         </Button>
       </div>
 
@@ -422,7 +424,7 @@ export default function CanvasBuilderPage() {
                   onClick={() => setActiveCategory('all')}
                   className={`text-xs px-3 py-1.5 rounded-lg text-right font-medium transition-colors ${activeCategory === 'all' ? 'bg-black text-white' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'}`}
                 >
-                  כל הפריטים
+                  {t.newOutfit.all}
                 </button>
                 {usedCategories.map((cat) => (
                   <button

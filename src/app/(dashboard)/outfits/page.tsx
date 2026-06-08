@@ -11,11 +11,13 @@ import { useAuth } from '@/contexts/auth-context'
 import { useState } from 'react'
 import { Plus, Heart, Share2, Calendar, Trash2, Zap } from 'lucide-react'
 import Link from 'next/link'
+import { useLang } from '@/lib/lang-context'
 
 export default function OutfitsPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const { toast } = useToast()
   const { user } = useAuth()
+  const { t } = useLang()
   const supabase = createClient()
 
   const { data: outfits = [], isLoading: loading, error } = useOutfits()
@@ -88,13 +90,13 @@ export default function OutfitsPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">הלוקים שלי</h1>
-          <p className="text-gray-500 text-sm mt-1">{outfits.length} לוקים שמורים</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t.outfits.title}</h1>
+          <p className="text-gray-500 text-sm mt-1">{t.outfits.saved(outfits.length)}</p>
         </div>
         <Link href="/outfits/new">
           <Button>
             <Plus size={16} />
-            צור לוק
+            {t.outfits.create}
           </Button>
         </Link>
       </div>
@@ -110,10 +112,10 @@ export default function OutfitsPage() {
           <Zap size={22} className="text-white" />
         </div>
         <div className="flex-1">
-          <p className="font-semibold text-base">גלה קומבינציות לוקים</p>
-          <p className="text-white/60 text-sm mt-0.5">עבור בלוקים שנוצרו אוטומטית מהארון שלך</p>
+          <p className="font-semibold text-base">{t.nav.discover}</p>
+          <p className="text-white/60 text-sm mt-0.5">{t.outfits.discoverSub}</p>
         </div>
-        <span className="text-white/40 text-xl group-hover:text-white/70 transition-colors">→</span>
+        <span className="text-white/40 text-xl group-hover:text-white/70 transition-colors">←</span>
       </Link>
 
       <div className="mt-8">
@@ -129,21 +131,19 @@ export default function OutfitsPage() {
         ) : outfits.length === 0 ? (
           <div className="text-center py-20">
             <span className="text-5xl">✨</span>
-            <p className="text-gray-500 mt-4 text-lg font-medium">אין לוקים עדיין</p>
-            <p className="text-gray-400 text-sm mt-1">
-              תחילה הוסף בגדים לארון, לאחר מכן צור את הלוק הראשון שלך
-            </p>
+            <p className="text-gray-500 mt-4 text-lg font-medium">{t.outfits.noOutfits}</p>
+            <p className="text-gray-400 text-sm mt-1">{t.outfits.noOutfitsSub2}</p>
             <div className="flex items-center justify-center gap-3 mt-6">
               <Link href="/wardrobe">
                 <Button variant="secondary">
                   <Plus size={16} />
-                  הוסף לארון
+                  {t.outfits.addToWardrobe}
                 </Button>
               </Link>
               <Link href="/outfits/new">
                 <Button>
                   <Plus size={16} />
-                  צור לוק
+                  {t.outfits.create}
                 </Button>
               </Link>
             </div>
@@ -169,10 +169,10 @@ export default function OutfitsPage() {
         onOpenChange={(open) => {
           if (!open) setDeletingId(null)
         }}
-        title="מחיקת לוק?"
-        description={deletingOutfit ? `"${deletingOutfit.name}" יוסר לצמיתות.` : undefined}
-        confirmLabel="מחק"
-        cancelLabel="ביטול"
+        title={t.outfits.deleteOutfit}
+        description={deletingOutfit ? t.outfits.deleteConfirmSub(deletingOutfit.name) : undefined}
+        confirmLabel={t.outfits.deleteBtn}
+        cancelLabel={t.wardrobe.cancel}
         onConfirm={() => deletingOutfit && confirmDelete(deletingOutfit)}
         loading={deleteMutation.isPending}
       />
@@ -193,6 +193,7 @@ function OutfitCard({
   onDelete: (o: Outfit) => void
   onScheduleToday: (o: Outfit) => void
 }) {
+  const { t } = useLang()
   return (
     <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 overflow-hidden hover:shadow-md transition-shadow">
       <div className="h-48 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 relative flex items-center justify-center">
@@ -210,7 +211,7 @@ function OutfitCard({
         <div className="absolute top-3 left-3 flex gap-1.5 z-10">
           {outfit.is_public && (
             <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">
-              ציבורי
+              {t.outfits.public}
             </span>
           )}
         </div>
@@ -266,7 +267,7 @@ function OutfitCard({
           onClick={() => onScheduleToday(outfit)}
         >
           <Calendar size={14} />
-          לביש היום
+          {t.outfits.wearToday}
         </Button>
       </div>
     </div>

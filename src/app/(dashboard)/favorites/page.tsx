@@ -8,11 +8,13 @@ import { useAuth } from '@/contexts/auth-context'
 import { Heart } from 'lucide-react'
 import Link from 'next/link'
 import { useState } from 'react'
+import { useLang } from '@/lib/lang-context'
 
 export default function FavoritesPage() {
   const [tab, setTab] = useState<'outfits' | 'items'>('outfits')
   const { toast } = useToast()
   const { user } = useAuth()
+  const { t } = useLang()
   const supabase = createClient()
   const qc = useQueryClient()
 
@@ -76,14 +78,14 @@ export default function FavoritesPage() {
   return (
     <div>
       <div className="flex items-center gap-3 mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">מועדפים</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t.favorites.title}</h1>
         <span className="text-2xl">❤️</span>
       </div>
 
       <div className="flex gap-2 mb-6">
         {[
-          { key: 'outfits', label: `לוקים (${favoriteOutfits.length})` },
-          { key: 'items', label: `פריטים (${favoriteItems.length})` },
+          { key: 'outfits', label: t.favorites.outfits(favoriteOutfits.length) },
+          { key: 'items', label: t.favorites.items(favoriteItems.length) },
         ].map(({ key, label }) => (
           <button
             key={key}
@@ -108,10 +110,10 @@ export default function FavoritesPage() {
       ) : tab === 'outfits' ? (
         favoriteOutfits.length === 0 ? (
           <EmptyFav
-            text="אין לוקים מועדפים עדיין"
-            sub="לחץ על לב בכרטיס לוק כדי לראות אותו כאן"
+            text={t.favorites.noFavOutfits}
+            sub={t.favorites.noFavOutfitsSub}
             href="/outfits"
-            cta="צפה בלוקים"
+            cta={t.nav.outfits}
           />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -160,10 +162,10 @@ export default function FavoritesPage() {
         )
       ) : favoriteItems.length === 0 ? (
         <EmptyFav
-          text="אין פריטים מועדפים עדיין"
-          sub="לחץ על לב בפריט בארון כדי לראות אותו כאן"
+          text={t.favorites.noFavItems}
+          sub={t.favorites.noFavItemsSub}
           href="/wardrobe"
-          cta="עבור לארון"
+          cta={t.nav.wardrobe}
         />
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">

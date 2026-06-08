@@ -20,6 +20,7 @@ import { useDebounce } from '@/hooks/use-debounce'
 import { validateImageFile } from '@/lib/validations'
 import { wardrobeItemSchema } from '@/lib/validations'
 import { Plus, Search, Heart, Upload, Trash2 } from 'lucide-react'
+import { useLang } from '@/lib/lang-context'
 
 export default function WardrobePage() {
   const [search, setSearch] = useState('')
@@ -28,6 +29,7 @@ export default function WardrobePage() {
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [limit, setLimit] = useState(WARDROBE_PAGE_SIZE)
   const { toast } = useToast()
+  const { t } = useLang()
 
   const debouncedSearch = useDebounce(search)
 
@@ -93,12 +95,12 @@ export default function WardrobePage() {
     <div>
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">ארון בגדים</h1>
-          <p className="text-gray-500 text-sm mt-1">{totalCount} פריטים</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t.wardrobe.title}</h1>
+          <p className="text-gray-500 text-sm mt-1">{t.wardrobe.itemsTotal(totalCount)}</p>
         </div>
         <Button onClick={() => setShowAdd(true)}>
           <Plus size={16} />
-          הוסף פריט
+          {t.wardrobe.addItem}
         </Button>
       </div>
 
@@ -115,7 +117,7 @@ export default function WardrobePage() {
               : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
           }`}
         >
-          הכל ({totalCount})
+          {t.wardrobe.all(totalCount)}
         </button>
         {CLOTHING_CATEGORIES.map((cat) => (
           <button
@@ -131,7 +133,7 @@ export default function WardrobePage() {
             }`}
           >
             <span>{cat.emoji}</span>
-            {cat.label}
+            {t.categories[cat.value as keyof typeof t.categories] ?? cat.label}
             {counts[cat.value] > 0 && (
               <span
                 className={`text-xs rounded-full px-1.5 ${activeCategory === cat.value ? 'bg-white/20' : 'bg-gray-100 dark:bg-gray-700'}`}
@@ -147,7 +149,7 @@ export default function WardrobePage() {
       <div className="relative mb-6">
         <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
         <Input
-          placeholder="חפש לפי שם או מותג…"
+          placeholder={t.wardrobe.search}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="pl-9"
@@ -167,19 +169,17 @@ export default function WardrobePage() {
       ) : totalCount === 0 ? (
         <div className="text-center py-20">
           <span className="text-5xl">👗</span>
-          <p className="text-gray-500 mt-4 text-lg font-medium">הארון שלך ריק</p>
-          <p className="text-gray-400 text-sm mt-1">
-            הוסף פריטי לבוש כאן — לאחר מכן תוכל לבנות לוקים מהם
-          </p>
+          <p className="text-gray-500 mt-4 text-lg font-medium">{t.wardrobe.noItems}</p>
+          <p className="text-gray-400 text-sm mt-1">{t.wardrobe.noItemsSub}</p>
           <Button className="mt-6" onClick={() => setShowAdd(true)}>
             <Plus size={16} />
-            הוסף פריט ראשון
+            {t.wardrobe.addFirstItem}
           </Button>
         </div>
       ) : items.length === 0 ? (
         <div className="text-center py-16">
           <span className="text-4xl">🔍</span>
-          <p className="text-gray-500 mt-3 font-medium">אין פריטים תואמים לחיפוש</p>
+          <p className="text-gray-500 mt-3 font-medium">{t.wardrobe.noItems}</p>
           <button
             onClick={() => {
               setSearch('')
@@ -283,7 +283,7 @@ export default function WardrobePage() {
         title="הסרת פריט?"
         description={deletingItem ? `"${deletingItem.name}" יוסר מהארון שלך.` : undefined}
         confirmLabel="הסר"
-        cancelLabel="ביטול"
+        cancelLabel={t.wardrobe.cancel}
         onConfirm={() => deletingItem && confirmDelete(deletingItem)}
         loading={deleteMutation.isPending}
       />
@@ -292,6 +292,7 @@ export default function WardrobePage() {
 }
 
 function AddItemModal({ onClose, onAdded }: { onClose: () => void; onAdded: () => void }) {
+  const { t } = useLang()
   const [name, setName] = useState('')
   const [nameError, setNameError] = useState('')
   const [category, setCategory] = useState<ClothingCategory>('tops')
@@ -331,7 +332,7 @@ function AddItemModal({ onClose, onAdded }: { onClose: () => void; onAdded: () =
 
   async function processBg(file: File) {
     setProcessing(true)
-    setProcessMsg('טוען מודל…')
+    setProcessMsg(t.wardrobe.loadingModel)
     try {
       const { removeBg } = await import('@/lib/remove-bg')
       const result = await removeBg(file, (msg) => setProcessMsg(msg))
@@ -407,7 +408,7 @@ function AddItemModal({ onClose, onAdded }: { onClose: () => void; onAdded: () =
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white dark:bg-gray-900 rounded-2xl w-full max-w-md shadow-xl max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-800 sticky top-0 bg-white dark:bg-gray-900 rounded-t-2xl">
-          <h2 className="text-lg font-semibold dark:text-white">הוסף פריט לבוש</h2>
+          <h2 className="text-lg font-semibold dark:text-white">{t.wardrobe.modalTitle}</h2>
           <button
             onClick={onClose}
             className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 hover:text-gray-600 transition-colors"
@@ -439,14 +440,16 @@ function AddItemModal({ onClose, onAdded }: { onClose: () => void; onAdded: () =
               ) : (
                 <div className="text-center">
                   <Upload size={24} className="mx-auto text-gray-400 mb-2" />
-                  <p className="text-sm text-gray-500 font-medium">לחץ להעלאת תמונה</p>
+                  <p className="text-sm text-gray-500 font-medium">{t.wardrobe.uploadPhoto}</p>
                   <p className="text-xs text-gray-400 mt-1">JPG, PNG, WEBP · מקסימום 5 MB</p>
                 </div>
               )}
               {processing && (
                 <div className="absolute inset-0 bg-white/80 flex flex-col items-center justify-center">
                   <div className="w-6 h-6 border-2 border-black border-t-transparent rounded-full animate-spin" />
-                  <p className="text-xs text-gray-600 mt-2">{processMsg || 'מסיר רקע…'}</p>
+                  <p className="text-xs text-gray-600 mt-2">
+                    {processMsg || t.wardrobe.removingBg}
+                  </p>
                 </div>
               )}
             </div>
@@ -473,17 +476,19 @@ function AddItemModal({ onClose, onAdded }: { onClose: () => void; onAdded: () =
                 className={`w-4 h-4 bg-white rounded-full shadow transition-transform mx-1 ${removeBgEnabled ? 'translate-x-4' : 'translate-x-0'}`}
               />
             </button>
-            <span className="text-sm text-gray-700 dark:text-gray-300">✂️ הסר רקע אוטומטית</span>
+            <span className="text-sm text-gray-700 dark:text-gray-300">
+              {t.wardrobe.removeBgToggle}
+            </span>
           </label>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-              שם <span className="text-red-500">*</span>
+              {t.wardrobe.nameLabel}
             </label>
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="לדוג׳ חולצה לבנה מכותנה"
+              placeholder={t.wardrobe.namePlaceholder}
               required
             />
             {nameError && <p className="text-xs text-red-500 mt-1">{nameError}</p>}
@@ -491,7 +496,7 @@ function AddItemModal({ onClose, onAdded }: { onClose: () => void; onAdded: () =
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-              קטגוריה <span className="text-red-500">*</span>
+              {t.wardrobe.categoryLabel}
             </label>
             <select
               value={category}
@@ -508,19 +513,21 @@ function AddItemModal({ onClose, onAdded }: { onClose: () => void; onAdded: () =
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-              מותג
+              {t.wardrobe.brandLabel}
             </label>
             <Input
               value={brand}
               onChange={(e) => setBrand(e.target.value)}
-              placeholder="לדוג׳ Zara, H&M…"
+              placeholder={t.wardrobe.brandPlaceholder}
             />
           </div>
 
           {/* Color picker */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">צבע</label>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                {t.wardrobe.colorLabel}
+              </label>
               <button
                 type="button"
                 onClick={() => setHasColor(!hasColor)}
@@ -544,10 +551,10 @@ function AddItemModal({ onClose, onAdded }: { onClose: () => void; onAdded: () =
 
           <div className="flex gap-3 pt-2">
             <Button type="button" variant="secondary" onClick={onClose} className="flex-1">
-              ביטול
+              {t.wardrobe.cancel}
             </Button>
             <Button type="submit" disabled={loading || processing || !name} className="flex-1">
-              {loading ? 'מוסיף…' : 'הוסף פריט'}
+              {loading ? t.wardrobe.adding : t.wardrobe.addItemBtn}
             </Button>
           </div>
         </form>
