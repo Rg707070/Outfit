@@ -193,8 +193,8 @@ export default function CanvasBuilderPage() {
     }
   }
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadItems()
   }, [user]) // eslint-disable-line react-hooks/exhaustive-deps
 
