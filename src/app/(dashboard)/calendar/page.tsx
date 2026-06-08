@@ -7,6 +7,7 @@ import { WeatherWidget } from '@/components/weather/weather-widget'
 import { useToast } from '@/components/ui/toast'
 import { ChevronLeft, ChevronRight, Plus, X } from 'lucide-react'
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths, isToday } from 'date-fns'
+import { useLang } from '@/lib/lang-context'
 
 export default function CalendarPage() {
   const [currentMonth, setCurrentMonth] = useState(new Date())
@@ -15,6 +16,7 @@ export default function CalendarPage() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [showAssign, setShowAssign] = useState(false)
   const { toast } = useToast()
+  const { t } = useLang()
   const supabase = createClient()
 
   const days = eachDayOfInterval({
@@ -49,13 +51,13 @@ export default function CalendarPage() {
     const dateStr = format(date, 'yyyy-MM-dd')
     await supabase.from('calendar_outfits').delete().eq('user_id', user.id).eq('date', dateStr)
     setCalendarItems(prev => prev.filter(c => c.date !== dateStr))
-    toast('הלוק הוסר מהיום', 'info')
+    toast(t.calendar.outfit + ' הוסר מהיום', 'info')
   }
 
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">לוח שנה של לוקים</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t.calendar.title}</h1>
         <WeatherWidget />
       </div>
 
@@ -73,7 +75,7 @@ export default function CalendarPage() {
 
         {/* Day labels */}
         <div className="grid grid-cols-7 border-b border-gray-100">
-          {['א׳', 'ב׳', 'ג׳', 'ד׳', 'ה׳', 'ו׳', 'ש׳'].map(d => (
+          {t.calendar.days.map(d => (
             <div key={d} className="text-center text-xs font-medium text-gray-400 py-3">{d}</div>
           ))}
         </div>
@@ -108,14 +110,14 @@ export default function CalendarPage() {
                     ) : (
                       <div className="bg-black text-white text-xs rounded-lg px-2 py-1 truncate">
                         {/* @ts-ignore */}
-                        {outfitForDay.outfits?.name ?? 'לוק'}
+                        {outfitForDay.outfits?.name ?? t.calendar.outfit}
                       </div>
                     )}
                     {/* Remove button */}
                     <button
                       onClick={(e) => removeFromDay(day, e)}
                       className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
-                      title="הסר לוק מיום זה"
+                      title={t.calendar.outfit + ' הסר'}
                     >
                       <X size={10} />
                     </button>
@@ -135,11 +137,11 @@ export default function CalendarPage() {
       <div className="mt-4 flex items-center gap-4 text-xs text-gray-400">
         <div className="flex items-center gap-1.5">
           <div className="w-5 h-5 rounded-full bg-black flex items-center justify-center text-white text-xs font-bold">1</div>
-          <span>היום</span>
+          <span>{t.calendar.title}</span>
         </div>
         <div className="flex items-center gap-1.5">
           <Plus size={12} />
-          <span>לחץ על יום כדי לשייך לוק</span>
+          <span>{t.calendar.assign}</span>
         </div>
       </div>
 
@@ -151,7 +153,7 @@ export default function CalendarPage() {
           onClose={() => setShowAssign(false)}
           onAssigned={() => {
             loadData()
-            toast(`לוק שויך ל-${format(selectedDate, 'd/M')} 📅`)
+            toast(`${t.calendar.outfit} ${format(selectedDate, 'd/M')} 📅`)
           }}
         />
       )}
@@ -172,6 +174,7 @@ function AssignOutfitModal({
   const currentId = currentOutfit?.outfit_id ?? ''
   const [selected, setSelected] = useState<string>(currentId)
   const [loading, setLoading] = useState(false)
+  const { t } = useLang()
   const supabase = createClient()
 
   async function handleAssign() {
@@ -192,15 +195,14 @@ function AssignOutfitModal({
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl w-full max-w-sm shadow-xl">
         <div className="flex items-center justify-between p-6 border-b border-gray-100">
-          <h2 className="text-lg font-semibold">שייך לוק — {format(date, 'd/M/yyyy')}</h2>
+          <h2 className="text-lg font-semibold">{t.calendar.assignTitle(format(date, 'd/M/yyyy'))}</h2>
           <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 transition-colors">✕</button>
         </div>
         <div className="p-6 space-y-2 max-h-80 overflow-y-auto">
           {outfits.length === 0 ? (
             <div className="text-center py-8">
               <span className="text-3xl">👔</span>
-              <p className="text-sm text-gray-400 mt-2">אין לוקים עדיין.</p>
-              <p className="text-xs text-gray-400 mt-1">צור לוק תחילה מדף הלוקים.</p>
+              <p className="text-sm text-gray-400 mt-2">{t.calendar.noOutfits}</p>
             </div>
           ) : outfits.map(outfit => (
             <button
@@ -228,9 +230,9 @@ function AssignOutfitModal({
           ))}
         </div>
         <div className="flex gap-3 p-6 border-t border-gray-100">
-          <Button variant="secondary" onClick={onClose} className="flex-1">ביטול</Button>
+          <Button variant="secondary" onClick={onClose} className="flex-1">{t.calendar.cancel}</Button>
           <Button onClick={handleAssign} disabled={!selected || loading} className="flex-1">
-            {loading ? 'שומר…' : 'שייך לוק'}
+            {loading ? t.calendar.saving : t.calendar.assign}
           </Button>
         </div>
       </div>
