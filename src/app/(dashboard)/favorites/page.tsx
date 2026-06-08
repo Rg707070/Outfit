@@ -5,6 +5,7 @@ import { Outfit, WardrobeItem } from '@/types/database'
 import { useToast } from '@/components/ui/toast'
 import { Heart } from 'lucide-react'
 import Link from 'next/link'
+import { useLang } from '@/lib/lang-context'
 
 export default function FavoritesPage() {
   const [favoriteOutfits, setFavoriteOutfits] = useState<Outfit[]>([])
@@ -12,6 +13,7 @@ export default function FavoritesPage() {
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState<'outfits' | 'items'>('outfits')
   const { toast } = useToast()
+  const { t } = useLang()
   const supabase = createClient()
 
   useEffect(() => { loadData() }, [])
@@ -31,26 +33,26 @@ export default function FavoritesPage() {
   async function unfavoriteOutfit(outfit: Outfit) {
     await supabase.from('outfits').update({ is_favorite: false }).eq('id', outfit.id)
     setFavoriteOutfits(prev => prev.filter(o => o.id !== outfit.id))
-    toast(`"${outfit.name}" הוסר מהמועדפים`)
+    toast(`"${outfit.name}" ${t.favorites.noFavOutfitsSub}`)
   }
 
   async function unfavoriteItem(item: WardrobeItem) {
     await supabase.from('wardrobe_items').update({ is_favorite: false }).eq('id', item.id)
     setFavoriteItems(prev => prev.filter(i => i.id !== item.id))
-    toast(`"${item.name}" הוסר מהמועדפים`)
+    toast(`"${item.name}" ${t.favorites.noFavItemsSub}`)
   }
 
   return (
     <div>
       <div className="flex items-center gap-3 mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">מועדפים</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t.favorites.title}</h1>
         <span className="text-2xl">❤️</span>
       </div>
 
       <div className="flex gap-2 mb-6">
         {[
-          { key: 'outfits', label: `לוקים (${favoriteOutfits.length})` },
-          { key: 'items', label: `פריטים (${favoriteItems.length})` },
+          { key: 'outfits', label: t.favorites.outfits(favoriteOutfits.length) },
+          { key: 'items', label: t.favorites.items(favoriteItems.length) },
         ].map(({ key, label }) => (
           <button
             key={key}
@@ -73,10 +75,10 @@ export default function FavoritesPage() {
       ) : tab === 'outfits' ? (
         favoriteOutfits.length === 0 ? (
           <EmptyFav
-            text="אין לוקים מועדפים עדיין"
-            sub="לחץ על לב בכרטיס לוק כדי לראות אותו כאן"
+            text={t.favorites.noFavOutfits}
+            sub={t.favorites.noFavOutfitsSub}
             href="/outfits"
-            cta="צפה בלוקים"
+            cta={t.nav.outfits}
           />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -89,7 +91,6 @@ export default function FavoritesPage() {
                   <button
                     onClick={() => unfavoriteOutfit(outfit)}
                     className="absolute top-3 right-3 p-1.5 bg-white rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity hover:scale-110"
-                    title="הסר ממועדפים"
                   >
                     <Heart size={14} className="fill-red-500 text-red-500" />
                   </button>
@@ -108,10 +109,10 @@ export default function FavoritesPage() {
       ) : (
         favoriteItems.length === 0 ? (
           <EmptyFav
-            text="אין פריטים מועדפים עדיין"
-            sub="לחץ על לב בפריט בארון כדי לראות אותו כאן"
+            text={t.favorites.noFavItems}
+            sub={t.favorites.noFavItemsSub}
             href="/wardrobe"
-            cta="עבור לארון"
+            cta={t.nav.wardrobe}
           />
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
@@ -124,7 +125,6 @@ export default function FavoritesPage() {
                   <button
                     onClick={() => unfavoriteItem(item)}
                     className="absolute top-2 right-2 p-1.5 bg-white rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity hover:scale-110"
-                    title="הסר ממועדפים"
                   >
                     <Heart size={12} className="fill-red-500 text-red-500" />
                   </button>
