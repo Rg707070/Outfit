@@ -185,11 +185,11 @@ export default function CanvasBuilderPage() {
       <div className="flex items-center gap-3 mb-4 flex-shrink-0">
         <Link href="/outfits" className="flex items-center gap-1.5 text-gray-500 hover:text-gray-900 transition-colors">
           <ArrowRight size={16} />
-          <span className="text-sm">{t.wardrobe.cancel}</span>
+          <span className="text-sm">חזרה</span>
         </Link>
 
         <div className="flex-1 flex items-center justify-center gap-2 flex-wrap">
-          <span className="text-xs text-gray-400 font-medium">{t.newOutfit.yourOutfit}:</span>
+          <span className="text-xs text-gray-400 font-medium">רקע:</span>
           {BG_OPTIONS.map(opt => (
             <button
               key={opt.value}
@@ -208,7 +208,7 @@ export default function CanvasBuilderPage() {
 
         <Button onClick={() => setShowSaveModal(true)} disabled={canvasItems.length === 0}>
           <Save size={15} />
-          {t.newOutfit.save}
+          שמור לוק
         </Button>
       </div>
 
@@ -231,7 +231,7 @@ export default function CanvasBuilderPage() {
                   onClick={() => setActiveCategory('all')}
                   className={`text-xs px-3 py-1.5 rounded-lg text-right font-medium transition-colors ${activeCategory === 'all' ? 'bg-black text-white' : 'text-gray-600 hover:bg-gray-50'}`}
                 >
-                  {t.newOutfit.all}
+                  הכל
                 </button>
                 {usedCategories.map(cat => (
                   <button
