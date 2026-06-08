@@ -5,14 +5,16 @@ import { Outfit } from '@/types/database'
 import { Button } from '@/components/ui/button'
 import { WeatherWidget } from '@/components/weather/weather-widget'
 import { useToast } from '@/components/ui/toast'
-import { Plus, Heart, Share2, Calendar, Trash2, AlertTriangle } from 'lucide-react'
+import { Plus, Heart, Share2, Calendar, Trash2, AlertTriangle, Zap } from 'lucide-react'
 import Link from 'next/link'
+import { useLang } from '@/lib/lang-context'
 
 export default function OutfitsPage() {
   const [outfits, setOutfits] = useState<Outfit[]>([])
   const [loading, setLoading] = useState(true)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const { toast } = useToast()
+  const { t } = useLang()
   const supabase = createClient()
 
   useEffect(() => { loadOutfits() }, [])
@@ -32,7 +34,7 @@ export default function OutfitsPage() {
   async function toggleFavorite(outfit: Outfit) {
     await supabase.from('outfits').update({ is_favorite: !outfit.is_favorite }).eq('id', outfit.id)
     setOutfits(prev => prev.map(o => o.id === outfit.id ? { ...o, is_favorite: !o.is_favorite } : o))
-    toast(outfit.is_favorite ? 'Removed from favorites' : 'Added to favorites ❤️')
+    toast(outfit.is_favorite ? 'הוסר מהמועדפים' : 'נוסף למועדפים ❤️')
   }
 
   async function shareOutfit(outfit: Outfit) {
@@ -42,14 +44,14 @@ export default function OutfitsPage() {
     }
     const url = `${window.location.origin}/share/${outfit.share_token}`
     await navigator.clipboard.writeText(url)
-    toast('Share link copied to clipboard!')
+    toast('קישור השיתוף הועתק!')
   }
 
   async function confirmDelete(outfit: Outfit) {
     await supabase.from('outfits').delete().eq('id', outfit.id)
     setOutfits(prev => prev.filter(o => o.id !== outfit.id))
     setDeletingId(null)
-    toast('Outfit deleted', 'info')
+    toast('הלוק נמחק', 'info')
   }
 
   async function scheduleToday(outfit: Outfit) {
@@ -61,20 +63,32 @@ export default function OutfitsPage() {
       outfit_id: outfit.id,
       date: today,
     }, { onConflict: 'user_id,date' })
-    toast(`"${outfit.name}" scheduled for today! 📅`)
+    toast(`"${outfit.name}" שויך להיום! 📅`)
   }
 
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">My Outfits</h1>
-          <p className="text-gray-500 text-sm mt-1">{outfits.length} outfits saved</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t.outfits.title}</h1>
+          <p className="text-gray-500 text-sm mt-1">{t.outfits.saved(outfits.length)}</p>
         </div>
-        <Link href="/outfits/new"><Button><Plus size={16} />Create outfit</Button></Link>
+        <Link href="/outfits/new"><Button><Plus size={16} />{t.outfits.create}</Button></Link>
       </div>
 
       <WeatherWidget />
+
+      {/* Discover banner */}
+      <Link href="/outfits/discover" className="group mt-6 flex items-center gap-4 bg-gradient-to-r from-gray-900 to-gray-700 text-white rounded-2xl p-5 hover:from-black hover:to-gray-800 transition-all">
+        <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-white/20 transition-colors">
+          <Zap size={22} className="text-white" />
+        </div>
+        <div className="flex-1">
+          <p className="font-semibold text-base">{t.nav.discover}</p>
+          <p className="text-white/60 text-sm mt-0.5">{t.outfits.discoverSub}</p>
+        </div>
+        <span className="text-white/40 text-xl group-hover:text-white/70 transition-colors">←</span>
+      </Link>
 
       <div className="mt-8">
         {loading ? (
@@ -86,11 +100,11 @@ export default function OutfitsPage() {
         ) : outfits.length === 0 ? (
           <div className="text-center py-20">
             <span className="text-5xl">✨</span>
-            <p className="text-gray-500 mt-4 text-lg font-medium">No outfits yet</p>
-            <p className="text-gray-400 text-sm mt-1">First, add clothes to your wardrobe, then create your first outfit</p>
+            <p className="text-gray-500 mt-4 text-lg font-medium">{t.outfits.noOutfits}</p>
+            <p className="text-gray-400 text-sm mt-1">{t.outfits.noOutfitsSub2}</p>
             <div className="flex items-center justify-center gap-3 mt-6">
-              <Link href="/wardrobe"><Button variant="secondary"><Plus size={16} />Add to wardrobe</Button></Link>
-              <Link href="/outfits/new"><Button><Plus size={16} />Create outfit</Button></Link>
+              <Link href="/wardrobe"><Button variant="secondary"><Plus size={16} />{t.outfits.addToWardrobe}</Button></Link>
+              <Link href="/outfits/new"><Button><Plus size={16} />{t.outfits.create}</Button></Link>
             </div>
           </div>
         ) : (
@@ -121,13 +135,13 @@ export default function OutfitsPage() {
                   <AlertTriangle size={18} className="text-red-600" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900">Delete outfit?</h3>
-                  <p className="text-sm text-gray-500">"{outfit.name}" will be permanently removed.</p>
+                  <h3 className="font-semibold text-gray-900">{t.outfits.deleteOutfit}</h3>
+                  <p className="text-sm text-gray-500">{t.outfits.deleteConfirmSub(outfit.name)}</p>
                 </div>
               </div>
               <div className="flex gap-3">
-                <Button variant="secondary" className="flex-1" onClick={() => setDeletingId(null)}>Cancel</Button>
-                <Button variant="danger" className="flex-1" onClick={() => confirmDelete(outfit)}>Delete</Button>
+                <Button variant="secondary" className="flex-1" onClick={() => setDeletingId(null)}>{t.wardrobe.cancel}</Button>
+                <Button variant="danger" className="flex-1" onClick={() => confirmDelete(outfit)}>{t.outfits.deleteBtn}</Button>
               </div>
             </div>
           </div>
@@ -150,6 +164,7 @@ function OutfitCard({
   onDelete: (o: Outfit) => void
   onScheduleToday: (o: Outfit) => void
 }) {
+  const { t } = useLang()
   return (
     <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
       <div className="h-48 bg-gradient-to-br from-gray-50 to-gray-100 relative flex items-center justify-center">
@@ -160,7 +175,7 @@ function OutfitCard({
         )}
         <div className="absolute top-3 left-3 flex gap-1.5">
           {outfit.is_public && (
-            <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">Public</span>
+            <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">{t.outfits.public}</span>
           )}
         </div>
         {/* Action buttons — always visible */}
@@ -168,21 +183,21 @@ function OutfitCard({
           <button
             onClick={() => onToggleFavorite(outfit)}
             className="p-1.5 bg-white rounded-full shadow-sm hover:scale-110 transition-transform"
-            title={outfit.is_favorite ? 'Remove from favorites' : 'Add to favorites'}
+            title={outfit.is_favorite ? 'הסר ממועדפים' : 'הוסף למועדפים'}
           >
             <Heart size={14} className={outfit.is_favorite ? 'fill-red-500 text-red-500' : 'text-gray-400'} />
           </button>
           <button
             onClick={() => onShare(outfit)}
             className="p-1.5 bg-white rounded-full shadow-sm hover:scale-110 transition-transform"
-            title="Copy share link"
+            title="העתק קישור שיתוף"
           >
             <Share2 size={14} className="text-gray-400" />
           </button>
           <button
             onClick={() => onDelete(outfit)}
             className="p-1.5 bg-white rounded-full shadow-sm hover:scale-110 transition-transform hover:bg-red-50"
-            title="Delete outfit"
+            title="מחק לוק"
           >
             <Trash2 size={14} className="text-gray-400 hover:text-red-500" />
           </button>
@@ -202,7 +217,7 @@ function OutfitCard({
         </div>
         <Button size="sm" variant="secondary" className="w-full mt-4" onClick={() => onScheduleToday(outfit)}>
           <Calendar size={14} />
-          Wear today
+          {t.outfits.wearToday}
         </Button>
       </div>
     </div>

@@ -3,8 +3,11 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { OutfitHistory, Outfit } from '@/types/database'
 import { Button } from '@/components/ui/button'
-import { Plus, Tag, Trash2 } from 'lucide-react'
+import { useToast } from '@/components/ui/toast'
+import { Plus, Tag, Trash2, AlertTriangle } from 'lucide-react'
 import { format } from 'date-fns'
+import { he } from 'date-fns/locale'
+import { useLang } from '@/lib/lang-context'
 
 type HistoryWithOutfit = OutfitHistory & { outfits: { name: string; image_url: string | null } | null }
 
@@ -14,6 +17,9 @@ export default function HistoryPage() {
   const [loading, setLoading] = useState(true)
   const [activeCategory, setActiveCategory] = useState<string>('all')
   const [showAdd, setShowAdd] = useState(false)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const { toast } = useToast()
+  const { t } = useLang()
   const supabase = createClient()
 
   useEffect(() => { loadData() }, [])
@@ -30,22 +36,25 @@ export default function HistoryPage() {
     setLoading(false)
   }
 
-  async function deleteEntry(id: string) {
+  async function confirmDelete(id: string) {
     await supabase.from('outfit_history').delete().eq('id', id)
     setHistory(prev => prev.filter(h => h.id !== id))
+    setDeletingId(null)
+    toast(t.history.title, 'info')
   }
 
   const categories = ['all', ...Array.from(new Set(history.map(h => h.category_label).filter(Boolean) as string[]))]
   const filtered = activeCategory === 'all' ? history : history.filter(h => h.category_label === activeCategory)
+  const deletingEntry = deletingId ? history.find(h => h.id === deletingId) : null
 
   return (
     <div>
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">היסטוריית לוקים</h1>
-          <p className="text-gray-500 text-sm mt-1">{history.length} רשומות</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t.history.title}</h1>
+          <p className="text-gray-500 text-sm mt-1">{t.history.entries(history.length)}</p>
         </div>
-        <Button onClick={() => setShowAdd(true)}><Plus size={16} />רשום לוק</Button>
+        <Button onClick={() => setShowAdd(true)}><Plus size={16} />{t.history.log}</Button>
       </div>
 
       {/* Category filters */}
@@ -59,7 +68,7 @@ export default function HistoryPage() {
             }`}
           >
             {cat !== 'all' && <Tag size={12} />}
-            {cat === 'all' ? 'הכל' : cat}
+            {cat === 'all' ? t.history.all : cat}
           </button>
         ))}
       </div>
@@ -70,20 +79,23 @@ export default function HistoryPage() {
         ) : filtered.length === 0 ? (
           <div className="text-center py-16">
             <span className="text-4xl">📅</span>
-            <p className="text-gray-500 mt-3 font-medium">אין היסטוריה עדיין</p>
-            <Button className="mt-4" onClick={() => setShowAdd(true)}><Plus size={16} />רשום לוק ראשון</Button>
+            <p className="text-gray-500 mt-3 font-medium">{t.history.noHistory}</p>
+            <p className="text-gray-400 text-sm mt-1">{t.history.notesPlaceholder}</p>
+            <Button className="mt-4" onClick={() => setShowAdd(true)}><Plus size={16} />{t.history.logFirst}</Button>
           </div>
         ) : filtered.map(entry => (
-          <div key={entry.id} className="flex items-center gap-4 bg-white rounded-xl border border-gray-100 p-4 group">
+          <div key={entry.id} className="flex items-center gap-4 bg-white rounded-xl border border-gray-100 p-4 hover:shadow-sm transition-shadow">
             <div className="w-12 h-12 rounded-xl bg-gray-50 flex items-center justify-center flex-shrink-0">
               {entry.outfits?.image_url ? (
                 <img src={entry.outfits.image_url} alt="" className="w-full h-full object-cover rounded-xl" />
               ) : <span className="text-xl">👔</span>}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-gray-900">{entry.outfits?.name ?? 'לוק מותאם'}</p>
-              <div className="flex items-center gap-2 mt-0.5">
-                <span className="text-xs text-gray-400">{format(new Date(entry.worn_date), 'EEEE, MMMM d, yyyy')}</span>
+              <p className="text-sm font-semibold text-gray-900">{entry.outfits?.name ?? t.history.customOutfit}</p>
+              <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                <span className="text-xs text-gray-400">
+                  {format(new Date(entry.worn_date), 'EEEE, d בMMMM yyyy', { locale: he })}
+                </span>
                 {entry.category_label && (
                   <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full flex items-center gap-1">
                     <Tag size={10} /> {entry.category_label}
@@ -92,19 +104,50 @@ export default function HistoryPage() {
               </div>
               {entry.notes && <p className="text-xs text-gray-400 mt-1 truncate">{entry.notes}</p>}
             </div>
-            <button onClick={() => deleteEntry(entry.id)} className="opacity-0 group-hover:opacity-100 p-1.5 text-gray-400 hover:text-red-500 transition-all">
+            <button
+              onClick={() => setDeletingId(entry.id)}
+              className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0"
+              title={t.history.logBtn}
+            >
               <Trash2 size={14} />
             </button>
           </div>
         ))}
       </div>
 
-      {showAdd && <LogOutfitModal outfits={outfits} onClose={() => setShowAdd(false)} onAdded={loadData} />}
+      {showAdd && (
+        <LogOutfitModal
+          outfits={outfits}
+          onClose={() => setShowAdd(false)}
+          onAdded={() => { loadData(); toast(t.history.log + ' 📅') }}
+        />
+      )}
+
+      {deletingEntry && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <AlertTriangle size={18} className="text-red-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900">{t.history.title}</h3>
+                <p className="text-sm text-gray-500">"{deletingEntry.outfits?.name ?? t.history.customOutfit}"</p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <Button variant="secondary" className="flex-1" onClick={() => setDeletingId(null)}>{t.history.cancel}</Button>
+              <Button variant="danger" className="flex-1" onClick={() => confirmDelete(deletingEntry.id)}>{t.history.logBtn}</Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
 
 function LogOutfitModal({ outfits, onClose, onAdded }: { outfits: Outfit[]; onClose: () => void; onAdded: () => void }) {
+  const { t } = useLang()
   const [outfitId, setOutfitId] = useState('')
   const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'))
   const [notes, setNotes] = useState('')
@@ -132,23 +175,23 @@ function LogOutfitModal({ outfits, onClose, onAdded }: { outfits: Outfit[]; onCl
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl w-full max-w-md shadow-xl">
         <div className="flex items-center justify-between p-6 border-b border-gray-100">
-          <h2 className="text-lg font-semibold">רשום לוק שנלבש</h2>
-          <button onClick={onClose} className="text-gray-400">✕</button>
+          <h2 className="text-lg font-semibold">{t.history.modalTitle}</h2>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 transition-colors">✕</button>
         </div>
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">לוק (אופציונלי)</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">{t.history.outfitOptional}</label>
             <select
               value={outfitId}
               onChange={e => setOutfitId(e.target.value)}
               className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black"
             >
-              <option value="">בחר לוק…</option>
+              <option value="">{t.history.selectOutfit}</option>
               {outfits.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">תאריך *</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">{t.history.dateLabel}</label>
             <input
               type="date"
               value={date}
@@ -158,28 +201,42 @@ function LogOutfitModal({ outfits, onClose, onAdded }: { outfits: Outfit[]; onCl
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">תווית קטגוריה</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">{t.history.categoryLabel}</label>
+            <div className="flex gap-2 flex-wrap mb-2">
+              {['עבודה', 'קז׳ואל', 'ערב', 'ספורט', 'דייט'].map(tag => (
+                <button
+                  key={tag}
+                  type="button"
+                  onClick={() => setCategoryLabel(categoryLabel === tag ? '' : tag)}
+                  className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                    categoryLabel === tag ? 'bg-black text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  {tag}
+                </button>
+              ))}
+            </div>
             <input
               type="text"
               value={categoryLabel}
               onChange={e => setCategoryLabel(e.target.value)}
-              placeholder="לדוג׳ עבודה, קז׳ואל, ערב דייט…"
+              placeholder={t.history.categoryPlaceholder}
               className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">הערות</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">{t.history.notesLabel}</label>
             <textarea
               value={notes}
               onChange={e => setNotes(e.target.value)}
               rows={2}
-              placeholder="איך זה הרגיש? הערות…"
+              placeholder={t.history.notesPlaceholder}
               className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black resize-none"
             />
           </div>
           <div className="flex gap-3 pt-2">
-            <Button type="button" variant="secondary" onClick={onClose} className="flex-1">ביטול</Button>
-            <Button type="submit" disabled={loading} className="flex-1">{loading ? 'שומר…' : 'רשום לוק'}</Button>
+            <Button type="button" variant="secondary" onClick={onClose} className="flex-1">{t.history.cancel}</Button>
+            <Button type="submit" disabled={loading} className="flex-1">{loading ? t.history.saving : t.history.logBtn}</Button>
           </div>
         </form>
       </div>

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useToast } from '@/components/ui/toast'
 import { Plus, Search, Heart, Upload, Trash2, AlertTriangle } from 'lucide-react'
+import { useLang } from '@/lib/lang-context'
 
 export default function WardrobePage() {
   const [items, setItems] = useState<WardrobeItem[]>([])
@@ -16,6 +17,7 @@ export default function WardrobePage() {
   const [showAdd, setShowAdd] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const { toast } = useToast()
+  const { t } = useLang()
   const supabase = createClient()
 
   useEffect(() => { loadItems() }, [])
@@ -63,12 +65,12 @@ export default function WardrobePage() {
     <div>
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Wardrobe</h1>
-          <p className="text-gray-500 text-sm mt-1">{items.length} items total</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t.wardrobe.title}</h1>
+          <p className="text-gray-500 text-sm mt-1">{t.wardrobe.itemsTotal(items.length)}</p>
         </div>
         <Button onClick={() => setShowAdd(true)}>
           <Plus size={16} />
-          Add item
+          {t.wardrobe.addItem}
         </Button>
       </div>
 
@@ -80,7 +82,7 @@ export default function WardrobePage() {
             activeCategory === 'all' ? 'bg-black text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
           }`}
         >
-          All ({items.length})
+          {t.wardrobe.all(items.length)}
         </button>
         {CLOTHING_CATEGORIES.map(cat => (
           <button
@@ -91,7 +93,7 @@ export default function WardrobePage() {
             }`}
           >
             <span>{cat.emoji}</span>
-            {cat.label}
+            {t.categories[cat.value as keyof typeof t.categories] ?? cat.label}
             {counts[cat.value] > 0 && (
               <span className={`text-xs rounded-full px-1.5 ${activeCategory === cat.value ? 'bg-white/20' : 'bg-gray-100'}`}>
                 {counts[cat.value]}
@@ -105,7 +107,7 @@ export default function WardrobePage() {
       <div className="relative mb-6">
         <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
         <Input
-          placeholder="Search by name or brand…"
+          placeholder={t.wardrobe.search}
           value={search}
           onChange={e => setSearch(e.target.value)}
           className="pl-9"
@@ -122,19 +124,19 @@ export default function WardrobePage() {
       ) : items.length === 0 ? (
         <div className="text-center py-20">
           <span className="text-5xl">👗</span>
-          <p className="text-gray-500 mt-4 text-lg font-medium">Your wardrobe is empty</p>
-          <p className="text-gray-400 text-sm mt-1">Add your clothing items here first — then you can build outfits from them</p>
+          <p className="text-gray-500 mt-4 text-lg font-medium">{t.wardrobe.noItems}</p>
+          <p className="text-gray-400 text-sm mt-1">{t.wardrobe.noItemsSub}</p>
           <Button className="mt-6" onClick={() => setShowAdd(true)}>
             <Plus size={16} />
-            Add first item
+            {t.wardrobe.addFirstItem}
           </Button>
         </div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-16">
           <span className="text-4xl">🔍</span>
-          <p className="text-gray-500 mt-3 font-medium">No items match your search</p>
+          <p className="text-gray-500 mt-3 font-medium">{t.wardrobe.noItems}</p>
           <button onClick={() => { setSearch(''); setActiveCategory('all') }} className="text-sm text-gray-400 underline mt-2">
-            Clear filters
+            {t.wardrobe.all(0)}
           </button>
         </div>
       ) : (
@@ -209,12 +211,12 @@ export default function WardrobePage() {
                 <AlertTriangle size={18} className="text-red-600" />
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900">Remove item?</h3>
-                <p className="text-sm text-gray-500">"{deletingItem.name}" will be removed from your wardrobe.</p>
+                <h3 className="font-semibold text-gray-900">{t.wardrobe.addItem}</h3>
+                <p className="text-sm text-gray-500">"{deletingItem.name}"</p>
               </div>
             </div>
             <div className="flex gap-3">
-              <Button variant="secondary" className="flex-1" onClick={() => setDeletingId(null)}>Cancel</Button>
+              <Button variant="secondary" className="flex-1" onClick={() => setDeletingId(null)}>{t.wardrobe.cancel}</Button>
               <Button variant="danger" className="flex-1" onClick={() => confirmDelete(deletingItem)}>Remove</Button>
             </div>
           </div>
@@ -225,6 +227,7 @@ export default function WardrobePage() {
 }
 
 function AddItemModal({ onClose, onAdded }: { onClose: () => void; onAdded: () => void }) {
+  const { t } = useLang()
   const [name, setName] = useState('')
   const [category, setCategory] = useState<ClothingCategory>('tops')
   const [brand, setBrand] = useState('')
@@ -313,7 +316,7 @@ function AddItemModal({ onClose, onAdded }: { onClose: () => void; onAdded: () =
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl w-full max-w-md shadow-xl max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-6 border-b border-gray-100 sticky top-0 bg-white rounded-t-2xl">
-          <h2 className="text-lg font-semibold">Add clothing item</h2>
+          <h2 className="text-lg font-semibold">{t.wardrobe.modalTitle}</h2>
           <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors">✕</button>
         </div>
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
@@ -334,14 +337,14 @@ function AddItemModal({ onClose, onAdded }: { onClose: () => void; onAdded: () =
               ) : (
                 <div className="text-center">
                   <Upload size={24} className="mx-auto text-gray-400 mb-2" />
-                  <p className="text-sm text-gray-500 font-medium">Click to upload a photo</p>
+                  <p className="text-sm text-gray-500 font-medium">{t.wardrobe.uploadPhoto}</p>
                   <p className="text-xs text-gray-400 mt-1">JPG, PNG, WEBP accepted</p>
                 </div>
               )}
               {processing && (
                 <div className="absolute inset-0 bg-white/80 flex flex-col items-center justify-center">
                   <div className="w-6 h-6 border-2 border-black border-t-transparent rounded-full animate-spin" />
-                  <p className="text-xs text-gray-600 mt-2">{processMsg || 'Removing background…'}</p>
+                  <p className="text-xs text-gray-600 mt-2">{processMsg || t.wardrobe.removingBg}</p>
                 </div>
               )}
             </div>
