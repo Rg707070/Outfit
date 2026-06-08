@@ -4,11 +4,24 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import {
-  Shirt, CalendarDays, ShoppingBag, Clock,
-  LayoutGrid, LogOut, User, Star, BarChart3, Zap, Menu, X
+  Shirt,
+  CalendarDays,
+  ShoppingBag,
+  Clock,
+  LayoutGrid,
+  LogOut,
+  User,
+  Star,
+  BarChart3,
+  Zap,
+  Menu,
+  X,
+  Sun,
+  Moon,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { useTheme } from '@/contexts/theme-context'
 import { useLang } from '@/lib/lang-context'
 
 function NavLinks({ pathname, onNavigate }: { pathname: string; onNavigate?: () => void }) {
@@ -35,8 +48,8 @@ function NavLinks({ pathname, onNavigate }: { pathname: string; onNavigate?: () 
           className={cn(
             'flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors',
             pathname === href || (href !== '/outfits' && pathname.startsWith(href))
-              ? 'bg-black text-white'
-              : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+              ? 'bg-black text-white dark:bg-white dark:text-black'
+              : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
           )}
         >
           <Icon size={18} />
@@ -47,32 +60,47 @@ function NavLinks({ pathname, onNavigate }: { pathname: string; onNavigate?: () 
   )
 }
 
-function BottomLinks({ onNavigate, onSignOut }: { onNavigate?: () => void; onSignOut: () => void }) {
+function BottomLinks({
+  onNavigate,
+  onSignOut,
+}: {
+  onNavigate?: () => void
+  onSignOut: () => void
+}) {
+  const { resolvedTheme, setTheme } = useTheme()
   const { t, lang, setLang } = useLang()
 
   return (
-    <div className="p-4 border-t border-gray-100 space-y-1">
+    <div className="p-4 border-t border-gray-100 dark:border-gray-800 space-y-1">
+      <button
+        onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
+        className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+        aria-label="החלף ערכת צבעים"
+      >
+        {resolvedTheme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+        {resolvedTheme === 'dark' ? 'מצב בהיר' : 'מצב כהה'}
+      </button>
+      <button
+        onClick={() => setLang(lang === 'he' ? 'en' : 'he')}
+        className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+      >
+        <span className="text-base">🌐</span>
+        {lang === 'he' ? 'English' : 'עברית'}
+      </button>
       <Link
         href="/profile"
         onClick={onNavigate}
-        className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50"
+        className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800"
       >
         <User size={18} />
         {t.nav.profile}
       </Link>
       <button
         onClick={onSignOut}
-        className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-red-50 hover:text-red-600 transition-colors"
+        className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400 transition-colors"
       >
         <LogOut size={18} />
         {t.nav.signOut}
-      </button>
-      <button
-        onClick={() => setLang(lang === 'he' ? 'en' : 'he')}
-        className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors"
-      >
-        <span className="text-base">🌐</span>
-        {lang === 'he' ? 'English' : 'עברית'}
       </button>
     </div>
   )
@@ -94,17 +122,17 @@ export function Sidebar() {
   return (
     <>
       {/* Mobile top bar */}
-      <header className="md:hidden fixed top-0 right-0 left-0 h-14 bg-white border-b border-gray-100 flex items-center justify-between px-4 z-30">
+      <header className="md:hidden fixed top-0 right-0 left-0 h-14 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between px-4 z-30">
         <button
           onClick={() => setIsOpen(true)}
-          className="p-2 rounded-xl hover:bg-gray-50 text-gray-600"
+          className="p-2 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400"
           aria-label="פתח תפריט"
         >
           <Menu size={22} />
         </button>
         <Link href="/outfits" className="flex items-center gap-2">
           <span className="text-xl">👗</span>
-          <span className="text-lg font-bold text-gray-900">Outfit</span>
+          <span className="text-lg font-bold text-gray-900 dark:text-white">Outfit</span>
         </Link>
         <div className="w-10" />
       </header>
@@ -118,19 +146,25 @@ export function Sidebar() {
 
       {/* Mobile sliding panel */}
       <div
-        className="md:hidden fixed top-0 bottom-0 bg-white flex flex-col z-50 shadow-2xl"
+        className="md:hidden fixed top-0 bottom-0 bg-white dark:bg-gray-900 flex flex-col z-50 shadow-2xl"
         style={{
-          right: 0, width: '100%', maxWidth: '20rem',
+          right: 0,
+          width: '100%',
+          maxWidth: '20rem',
           transform: isOpen ? 'translateX(0)' : 'translateX(100%)',
           transition: 'transform 0.3s ease-in-out',
         }}
       >
-        <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+        <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
           <Link href="/outfits" onClick={close} className="flex items-center gap-2">
             <span className="text-2xl">👗</span>
-            <span className="text-xl font-bold text-gray-900">Outfit</span>
+            <span className="text-xl font-bold text-gray-900 dark:text-white">Outfit</span>
           </Link>
-          <button onClick={close} className="p-2 rounded-lg hover:bg-gray-100 transition-colors" aria-label="סגור תפריט">
+          <button
+            onClick={close}
+            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            aria-label="סגור תפריט"
+          >
             <X size={20} />
           </button>
         </div>
@@ -139,11 +173,11 @@ export function Sidebar() {
       </div>
 
       {/* Desktop fixed sidebar */}
-      <aside className="hidden md:flex fixed top-0 bottom-0 right-0 w-64 bg-white border-s border-gray-100 flex-col z-40">
-        <div className="p-6 border-b border-gray-100">
+      <aside className="hidden md:flex fixed top-0 bottom-0 right-0 w-64 bg-white dark:bg-gray-900 border-s border-gray-100 dark:border-gray-800 flex-col z-40">
+        <div className="p-6 border-b border-gray-100 dark:border-gray-800">
           <Link href="/outfits" className="flex items-center gap-2">
             <span className="text-2xl">👗</span>
-            <span className="text-xl font-bold text-gray-900">Outfit</span>
+            <span className="text-xl font-bold text-gray-900 dark:text-white">Outfit</span>
           </Link>
         </div>
         <NavLinks pathname={pathname} />

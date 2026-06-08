@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Eye, EyeOff, Check } from 'lucide-react'
+import { signupSchema } from '@/lib/validations'
 import { useLang } from '@/lib/lang-context'
 
 export default function SignupPage() {
@@ -13,28 +14,52 @@ export default function SignupPage() {
   const [password, setPassword] = useState('')
   const [fullName, setFullName] = useState('')
   const [showPassword, setShowPassword] = useState(false)
-  const [error, setError] = useState('')
+  const [errors, setErrors] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(false)
   const router = useRouter()
   const { t } = useLang()
   const supabase = createClient()
 
-  const passwordStrength = password.length === 0 ? null
-    : password.length < 6 ? 'weak'
-    : password.length < 10 ? 'medium'
-    : 'strong'
+  const passwordStrength =
+    password.length === 0
+      ? null
+      : password.length < 6
+        ? 'weak'
+        : password.length < 10
+          ? 'medium'
+          : 'strong'
 
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault()
+    const result = signupSchema.safeParse({ fullName, email, password })
+    if (!result.success) {
+      const fieldErrors: Record<string, string> = {}
+      for (const issue of result.error.issues) {
+        const field = String(issue.path[0] ?? 'form')
+        fieldErrors[field] = issue.message
+      }
+      setErrors(fieldErrors)
+      return
+    }
+    setErrors({})
     setLoading(true)
-    setError('')
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { data: { full_name: fullName } },
-    })
-    if (error) { setError(error.message); setLoading(false) }
-    else router.push('/outfits')
+
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { full_name: fullName } },
+      })
+      if (error) {
+        setErrors({ form: error.message })
+        return
+      }
+      router.push('/outfits')
+    } catch {
+      setErrors({ form: 'שגיאת רשת. אנא נסה שנית.' })
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -51,35 +76,43 @@ export default function SignupPage() {
 
           <form onSubmit={handleSignup} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">{t.auth.fullName}</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                {t.auth.fullName}
+              </label>
               <Input
                 type="text"
                 placeholder={t.auth.namePlaceholder}
                 value={fullName}
-                onChange={e => setFullName(e.target.value)}
+                onChange={(e) => setFullName(e.target.value)}
                 required
                 autoComplete="name"
               />
+              {errors.fullName && <p className="text-xs text-red-500 mt-1">{errors.fullName}</p>}
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">{t.auth.email}</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                {t.auth.email}
+              </label>
               <Input
                 type="email"
                 placeholder="you@example.com"
                 value={email}
-                onChange={e => setEmail(e.target.value)}
+                onChange={(e) => setEmail(e.target.value)}
                 required
                 autoComplete="email"
               />
+              {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email}</p>}
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">{t.auth.password}</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                {t.auth.password}
+              </label>
               <div className="relative">
                 <Input
                   type={showPassword ? 'text' : 'password'}
                   placeholder={t.auth.passwordPlaceholder}
                   value={password}
-                  onChange={e => setPassword(e.target.value)}
+                  onChange={(e) => setPassword(e.target.value)}
                   required
                   minLength={6}
                   autoComplete="new-password"
@@ -90,11 +123,11 @@ export default function SignupPage() {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                   tabIndex={-1}
+                  aria-label={showPassword ? 'הסתר סיסמה' : 'הצג סיסמה'}
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
-              {/* Password strength indicator */}
               {passwordStrength && (
                 <div className="mt-2">
                   <div className="flex gap-1 mb-1">
@@ -102,30 +135,40 @@ export default function SignupPage() {
                       <div
                         key={level}
                         className={`h-1 flex-1 rounded-full transition-colors ${
-                          passwordStrength === 'weak' && i === 0 ? 'bg-red-400' :
-                          passwordStrength === 'medium' && i <= 1 ? 'bg-yellow-400' :
-                          passwordStrength === 'strong' ? 'bg-green-500' :
-                          'bg-gray-100'
+                          passwordStrength === 'weak' && i === 0
+                            ? 'bg-red-400'
+                            : passwordStrength === 'medium' && i <= 1
+                              ? 'bg-yellow-400'
+                              : passwordStrength === 'strong'
+                                ? 'bg-green-500'
+                                : 'bg-gray-100'
                         }`}
                       />
                     ))}
                   </div>
-                  <p className={`text-xs ${
-                    passwordStrength === 'weak' ? 'text-red-500' :
-                    passwordStrength === 'medium' ? 'text-yellow-600' :
-                    'text-green-600'
-                  }`}>
-                    {passwordStrength === 'weak' ? 'סיסמה חלשה' :
-                     passwordStrength === 'medium' ? 'סיסמה בינונית' :
-                     '✓ סיסמה חזקה'}
+                  <p
+                    className={`text-xs ${
+                      passwordStrength === 'weak'
+                        ? 'text-red-500'
+                        : passwordStrength === 'medium'
+                          ? 'text-yellow-600'
+                          : 'text-green-600'
+                    }`}
+                  >
+                    {passwordStrength === 'weak'
+                      ? 'סיסמה חלשה'
+                      : passwordStrength === 'medium'
+                        ? 'סיסמה בינונית'
+                        : '✓ סיסמה חזקה'}
                   </p>
                 </div>
               )}
+              {errors.password && <p className="text-xs text-red-500 mt-1">{errors.password}</p>}
             </div>
 
-            {error && (
+            {errors.form && (
               <div className="text-sm text-red-600 bg-red-50 rounded-xl px-4 py-3 border border-red-100">
-                {error}
+                {errors.form}
               </div>
             )}
 
@@ -134,9 +177,8 @@ export default function SignupPage() {
             </Button>
           </form>
 
-          {/* Benefits */}
           <div className="mt-6 pt-6 border-t border-gray-100 space-y-2">
-            {['ארון בגדים דיגיטלי מלא', 'בניית לוקים בקלות', 'תובנות סגנון אישי'].map(benefit => (
+            {['ארון בגדים דיגיטלי מלא', 'בניית לוקים בקלות', 'תובנות סגנון אישי'].map((benefit) => (
               <div key={benefit} className="flex items-center gap-2 text-sm text-gray-500">
                 <Check size={14} className="text-green-500 flex-shrink-0" />
                 {benefit}

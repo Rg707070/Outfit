@@ -15,12 +15,11 @@ const LangContext = createContext<LangContextValue>({
 })
 
 export function LangProvider({ children }: { children: React.ReactNode }) {
-  const [lang, setLangState] = useState<Lang>('he')
-
-  useEffect(() => {
+  const [lang, setLangState] = useState<Lang>(() => {
+    if (typeof window === 'undefined') return 'he'
     const stored = localStorage.getItem('lang') as Lang | null
-    if (stored === 'en' || stored === 'he') setLangState(stored)
-  }, [])
+    return stored === 'en' || stored === 'he' ? stored : 'he'
+  })
 
   useEffect(() => {
     const dir = translations[lang].dir
@@ -34,7 +33,7 @@ export function LangProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <LangContext.Provider value={{ lang, setLang, t: translations[lang] }}>
+    <LangContext.Provider value={{ lang, setLang, t: translations[lang] as Translations }}>
       {children}
     </LangContext.Provider>
   )
