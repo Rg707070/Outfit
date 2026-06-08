@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Eye, EyeOff } from 'lucide-react'
+import { loginSchema } from '@/lib/validations'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -18,11 +19,27 @@ export default function LoginPage() {
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
-    setLoading(true)
     setError('')
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) { setError('אימייל או סיסמה שגויים'); setLoading(false) }
-    else router.push('/outfits')
+
+    const result = loginSchema.safeParse({ email, password })
+    if (!result.success) {
+      setError(result.error.issues[0]?.message ?? 'שגיאה')
+      return
+    }
+
+    setLoading(true)
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password })
+      if (error) {
+        setError('אימייל או סיסמה שגויים')
+        return
+      }
+      router.push('/outfits')
+    } catch {
+      setError('שגיאת רשת. אנא נסה שנית.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -44,7 +61,7 @@ export default function LoginPage() {
                 type="email"
                 placeholder="you@example.com"
                 value={email}
-                onChange={e => setEmail(e.target.value)}
+                onChange={(e) => setEmail(e.target.value)}
                 required
                 autoComplete="email"
               />
@@ -58,7 +75,7 @@ export default function LoginPage() {
                   type={showPassword ? 'text' : 'password'}
                   placeholder="••••••••"
                   value={password}
-                  onChange={e => setPassword(e.target.value)}
+                  onChange={(e) => setPassword(e.target.value)}
                   required
                   autoComplete="current-password"
                   className="pl-10"
@@ -68,6 +85,7 @@ export default function LoginPage() {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                   tabIndex={-1}
+                  aria-label={showPassword ? 'הסתר סיסמה' : 'הצג סיסמה'}
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
