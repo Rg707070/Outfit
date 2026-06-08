@@ -61,22 +61,22 @@ export default function WardrobePage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-4 md:mb-8">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Wardrobe</h1>
           <p className="text-gray-500 text-sm mt-1">{items.length} items total</p>
         </div>
         <Button onClick={() => setShowAdd(true)}>
           <Plus size={16} />
-          Add item
+          <span className="hidden sm:inline">Add item</span>
         </Button>
       </div>
 
       {/* Category filters */}
-      <div className="flex gap-2 overflow-x-auto scrollbar-hide mb-6 pb-2">
+      <div className="flex gap-2 overflow-x-auto scrollbar-hide mb-4 md:mb-6 pb-2">
         <button
           onClick={() => setActiveCategory('all')}
-          className={`flex-shrink-0 px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
+          className={`flex-shrink-0 px-3 py-1.5 md:px-4 md:py-2 rounded-xl text-sm font-medium transition-colors ${
             activeCategory === 'all' ? 'bg-black text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
           }`}
         >
@@ -86,7 +86,7 @@ export default function WardrobePage() {
           <button
             key={cat.value}
             onClick={() => setActiveCategory(cat.value as ClothingCategory)}
-            className={`flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
+            className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 md:px-4 md:py-2 rounded-xl text-sm font-medium transition-colors ${
               activeCategory === cat.value ? 'bg-black text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
             }`}
           >
@@ -102,19 +102,19 @@ export default function WardrobePage() {
       </div>
 
       {/* Search */}
-      <div className="relative mb-6">
-        <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+      <div className="relative mb-4 md:mb-6">
+        <Search size={16} className="absolute start-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
         <Input
           placeholder="Search by name or brand…"
           value={search}
           onChange={e => setSearch(e.target.value)}
-          className="pl-9"
+          className="ps-9"
         />
       </div>
 
       {/* Grid */}
       {loading ? (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
           {Array.from({ length: 10 }).map((_, i) => (
             <div key={i} className="aspect-square bg-gray-100 rounded-2xl animate-pulse" />
           ))}
@@ -138,7 +138,7 @@ export default function WardrobePage() {
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
           {filtered.map(item => (
             <div key={item.id} className="group relative bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
               <div className="aspect-square bg-gray-50 relative">
@@ -169,12 +169,12 @@ export default function WardrobePage() {
                   </button>
                 </div>
                 {item.is_favorite && (
-                  <div className="absolute top-2 left-2">
+                  <div className="absolute top-2 left-2 hidden md:block">
                     <Heart size={14} className="fill-red-500 text-red-500" />
                   </div>
                 )}
               </div>
-              <div className="p-3">
+              <div className="p-2.5 md:p-3">
                 <p className="text-sm font-medium text-gray-900 truncate">{item.name}</p>
                 {item.brand && <p className="text-xs text-gray-400 truncate">{item.brand}</p>}
                 {item.color && (
