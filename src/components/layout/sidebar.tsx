@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import {
   Shirt, CalendarDays, ShoppingBag, Clock,
-  LayoutGrid, LogOut, User, Star, BarChart3, Zap, Menu, X
+  LayoutGrid, LogOut, User, Star, BarChart3, Zap, Menu, X, Sparkles
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -16,6 +16,7 @@ function NavLinks({ pathname, onNavigate }: { pathname: string; onNavigate?: () 
 
   const navItems = [
     { href: '/wardrobe', label: t.nav.wardrobe, icon: Shirt },
+    { href: '/today', label: t.nav.today, icon: Sparkles },
     { href: '/outfits', label: t.nav.outfits, icon: LayoutGrid },
     { href: '/outfits/discover', label: t.nav.discover, icon: Zap },
     { href: '/calendar', label: t.nav.calendar, icon: CalendarDays },

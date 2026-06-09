@@ -107,7 +107,9 @@ export type Database = {
           outfit_id: string
           position_x: number | null
           position_y: number | null
-          wardrobe_item_id: string
+          wardrobe_item_id: string | null
+          catalog_item_id: string | null
+          scale: number
           z_index: number | null
         }
         Insert: {
@@ -115,7 +117,9 @@ export type Database = {
           outfit_id: string
           position_x?: number | null
           position_y?: number | null
-          wardrobe_item_id: string
+          wardrobe_item_id?: string | null
+          catalog_item_id?: string | null
+          scale?: number
           z_index?: number | null
         }
         Update: {
@@ -123,7 +127,9 @@ export type Database = {
           outfit_id?: string
           position_x?: number | null
           position_y?: number | null
-          wardrobe_item_id?: string
+          wardrobe_item_id?: string | null
+          catalog_item_id?: string | null
+          scale?: number
           z_index?: number | null
         }
         Relationships: [
@@ -141,7 +147,83 @@ export type Database = {
             referencedRelation: "wardrobe_items"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "outfit_items_catalog_item_id_fkey"
+            columns: ["catalog_item_id"]
+            isOneToOne: false
+            referencedRelation: "catalog_items"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      catalog_items: {
+        Row: {
+          id: string
+          name: string
+          description: string | null
+          category: string
+          subcategory: string | null
+          brand: string | null
+          color: string | null
+          gender: string | null
+          seasons: string[]
+          tags: string[]
+          price: number | null
+          currency: string
+          image_path: string
+          image_url: string
+          source_name: string | null
+          source_url: string | null
+          external_ref: string | null
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          description?: string | null
+          category: string
+          subcategory?: string | null
+          brand?: string | null
+          color?: string | null
+          gender?: string | null
+          seasons?: string[]
+          tags?: string[]
+          price?: number | null
+          currency?: string
+          image_path: string
+          image_url: string
+          source_name?: string | null
+          source_url?: string | null
+          external_ref?: string | null
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          description?: string | null
+          category?: string
+          subcategory?: string | null
+          brand?: string | null
+          color?: string | null
+          gender?: string | null
+          seasons?: string[]
+          tags?: string[]
+          price?: number | null
+          currency?: string
+          image_path?: string
+          image_url?: string
+          source_name?: string | null
+          source_url?: string | null
+          external_ref?: string | null
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       outfit_shares: {
         Row: {
@@ -336,6 +418,7 @@ export type Database = {
           purchase_price: number | null
           seasons: string[] | null
           tags: string[] | null
+          location: string | null
           updated_at: string | null
           user_id: string
         }
@@ -353,6 +436,7 @@ export type Database = {
           purchase_price?: number | null
           seasons?: string[] | null
           tags?: string[] | null
+          location?: string | null
           updated_at?: string | null
           user_id: string
         }
@@ -370,6 +454,7 @@ export type Database = {
           purchase_price?: number | null
           seasons?: string[] | null
           tags?: string[] | null
+          location?: string | null
           updated_at?: string | null
           user_id?: string
         }
@@ -413,6 +498,7 @@ export type CalendarOutfit = Tables<"calendar_outfits">
 export type ShoppingItem = Tables<"shopping_list">
 export type OutfitHistory = Tables<"outfit_history">
 export type OutfitShare = Tables<"outfit_shares">
+export type CatalogItem = Tables<"catalog_items">
 
 // App-level types
 export type ClothingCategory =
