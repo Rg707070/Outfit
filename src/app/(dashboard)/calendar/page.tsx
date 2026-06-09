@@ -6,12 +6,14 @@ import { Button } from '@/components/ui/button'
 import { WeatherWidget } from '@/components/weather/weather-widget'
 import { useToast } from '@/components/ui/toast'
 import { ChevronLeft, ChevronRight, Plus, X } from 'lucide-react'
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths, isToday } from 'date-fns'
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths, isToday } from 'date-fns'
 import { useLang } from '@/lib/lang-context'
+
+type CalendarRow = CalendarOutfit & { outfits: { name: string; image_url: string | null } | null }
 
 export default function CalendarPage() {
   const [currentMonth, setCurrentMonth] = useState(new Date())
-  const [calendarItems, setCalendarItems] = useState<CalendarOutfit[]>([])
+  const [calendarItems, setCalendarItems] = useState<CalendarRow[]>([])
   const [outfits, setOutfits] = useState<Outfit[]>([])
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [showAssign, setShowAssign] = useState(false)
@@ -36,7 +38,7 @@ export default function CalendarPage() {
       supabase.from('calendar_outfits').select('*, outfits(name, image_url)').eq('user_id', user.id).gte('date', start).lte('date', end),
       supabase.from('outfits').select('*').eq('user_id', user.id),
     ])
-    setCalendarItems(cal ?? [])
+    setCalendarItems((cal as CalendarRow[]) ?? [])
     setOutfits(outf ?? [])
   }
 
@@ -51,7 +53,7 @@ export default function CalendarPage() {
     const dateStr = format(date, 'yyyy-MM-dd')
     await supabase.from('calendar_outfits').delete().eq('user_id', user.id).eq('date', dateStr)
     setCalendarItems(prev => prev.filter(c => c.date !== dateStr))
-    toast(t.calendar.outfit + ' הוסר מהיום', 'info')
+    toast(t.calendar.removedToast, 'info')
   }
 
   return (
@@ -65,11 +67,11 @@ export default function CalendarPage() {
         {/* Month navigation */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
           <button onClick={() => setCurrentMonth(subMonths(currentMonth, 1))} className="p-2 hover:bg-gray-50 rounded-xl transition-colors">
-            <ChevronRight size={20} />
+            <ChevronLeft size={20} className="rtl:rotate-180" />
           </button>
           <h2 className="text-lg font-semibold">{format(currentMonth, 'MMMM yyyy')}</h2>
           <button onClick={() => setCurrentMonth(addMonths(currentMonth, 1))} className="p-2 hover:bg-gray-50 rounded-xl transition-colors">
-            <ChevronLeft size={20} />
+            <ChevronRight size={20} className="rtl:rotate-180" />
           </button>
         </div>
 
@@ -103,21 +105,19 @@ export default function CalendarPage() {
                 </span>
                 {outfitForDay ? (
                   <div className="mt-1 relative">
-                    {/* @ts-ignore */}
                     {outfitForDay.outfits?.image_url ? (
-                      // @ts-ignore
+                      // eslint-disable-next-line @next/next/no-img-element
                       <img src={outfitForDay.outfits.image_url} alt="" className="w-full h-12 object-cover rounded-lg" />
                     ) : (
                       <div className="bg-black text-white text-xs rounded-lg px-2 py-1 truncate">
-                        {/* @ts-ignore */}
                         {outfitForDay.outfits?.name ?? t.calendar.outfit}
                       </div>
                     )}
                     {/* Remove button */}
                     <button
                       onClick={(e) => removeFromDay(day, e)}
-                      className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
-                      title={t.calendar.outfit + ' הסר'}
+                      className="absolute -top-1 -end-1 w-4 h-4 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                      title={t.calendar.removeFromDay}
                     >
                       <X size={10} />
                     </button>
@@ -137,11 +137,11 @@ export default function CalendarPage() {
       <div className="mt-4 flex items-center gap-4 text-xs text-gray-400">
         <div className="flex items-center gap-1.5">
           <div className="w-5 h-5 rounded-full bg-black flex items-center justify-center text-white text-xs font-bold">1</div>
-          <span>{t.calendar.title}</span>
+          <span>{t.calendar.legendScheduled}</span>
         </div>
         <div className="flex items-center gap-1.5">
           <Plus size={12} />
-          <span>{t.calendar.assign}</span>
+          <span>{t.calendar.legendAssign}</span>
         </div>
       </div>
 
@@ -153,7 +153,7 @@ export default function CalendarPage() {
           onClose={() => setShowAssign(false)}
           onAssigned={() => {
             loadData()
-            toast(`${t.calendar.outfit} ${format(selectedDate, 'd/M')} 📅`)
+            toast(t.calendar.assignedToast(format(selectedDate, 'd/M')))
           }}
         />
       )}
@@ -166,11 +166,10 @@ function AssignOutfitModal({
 }: {
   date: Date
   outfits: Outfit[]
-  currentOutfit: CalendarOutfit | undefined
+  currentOutfit: CalendarRow | undefined
   onClose: () => void
   onAssigned: () => void
 }) {
-  // @ts-ignore
   const currentId = currentOutfit?.outfit_id ?? ''
   const [selected, setSelected] = useState<string>(currentId)
   const [loading, setLoading] = useState(false)
@@ -208,7 +207,7 @@ function AssignOutfitModal({
             <button
               key={outfit.id}
               onClick={() => setSelected(outfit.id)}
-              className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-colors text-right ${
+              className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-colors text-start ${
                 selected === outfit.id ? 'border-black bg-gray-50' : 'border-gray-100 hover:border-gray-200 hover:bg-gray-50'
               }`}
             >
@@ -217,7 +216,7 @@ function AssignOutfitModal({
                   <img src={outfit.image_url} alt="" className="w-full h-full object-cover" />
                 ) : <span>👔</span>}
               </div>
-              <div className="flex-1 min-w-0 text-right">
+              <div className="flex-1 min-w-0 text-start">
                 <p className="text-sm font-medium text-gray-900 truncate">{outfit.name}</p>
                 {outfit.occasion && <p className="text-xs text-gray-400">{outfit.occasion}</p>}
               </div>
@@ -230,7 +229,7 @@ function AssignOutfitModal({
           ))}
         </div>
         <div className="flex gap-3 p-6 border-t border-gray-100">
-          <Button variant="secondary" onClick={onClose} className="flex-1">{t.calendar.cancel}</Button>
+          <Button variant="secondary" onClick={onClose} className="flex-1">{t.common.cancel}</Button>
           <Button onClick={handleAssign} disabled={!selected || loading} className="flex-1">
             {loading ? t.calendar.saving : t.calendar.assign}
           </Button>

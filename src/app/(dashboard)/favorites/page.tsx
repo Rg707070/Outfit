@@ -33,13 +33,13 @@ export default function FavoritesPage() {
   async function unfavoriteOutfit(outfit: Outfit) {
     await supabase.from('outfits').update({ is_favorite: false }).eq('id', outfit.id)
     setFavoriteOutfits(prev => prev.filter(o => o.id !== outfit.id))
-    toast(`"${outfit.name}" ${t.favorites.noFavOutfitsSub}`)
+    toast(t.favorites.removedToast(outfit.name))
   }
 
   async function unfavoriteItem(item: WardrobeItem) {
     await supabase.from('wardrobe_items').update({ is_favorite: false }).eq('id', item.id)
     setFavoriteItems(prev => prev.filter(i => i.id !== item.id))
-    toast(`"${item.name}" ${t.favorites.noFavItemsSub}`)
+    toast(t.favorites.removedToast(item.name))
   }
 
   return (

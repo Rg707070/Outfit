@@ -1,36 +1,62 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Outfit — Your Digital Wardrobe
 
-## Getting Started
+A digital wardrobe app: catalog your clothes, build outfits on a drag‑and‑drop
+canvas, discover auto‑generated combinations, plan what to wear on a calendar,
+track wear history, and share looks with a public link. Hebrew‑first with a
+full English translation and proper RTL/LTR support.
 
-First, run the development server:
+## Tech stack
+
+- **Next.js 16** (App Router, Turbopack) + **React 19**
+- **Supabase** — Postgres, Auth, Storage (RLS on every table)
+- **Tailwind CSS v4**, **Radix UI**, **lucide-react**
+- **date-fns** for dates, **@imgly/background-removal** for in‑browser
+  background removal (no server cost)
+
+## Getting started
 
 ```bash
+npm install
+# create .env.local with the values below
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Environment variables
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Variable | Required | Description |
+| --- | --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | yes | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | yes | Supabase publishable (anon) key |
+| `NEXT_PUBLIC_WEATHER_API_KEY` | no | OpenWeatherMap key; falls back to a demo widget if unset |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Project structure
 
-## Learn More
+```
+src/
+  app/
+    (auth)/            login & signup
+    (dashboard)/       wardrobe, outfits, discover, calendar,
+                       wishlist, history, favorites, insights, profile
+    share/[token]/     public, server-rendered shared outfit page
+  components/          ui primitives, layout, weather widget
+  lib/                 supabase clients, i18n (lang-context + translations),
+                       utils, background removal
+  types/               generated Supabase database types
+  proxy.ts             auth gate (Next.js 16 proxy / middleware)
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Internationalization
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+All copy lives in `src/lib/translations.ts` (`he` + `en`, kept symmetric and
+type‑checked). The active language is held in `lib/lang-context.tsx` and
+persisted to both `localStorage` and a `lang` cookie, so the server can pick the
+correct language and text direction on first paint (root layout and the public
+share page both read the cookie). Layout uses logical CSS properties
+(`start`/`end`, `ms`/`me`, `ps`/`pe`) so it mirrors correctly in RTL and LTR.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Scripts
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `npm run dev` — start the dev server
+- `npm run build` — production build
+- `npm run start` — serve the production build
+- `npm run lint` — ESLint

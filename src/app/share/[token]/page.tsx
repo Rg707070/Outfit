@@ -1,5 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { CLOTHING_CATEGORIES } from '@/lib/utils'
+import { translations, type Lang } from '@/lib/translations'
+import { cookies } from 'next/headers'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 
@@ -8,6 +10,9 @@ export const dynamic = 'force-dynamic'
 export default async function SharePage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params
   const supabase = await createClient()
+  const cookieStore = await cookies()
+  const lang: Lang = cookieStore.get('lang')?.value === 'en' ? 'en' : 'he'
+  const t = translations[lang]
 
   const { data: outfit } = await supabase
     .from('outfits')
@@ -33,15 +38,15 @@ export default async function SharePage({ params }: { params: Promise<{ token: s
   const items = (outfitItems ?? []).map((oi: any) => oi.wardrobe_items).filter(Boolean)
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50" dir={t.dir} lang={lang}>
       <header className="bg-white border-b border-gray-100">
         <div className="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
             <span className="text-2xl">👗</span>
-            <span className="text-xl font-bold text-gray-900">Outfit</span>
+            <span className="text-xl font-bold text-gray-900">{t.share.brand}</span>
           </Link>
           <Link href="/signup" className="text-sm font-medium text-black hover:underline">
-            צור שלך — בחינם
+            {t.share.createOwn}
           </Link>
         </div>
       </header>
@@ -53,7 +58,7 @@ export default async function SharePage({ params }: { params: Promise<{ token: s
               <div>
                 <h1 className="text-3xl font-bold text-gray-900">{outfit.name}</h1>
                 {profile?.full_name && (
-                  <p className="text-gray-500 mt-1">שותף על ידי {profile.full_name}</p>
+                  <p className="text-gray-500 mt-1">{t.share.sharedBy(profile.full_name)}</p>
                 )}
               </div>
               {outfit.is_favorite && <span className="text-2xl">❤️</span>}
@@ -68,7 +73,9 @@ export default async function SharePage({ params }: { params: Promise<{ token: s
                 <span className="text-sm bg-gray-100 text-gray-700 px-3 py-1 rounded-full">{outfit.occasion}</span>
               )}
               {outfit.season && (
-                <span className="text-sm bg-gray-100 text-gray-700 px-3 py-1 rounded-full capitalize">{outfit.season}</span>
+                <span className="text-sm bg-gray-100 text-gray-700 px-3 py-1 rounded-full">
+                  {t.seasons[outfit.season as keyof typeof t.seasons] ?? outfit.season}
+                </span>
               )}
             </div>
           </div>
@@ -76,16 +83,17 @@ export default async function SharePage({ params }: { params: Promise<{ token: s
           {/* Flat-lay grid */}
           <div className="px-8 pb-8">
             <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-4">
-              {items.length} פריטים
+              {t.share.pieces(items.length)}
             </h2>
             {items.length === 0 ? (
-              <p className="text-gray-400">אין פריטים בלוק זה.</p>
+              <p className="text-gray-400">{t.share.noItems}</p>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                 {items.map((item) => (
                   <div key={item.id} className="bg-gray-50 rounded-2xl overflow-hidden">
                     <div className="aspect-square flex items-center justify-center">
                       {item.image_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
                         <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
                       ) : (
                         <span className="text-4xl">
@@ -105,10 +113,10 @@ export default async function SharePage({ params }: { params: Promise<{ token: s
         </div>
 
         <div className="text-center mt-8">
-          <p className="text-gray-500 text-sm">בנה ושתף לוקים שלך</p>
+          <p className="text-gray-500 text-sm">{t.share.buildShare}</p>
           <Link href="/signup">
             <button className="mt-3 bg-black text-white px-6 py-3 rounded-xl font-medium hover:bg-gray-800 transition-colors">
-              התחל בחינם
+              {t.share.getStarted}
             </button>
           </Link>
         </div>
