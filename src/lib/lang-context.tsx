@@ -14,12 +14,22 @@ const LangContext = createContext<LangContextValue>({
   t: translations.he,
 })
 
-export function LangProvider({ children }: { children: React.ReactNode }) {
-  const [lang, setLangState] = useState<Lang>('he')
+const ONE_YEAR = 60 * 60 * 24 * 365
 
+export function LangProvider({
+  children,
+  initialLang = 'he',
+}: {
+  children: React.ReactNode
+  initialLang?: Lang
+}) {
+  const [lang, setLangState] = useState<Lang>(initialLang)
+
+  // Reconcile with any client-side preference saved before the cookie existed.
   useEffect(() => {
     const stored = localStorage.getItem('lang') as Lang | null
-    if (stored === 'en' || stored === 'he') setLangState(stored)
+    if ((stored === 'en' || stored === 'he') && stored !== lang) setLangState(stored)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
@@ -27,14 +37,11 @@ export function LangProvider({ children }: { children: React.ReactNode }) {
     document.documentElement.lang = lang
     document.documentElement.dir = dir
     localStorage.setItem('lang', lang)
+    document.cookie = `lang=${lang}; path=/; max-age=${ONE_YEAR}; samesite=lax`
   }, [lang])
 
-  function setLang(l: Lang) {
-    setLangState(l)
-  }
-
   return (
-    <LangContext.Provider value={{ lang, setLang, t: translations[lang] }}>
+    <LangContext.Provider value={{ lang, setLang: setLangState, t: translations[lang] }}>
       {children}
     </LangContext.Provider>
   )

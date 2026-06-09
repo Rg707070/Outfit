@@ -82,6 +82,7 @@ export function Sidebar() {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
+  const { t } = useLang()
   const [isOpen, setIsOpen] = useState(false)
 
   async function handleSignOut() {
@@ -94,11 +95,11 @@ export function Sidebar() {
   return (
     <>
       {/* Mobile top bar */}
-      <header className="md:hidden fixed top-0 right-0 left-0 h-14 bg-white border-b border-gray-100 flex items-center justify-between px-4 z-30">
+      <header className="md:hidden fixed top-0 inset-x-0 h-14 bg-white border-b border-gray-100 flex items-center justify-between px-4 z-30">
         <button
           onClick={() => setIsOpen(true)}
           className="p-2 rounded-xl hover:bg-gray-50 text-gray-600"
-          aria-label="פתח תפריט"
+          aria-label={t.nav.openMenu}
         >
           <Menu size={22} />
         </button>
@@ -116,21 +117,19 @@ export function Sidebar() {
         style={{ opacity: isOpen ? 1 : 0, pointerEvents: isOpen ? 'auto' : 'none' }}
       />
 
-      {/* Mobile sliding panel */}
+      {/* Mobile sliding panel — anchored to the inline-start side, direction-aware */}
       <div
-        className="md:hidden fixed top-0 bottom-0 bg-white flex flex-col z-50 shadow-2xl"
-        style={{
-          right: 0, width: '100%', maxWidth: '20rem',
-          transform: isOpen ? 'translateX(0)' : 'translateX(100%)',
-          transition: 'transform 0.3s ease-in-out',
-        }}
+        className={cn(
+          'md:hidden fixed top-0 bottom-0 start-0 w-full max-w-xs bg-white flex flex-col z-50 shadow-2xl transition-transform duration-300 ease-in-out',
+          isOpen ? 'translate-x-0' : 'ltr:-translate-x-full rtl:translate-x-full'
+        )}
       >
         <div className="p-6 border-b border-gray-100 flex items-center justify-between">
           <Link href="/outfits" onClick={close} className="flex items-center gap-2">
             <span className="text-2xl">👗</span>
             <span className="text-xl font-bold text-gray-900">Outfit</span>
           </Link>
-          <button onClick={close} className="p-2 rounded-lg hover:bg-gray-100 transition-colors" aria-label="סגור תפריט">
+          <button onClick={close} className="p-2 rounded-lg hover:bg-gray-100 transition-colors" aria-label={t.nav.closeMenu}>
             <X size={20} />
           </button>
         </div>
@@ -139,7 +138,7 @@ export function Sidebar() {
       </div>
 
       {/* Desktop fixed sidebar */}
-      <aside className="hidden md:flex fixed top-0 bottom-0 right-0 w-64 bg-white border-s border-gray-100 flex-col z-40">
+      <aside className="hidden md:flex fixed top-0 bottom-0 start-0 w-64 bg-white border-e border-gray-100 flex-col z-40">
         <div className="p-6 border-b border-gray-100">
           <Link href="/outfits" className="flex items-center gap-2">
             <span className="text-2xl">👗</span>

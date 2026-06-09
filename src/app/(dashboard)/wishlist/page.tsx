@@ -31,13 +31,13 @@ export default function WishlistPage() {
   async function togglePurchased(item: ShoppingItem) {
     await supabase.from('shopping_list').update({ is_purchased: !item.is_purchased }).eq('id', item.id)
     setItems(prev => prev.map(i => i.id === item.id ? { ...i, is_purchased: !i.is_purchased } : i))
-    toast(item.is_purchased ? '✓' : 'נרכש! 🎉')
+    toast(item.is_purchased ? t.wishlist.unpurchasedToast : t.wishlist.purchasedToast)
   }
 
   async function deleteItem(id: string) {
     await supabase.from('shopping_list').delete().eq('id', id)
     setItems(prev => prev.filter(i => i.id !== id))
-    toast(t.wishlist.addItem, 'info')
+    toast(t.wishlist.removedToast, 'info')
   }
 
   const filtered = items.filter(i => tab === 'wishlist' ? i.is_wishlist : !i.is_wishlist)
@@ -51,7 +51,7 @@ export default function WishlistPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{t.wishlist.title}</h1>
           {tab === 'shopping' && shoppingCount > 0 && (
-            <p className="text-gray-500 text-sm mt-1">{purchasedCount}/{shoppingCount}</p>
+            <p className="text-gray-500 text-sm mt-1">{t.wishlist.purchasedProgress(purchasedCount, shoppingCount)}</p>
           )}
         </div>
         <Button onClick={() => setShowAdd(true)}><Plus size={16} />{t.wishlist.addItem}</Button>
@@ -89,7 +89,7 @@ export default function WishlistPage() {
               {tab === 'wishlist' ? t.wishlist.wishlistEmpty : t.wishlist.shoppingEmpty}
             </p>
             <p className="text-gray-400 text-sm mt-1">
-              {tab === 'wishlist' ? t.wishlist.addToWishlist : t.wishlist.addItem}
+              {tab === 'wishlist' ? t.wishlist.wishlistEmptySub : t.wishlist.shoppingEmptySub}
             </p>
             <Button className="mt-4" onClick={() => setShowAdd(true)}><Plus size={16} />{t.wishlist.addItem}</Button>
           </div>
@@ -118,7 +118,7 @@ export default function WishlistPage() {
                   className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all hover:scale-110 ${
                     item.is_purchased ? 'bg-green-500 border-green-500' : 'border-gray-300 hover:border-black'
                   }`}
-                  title={item.is_purchased ? t.wishlist.addToWishlist : t.wishlist.addItem}
+                  title={item.is_purchased ? t.wishlist.markUnpurchased : t.wishlist.markPurchased}
                 >
                   {item.is_purchased && <Check size={12} className="text-white" />}
                 </button>
@@ -128,7 +128,7 @@ export default function WishlistPage() {
                   </p>
                   <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                     {item.brand && <span className="text-xs text-gray-400">{item.brand}</span>}
-                    {item.category && <span className="text-xs text-gray-400">· {CLOTHING_CATEGORIES.find(c => c.value === item.category)?.label}</span>}
+                    {item.category && <span className="text-xs text-gray-400">· {t.categories[item.category as keyof typeof t.categories]}</span>}
                     {item.price && <span className="text-xs text-gray-500 font-medium">· ₪{item.price}</span>}
                   </div>
                 </div>
@@ -139,7 +139,7 @@ export default function WishlistPage() {
                       target="_blank"
                       rel="noopener noreferrer"
                       className="p-1.5 text-gray-400 hover:text-blue-500 rounded-lg hover:bg-blue-50 transition-colors"
-                      title={t.wishlist.link}
+                      title={t.wishlist.openLink}
                     >
                       <ExternalLink size={14} />
                     </a>
@@ -147,7 +147,7 @@ export default function WishlistPage() {
                   <button
                     onClick={() => deleteItem(item.id)}
                     className="p-1.5 text-gray-300 hover:text-red-500 rounded-lg hover:bg-red-50 transition-colors"
-                    title={t.wishlist.cancel}
+                    title={t.wishlist.deleteTitle}
                   >
                     <Trash2 size={14} />
                   </button>
@@ -161,7 +161,7 @@ export default function WishlistPage() {
       {showAdd && (
         <AddShoppingModal
           onClose={() => setShowAdd(false)}
-          onAdded={() => { loadItems(); toast(t.wishlist.addBtn) }}
+          onAdded={() => { loadItems(); toast(t.wishlist.addedToast) }}
           defaultWishlist={tab === 'wishlist'}
         />
       )}
@@ -231,7 +231,7 @@ function AddShoppingModal({ onClose, onAdded, defaultWishlist }: { onClose: () =
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">{t.wishlist.brand}</label>
-              <Input value={brand} onChange={e => setBrand(e.target.value)} placeholder="לדוג׳ Zara" />
+              <Input value={brand} onChange={e => setBrand(e.target.value)} placeholder={t.wishlist.brandPlaceholder} />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">{t.wishlist.price} (₪)</label>
@@ -250,11 +250,11 @@ function AddShoppingModal({ onClose, onAdded, defaultWishlist }: { onClose: () =
               className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black"
             >
               <option value="">{t.wishlist.selectCategory}</option>
-              {CLOTHING_CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.emoji} {c.label}</option>)}
+              {CLOTHING_CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.emoji} {t.categories[c.value]}</option>)}
             </select>
           </div>
           <div className="flex gap-3 pt-2">
-            <Button type="button" variant="secondary" onClick={onClose} className="flex-1">{t.wishlist.cancel}</Button>
+            <Button type="button" variant="secondary" onClick={onClose} className="flex-1">{t.common.cancel}</Button>
             <Button type="submit" disabled={loading || !name} className="flex-1">{loading ? t.wishlist.adding : t.wishlist.addBtn}</Button>
           </div>
         </form>
