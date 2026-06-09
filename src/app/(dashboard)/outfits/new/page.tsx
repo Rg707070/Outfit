@@ -180,14 +180,6 @@ function CanvasBuilder() {
     setCanvasItems(loaded)
   }
 
-  /* eslint-disable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
-  useEffect(() => {
-    loadItems()
-    const editId = searchParams.get('id')
-    if (editId) loadOutfit(editId)
-  }, [])
-  /* eslint-enable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
-
   function nextZ() {
     return canvasItems.reduce((m, i) => Math.max(m, i.zIndex), 0) + 1
   }
@@ -226,6 +218,26 @@ function CanvasBuilder() {
     addCanvasItem('wardrobe', item.id, item.name, item.category, item.image_url, at)
   const addCatalog = (item: CatalogItem, at?: { x: number; y: number }) =>
     addCanvasItem('catalog', item.id, item.name, item.category, item.image_url, at)
+
+  /* eslint-disable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
+  useEffect(() => {
+    loadItems()
+    const editId = searchParams.get('id')
+    if (editId) loadOutfit(editId)
+    // Deep-link from the catalog feed: open the builder with one item pre-placed.
+    const addId = searchParams.get('add')
+    if (addId) {
+      supabase
+        .from('catalog_items')
+        .select('*')
+        .eq('id', addId)
+        .single()
+        .then(({ data }) => {
+          if (data) addCatalog(data)
+        })
+    }
+  }, [])
+  /* eslint-enable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
 
   function handleDragStart(event: DragStartEvent) {
     const data = event.active.data.current as
