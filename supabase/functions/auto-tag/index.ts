@@ -9,8 +9,11 @@
 // The ANTHROPIC_API_KEY lives only here (server-side), never in the client.
 // Deploy with: supabase functions deploy auto-tag
 // Set the key with: supabase secrets set ANTHROPIC_API_KEY=sk-ant-...
+//
+// We call the Messages API over plain HTTP (rather than the SDK) so the
+// function is fully self-contained and has no npm/Deno version coupling.
 
-import Anthropic from 'npm:@anthropic-ai/sdk@0.69.0'
+import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 
 const CATEGORIES = [
   'tops', 'bottoms', 'dresses', 'outerwear', 'shoes',
@@ -47,42 +50,52 @@ const CORS = {
 
 const MEDIA_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
 
-Deno.serve(async (req) => {
+Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS })
 
   try {
     const apiKey = Deno.env.get('ANTHROPIC_API_KEY')
-    if (!apiKey) {
-      return json({ error: 'ANTHROPIC_API_KEY is not configured' }, 500)
-    }
+    if (!apiKey) return json({ error: 'ANTHROPIC_API_KEY is not configured' }, 500)
 
     const { imageBase64, mediaType } = await req.json()
     if (!imageBase64 || !MEDIA_TYPES.includes(mediaType)) {
       return json({ error: 'imageBase64 and a valid mediaType are required' }, 400)
     }
 
-    const client = new Anthropic({ apiKey })
-    const message = await client.messages.create({
-      model: 'claude-opus-4-8',
-      max_tokens: 1024,
-      // Simple, fast classification — low effort, constrained JSON output.
-      output_config: {
-        effort: 'low',
-        format: { type: 'json_schema', schema: SCHEMA },
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json',
       },
-      messages: [{
-        role: 'user',
-        content: [
-          { type: 'image', source: { type: 'base64', media_type: mediaType, data: imageBase64 } },
-          { type: 'text', text: PROMPT },
-        ],
-      }],
+      body: JSON.stringify({
+        model: 'claude-opus-4-8',
+        max_tokens: 1024,
+        // Simple, fast classification — low effort, constrained JSON output.
+        output_config: {
+          effort: 'low',
+          format: { type: 'json_schema', schema: SCHEMA },
+        },
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'image', source: { type: 'base64', media_type: mediaType, data: imageBase64 } },
+            { type: 'text', text: PROMPT },
+          ],
+        }],
+      }),
     })
 
-    const textBlock = message.content.find((b) => b.type === 'text')
-    if (!textBlock || textBlock.type !== 'text') {
-      return json({ error: 'No structured output returned' }, 502)
+    if (!res.ok) {
+      const detail = await res.text()
+      console.error('anthropic error', res.status, detail)
+      return json({ error: `Anthropic API error (${res.status})` }, 502)
     }
+
+    const data = await res.json()
+    const textBlock = (data.content ?? []).find((b: { type: string }) => b.type === 'text')
+    if (!textBlock?.text) return json({ error: 'No structured output returned' }, 502)
 
     const tags = JSON.parse(textBlock.text)
     // Defend against the model returning an off-list category.
