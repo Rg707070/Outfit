@@ -109,18 +109,10 @@ export function Sidebar() {
         <div className="w-10" />
       </header>
 
-      {/* Mobile backdrop */}
+      {/* Mobile full-screen sliding panel */}
       <div
-        onClick={close}
-        className="md:hidden fixed inset-0 z-40 bg-black/50 transition-opacity duration-300"
-        style={{ opacity: isOpen ? 1 : 0, pointerEvents: isOpen ? 'auto' : 'none' }}
-      />
-
-      {/* Mobile sliding panel */}
-      <div
-        className="md:hidden fixed top-0 bottom-0 bg-white flex flex-col z-50 shadow-2xl"
+        className="md:hidden fixed inset-0 bg-white flex flex-col z-50"
         style={{
-          right: 0, width: '100%', maxWidth: '20rem',
           transform: isOpen ? 'translateX(0)' : 'translateX(100%)',
           transition: 'transform 0.3s ease-in-out',
         }}
@@ -139,7 +131,7 @@ export function Sidebar() {
       </div>
 
       {/* Desktop fixed sidebar */}
-      <aside className="hidden md:flex fixed top-0 bottom-0 right-0 w-64 bg-white border-s border-gray-100 flex-col z-40">
+      <aside className="hidden md:flex fixed top-0 bottom-0 right-0 w-64 bg-white border-e border-gray-100 flex-col z-40">
         <div className="p-6 border-b border-gray-100">
           <Link href="/outfits" className="flex items-center gap-2">
             <span className="text-2xl">👗</span>
