@@ -101,13 +101,89 @@ export type Database = {
           },
         ]
       }
+      catalog_items: {
+        Row: {
+          id: string
+          name: string
+          description: string | null
+          category: string
+          subcategory: string | null
+          brand: string | null
+          color: string | null
+          gender: string | null
+          seasons: string[]
+          tags: string[]
+          price: number | null
+          currency: string
+          image_path: string
+          image_url: string
+          source_name: string | null
+          source_url: string | null
+          external_ref: string | null
+          embedding: string | null
+          is_active: boolean
+          created_at: string
+          updated_at: string
+          search_text: string | null
+          fts: unknown | null
+        }
+        Insert: {
+          id?: string
+          name: string
+          description?: string | null
+          category: string
+          subcategory?: string | null
+          brand?: string | null
+          color?: string | null
+          gender?: string | null
+          seasons?: string[]
+          tags?: string[]
+          price?: number | null
+          currency?: string
+          image_path: string
+          image_url: string
+          source_name?: string | null
+          source_url?: string | null
+          external_ref?: string | null
+          embedding?: string | null
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          description?: string | null
+          category?: string
+          subcategory?: string | null
+          brand?: string | null
+          color?: string | null
+          gender?: string | null
+          seasons?: string[]
+          tags?: string[]
+          price?: number | null
+          currency?: string
+          image_path?: string
+          image_url?: string
+          source_name?: string | null
+          source_url?: string | null
+          external_ref?: string | null
+          embedding?: string | null
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       outfit_items: {
         Row: {
           id: string
           outfit_id: string
           position_x: number | null
           position_y: number | null
-          wardrobe_item_id: string
+          wardrobe_item_id: string | null
+          catalog_item_id: string | null
+          scale: number
           z_index: number | null
         }
         Insert: {
@@ -115,7 +191,9 @@ export type Database = {
           outfit_id: string
           position_x?: number | null
           position_y?: number | null
-          wardrobe_item_id: string
+          wardrobe_item_id?: string | null
+          catalog_item_id?: string | null
+          scale?: number
           z_index?: number | null
         }
         Update: {
@@ -123,7 +201,9 @@ export type Database = {
           outfit_id?: string
           position_x?: number | null
           position_y?: number | null
-          wardrobe_item_id?: string
+          wardrobe_item_id?: string | null
+          catalog_item_id?: string | null
+          scale?: number
           z_index?: number | null
         }
         Relationships: [
@@ -139,6 +219,13 @@ export type Database = {
             columns: ["wardrobe_item_id"]
             isOneToOne: false
             referencedRelation: "wardrobe_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "outfit_items_catalog_item_id_fkey"
+            columns: ["catalog_item_id"]
+            isOneToOne: false
+            referencedRelation: "catalog_items"
             referencedColumns: ["id"]
           },
         ]
@@ -388,7 +475,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      search_catalog_items: {
+        Args: {
+          query_text: string
+          query_embedding?: string | null
+          match_count?: number
+          category_filter?: string | null
+          rrf_k?: number
+        }
+        Returns: Database["public"]["Tables"]["catalog_items"]["Row"][]
+      }
     }
     Enums: {
       [_ in never]: never
@@ -407,6 +503,7 @@ export type Tables<T extends keyof DefaultSchema["Tables"]> = DefaultSchema["Tab
 // Convenience row types
 export type Profile = Tables<"profiles">
 export type WardrobeItem = Tables<"wardrobe_items">
+export type CatalogItem = Tables<"catalog_items">
 export type Outfit = Tables<"outfits">
 export type OutfitItem = Tables<"outfit_items">
 export type CalendarOutfit = Tables<"calendar_outfits">
