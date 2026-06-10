@@ -1,153 +1,151 @@
 'use client'
-import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import {
   Shirt, CalendarDays, ShoppingBag, Clock,
-  LayoutGrid, LogOut, User, Star, BarChart3, Zap, Menu, X
+  LayoutGrid, LogOut, User, Star, BarChart3, Zap,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useLang } from '@/lib/lang-context'
 
-function NavLinks({ pathname, onNavigate }: { pathname: string; onNavigate?: () => void }) {
-  const { t } = useLang()
+const ALL_NAV = [
+  { href: '/wardrobe',         icon: Shirt,        key: 'wardrobe'  as const },
+  { href: '/outfits',          icon: LayoutGrid,   key: 'outfits'   as const },
+  { href: '/outfits/discover', icon: Zap,          key: 'discover'  as const },
+  { href: '/calendar',         icon: CalendarDays, key: 'calendar'  as const },
+  { href: '/wishlist',         icon: ShoppingBag,  key: 'wishlist'  as const },
+  { href: '/history',          icon: Clock,        key: 'history'   as const },
+  { href: '/favorites',        icon: Star,         key: 'favorites' as const },
+  { href: '/insights',         icon: BarChart3,    key: 'insights'  as const },
+]
 
-  const navItems = [
-    { href: '/wardrobe', label: t.nav.wardrobe, icon: Shirt },
-    { href: '/outfits', label: t.nav.outfits, icon: LayoutGrid },
-    { href: '/outfits/discover', label: t.nav.discover, icon: Zap },
-    { href: '/calendar', label: t.nav.calendar, icon: CalendarDays },
-    { href: '/wishlist', label: t.nav.wishlist, icon: ShoppingBag },
-    { href: '/history', label: t.nav.history, icon: Clock },
-    { href: '/favorites', label: t.nav.favorites, icon: Star },
-    { href: '/insights', label: t.nav.insights, icon: BarChart3 },
-  ]
+const MOBILE_TABS = [
+  { href: '/wardrobe',         icon: Shirt,        he: 'ארון',    en: 'Wardrobe' },
+  { href: '/outfits',          icon: LayoutGrid,   he: 'לוקים',   en: 'Outfits'  },
+  { href: '/outfits/discover', icon: Zap,          he: 'גלה',     en: 'Explore'  },
+  { href: '/calendar',         icon: CalendarDays, he: 'יומן',    en: 'Calendar' },
+  { href: '/profile',          icon: User,         he: 'פרופיל',  en: 'Profile'  },
+]
 
-  return (
-    <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-      {navItems.map(({ href, label, icon: Icon }) => (
-        <Link
-          key={href}
-          href={href}
-          onClick={onNavigate}
-          className={cn(
-            'flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors',
-            pathname === href || (href !== '/outfits' && pathname.startsWith(href))
-              ? 'bg-black text-white'
-              : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-          )}
-        >
-          <Icon size={18} />
-          {label}
-        </Link>
-      ))}
-    </nav>
-  )
-}
-
-function BottomLinks({ onNavigate, onSignOut }: { onNavigate?: () => void; onSignOut: () => void }) {
-  const { t, lang, setLang } = useLang()
-
-  return (
-    <div className="p-4 border-t border-gray-100 space-y-1">
-      <Link
-        href="/profile"
-        onClick={onNavigate}
-        className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50"
-      >
-        <User size={18} />
-        {t.nav.profile}
-      </Link>
-      <button
-        onClick={onSignOut}
-        className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-red-50 hover:text-red-600 transition-colors"
-      >
-        <LogOut size={18} />
-        {t.nav.signOut}
-      </button>
-      <button
-        onClick={() => setLang(lang === 'he' ? 'en' : 'he')}
-        className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors"
-      >
-        <span className="text-base">🌐</span>
-        {lang === 'he' ? 'English' : 'עברית'}
-      </button>
-    </div>
-  )
+function active(pathname: string, href: string) {
+  if (pathname === href) return true
+  if (href === '/outfits') return pathname.startsWith('/outfits/') && !pathname.startsWith('/outfits/discover')
+  return pathname.startsWith(href + '/')
 }
 
 export function Sidebar() {
   const pathname = usePathname()
   const router = useRouter()
+  const { t, lang, setLang } = useLang()
   const supabase = createClient()
-  const [isOpen, setIsOpen] = useState(false)
 
   async function handleSignOut() {
     await supabase.auth.signOut()
     router.push('/login')
   }
 
-  const close = () => setIsOpen(false)
-
   return (
     <>
-      {/* Mobile top bar */}
-      <header className="md:hidden fixed top-0 right-0 left-0 h-14 bg-white border-b border-gray-100 flex items-center justify-between px-4 z-30">
-        <button
-          onClick={() => setIsOpen(true)}
-          className="p-2 rounded-xl hover:bg-gray-50 text-gray-600"
-          aria-label="פתח תפריט"
-        >
-          <Menu size={22} />
-        </button>
-        <Link href="/outfits" className="flex items-center gap-2">
-          <span className="text-xl">👗</span>
-          <span className="text-lg font-bold text-gray-900">Outfit</span>
-        </Link>
-        <div className="w-10" />
-      </header>
+      {/* ── Mobile bottom tab bar ─────────────────────────────── */}
+      <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-gray-100/80">
+        <div className="flex safe-bottom">
+          {MOBILE_TABS.map(tab => {
+            const on = active(pathname, tab.href)
+            const label = lang === 'he' ? tab.he : tab.en
+            return (
+              <Link
+                key={tab.href}
+                href={tab.href}
+                className={cn(
+                  'flex-1 flex flex-col items-center gap-0.5 pt-2 pb-1 transition-colors touch-manipulation select-none',
+                  on ? 'text-gray-900' : 'text-gray-400',
+                )}
+              >
+                <div className={cn(
+                  'w-9 h-7 flex items-center justify-center rounded-xl transition-all duration-200',
+                  on ? 'bg-black' : '',
+                )}>
+                  <tab.icon
+                    size={18}
+                    strokeWidth={on ? 2.5 : 1.8}
+                    className={on ? 'text-white' : ''}
+                  />
+                </div>
+                <span className={cn('text-[10px] leading-none', on ? 'font-semibold' : 'font-medium')}>
+                  {label}
+                </span>
+              </Link>
+            )
+          })}
+        </div>
+      </nav>
 
-      {/* Mobile backdrop */}
-      <div
-        onClick={close}
-        className="md:hidden fixed inset-0 z-40 bg-black/50 transition-opacity duration-300"
-        style={{ opacity: isOpen ? 1 : 0, pointerEvents: isOpen ? 'auto' : 'none' }}
-      />
+      {/* ── Desktop sidebar ───────────────────────────────────── */}
+      <aside className="hidden md:flex fixed top-0 bottom-0 start-0 w-60 bg-white border-e border-gray-100 flex-col z-40">
 
-      {/* Mobile sliding panel */}
-      <div
-        className="md:hidden fixed top-0 bottom-0 bg-white flex flex-col z-50 shadow-2xl"
-        style={{
-          right: 0, width: '100%', maxWidth: '20rem',
-          transform: isOpen ? 'translateX(0)' : 'translateX(100%)',
-          transition: 'transform 0.3s ease-in-out',
-        }}
-      >
-        <div className="p-6 border-b border-gray-100 flex items-center justify-between">
-          <Link href="/outfits" onClick={close} className="flex items-center gap-2">
-            <span className="text-2xl">👗</span>
-            <span className="text-xl font-bold text-gray-900">Outfit</span>
+        {/* Logo */}
+        <div className="px-5 py-4 border-b border-gray-100">
+          <Link href="/wardrobe" className="flex items-center gap-2.5">
+            <div className="w-7 h-7 bg-black rounded-lg flex items-center justify-center text-sm leading-none">
+              👗
+            </div>
+            <span className="text-[15px] font-bold text-gray-900 tracking-tight">Outfit</span>
           </Link>
-          <button onClick={close} className="p-2 rounded-lg hover:bg-gray-100 transition-colors" aria-label="סגור תפריט">
-            <X size={20} />
+        </div>
+
+        {/* Nav */}
+        <nav className="flex-1 px-3 py-3 space-y-px overflow-y-auto">
+          {ALL_NAV.map(({ href, icon: Icon, key }) => {
+            const on = active(pathname, href)
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={cn(
+                  'flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] transition-all',
+                  on
+                    ? 'bg-black text-white font-semibold'
+                    : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900 font-medium',
+                )}
+              >
+                <Icon size={15} strokeWidth={on ? 2.5 : 1.8} />
+                {t.nav[key]}
+              </Link>
+            )
+          })}
+        </nav>
+
+        {/* Bottom */}
+        <div className="px-3 py-3 border-t border-gray-100 space-y-px">
+          <Link
+            href="/profile"
+            className={cn(
+              'flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] transition-all',
+              active(pathname, '/profile')
+                ? 'bg-black text-white font-semibold'
+                : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900 font-medium',
+            )}
+          >
+            <User size={15} strokeWidth={active(pathname, '/profile') ? 2.5 : 1.8} />
+            {t.nav.profile}
+          </Link>
+          <button
+            onClick={handleSignOut}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium text-gray-500 hover:bg-red-50 hover:text-red-600 transition-colors"
+          >
+            <LogOut size={15} />
+            {t.nav.signOut}
+          </button>
+          <button
+            onClick={() => setLang(lang === 'he' ? 'en' : 'he')}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium text-gray-400 hover:bg-gray-50 hover:text-gray-600 transition-colors"
+          >
+            <span className="text-sm leading-none">🌐</span>
+            {lang === 'he' ? 'English' : 'עברית'}
           </button>
         </div>
-        <NavLinks pathname={pathname} onNavigate={close} />
-        <BottomLinks onNavigate={close} onSignOut={handleSignOut} />
-      </div>
-
-      {/* Desktop fixed sidebar */}
-      <aside className="hidden md:flex fixed top-0 bottom-0 right-0 w-64 bg-white border-s border-gray-100 flex-col z-40">
-        <div className="p-6 border-b border-gray-100">
-          <Link href="/outfits" className="flex items-center gap-2">
-            <span className="text-2xl">👗</span>
-            <span className="text-xl font-bold text-gray-900">Outfit</span>
-          </Link>
-        </div>
-        <NavLinks pathname={pathname} />
-        <BottomLinks onSignOut={handleSignOut} />
       </aside>
     </>
   )

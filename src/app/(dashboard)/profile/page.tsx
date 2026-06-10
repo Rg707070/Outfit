@@ -158,13 +158,13 @@ export default function ProfilePage() {
                 value={newPassword}
                 onChange={e => setNewPassword(e.target.value)}
                 placeholder="לפחות 6 תווים"
-                className="pl-10"
+                className="ps-10"
                 minLength={6}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                className="absolute start-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
               >
                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>

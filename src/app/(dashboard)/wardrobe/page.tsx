@@ -105,12 +105,12 @@ export default function WardrobePage() {
 
       {/* Search */}
       <div className="relative mb-6">
-        <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+        <Search size={16} className="absolute start-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
         <Input
           placeholder={t.wardrobe.search}
           value={search}
           onChange={e => setSearch(e.target.value)}
-          className="pl-9"
+          className="ps-9"
         />
       </div>
 
