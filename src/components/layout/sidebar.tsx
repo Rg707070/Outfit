@@ -59,7 +59,7 @@ export function Sidebar() {
                 key={tab.href}
                 href={tab.href}
                 className={cn(
-                  'flex-1 flex flex-col items-center gap-0.5 pt-2 pb-1 transition-colors',
+                  'flex-1 flex flex-col items-center gap-0.5 pt-2 pb-1 transition-colors touch-manipulation select-none',
                   on ? 'text-gray-900' : 'text-gray-400',
                 )}
               >

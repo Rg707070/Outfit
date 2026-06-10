@@ -5,9 +5,23 @@
   --foreground: #111827;
 }
 
+*,
+*::before,
+*::after {
+  /* Remove tap highlight flash on Android Chrome */
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  /* Prevent overscroll rubber-band on Android */
+  overscroll-behavior: none;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
+  /* Smooth momentum scrolling on iOS; native on Android */
+  -webkit-overflow-scrolling: touch;
 }
 
 .scrollbar-hide {
@@ -18,6 +32,8 @@ body {
   display: none;
 }
 
+/* Safe-area bottom padding — works when viewport-fit=cover is set.
+   Falls back to 0.5rem on devices without a system nav bar. */
 .safe-bottom {
   padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
 }
