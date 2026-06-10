@@ -16,6 +16,7 @@ function NavLinks({ pathname, onNavigate }: { pathname: string; onNavigate?: () 
 
   const navItems = [
     { href: '/wardrobe', label: t.nav.wardrobe, icon: Shirt },
+    { href: '/today', label: t.nav.today, icon: Sparkles },
     { href: '/outfits', label: t.nav.outfits, icon: LayoutGrid },
     { href: '/outfits/discover', label: t.nav.discover, icon: Zap },
     { href: '/catalog', label: t.nav.catalog, icon: Sparkles },

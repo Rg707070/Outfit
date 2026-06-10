@@ -14,6 +14,7 @@ export default function WardrobePage() {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [activeCategory, setActiveCategory] = useState<ClothingCategory | 'all'>('all')
+  const [activeTag, setActiveTag] = useState<string | null>(null)
   const [showAdd, setShowAdd] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const { toast } = useToast()
@@ -51,8 +52,20 @@ export default function WardrobePage() {
     const matchesSearch = item.name.toLowerCase().includes(search.toLowerCase()) ||
       item.brand?.toLowerCase().includes(search.toLowerCase())
     const matchesCategory = activeCategory === 'all' || item.category === activeCategory
-    return matchesSearch && matchesCategory
+    const matchesTag = !activeTag || (item.tags?.includes(activeTag) ?? false)
+    return matchesSearch && matchesCategory && matchesTag
   })
+
+  // Unique tags across the wardrobe, most common first, for the tag filter row.
+  const allTags = Object.entries(
+    items.flatMap(i => i.tags ?? []).reduce((acc, tag) => {
+      acc[tag] = (acc[tag] ?? 0) + 1
+      return acc
+    }, {} as Record<string, number>)
+  )
+    .sort((a, b) => b[1] - a[1])
+    .map(([tag]) => tag)
+    .slice(0, 20)
 
   const counts = CLOTHING_CATEGORIES.reduce((acc, cat) => {
     acc[cat.value] = items.filter(i => i.category === cat.value).length
@@ -113,6 +126,24 @@ export default function WardrobePage() {
           className="pl-9"
         />
       </div>
+
+      {/* Tag filter */}
+      {allTags.length > 0 && (
+        <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide mb-6 pb-1">
+          <span className="flex-shrink-0 text-xs text-gray-400">{t.wardrobe.filterByTag}</span>
+          {allTags.map(tag => (
+            <button
+              key={tag}
+              onClick={() => setActiveTag(tag === activeTag ? null : tag)}
+              className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                activeTag === tag ? 'bg-black text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              #{tag}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Grid */}
       {loading ? (
@@ -188,6 +219,15 @@ export default function WardrobePage() {
                     <span className="text-xs text-gray-400 truncate">{item.color}</span>
                   </div>
                 )}
+                {item.tags && item.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-1.5">
+                    {item.tags.slice(0, 3).map(tag => (
+                      <span key={tag} className="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-full">
+                        #{tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           ))}
@@ -240,7 +280,13 @@ function AddItemModal({ onClose, onAdded }: { onClose: () => void; onAdded: () =
   const [processing, setProcessing] = useState(false)
   const [processMsg, setProcessMsg] = useState('')
   const [originalFile, setOriginalFile] = useState<File | null>(null)
+  const [tags, setTags] = useState<string[]>([])
+  const [tagInput, setTagInput] = useState('')
+  const [autoTagging, setAutoTagging] = useState(false)
+  const [autoTagged, setAutoTagged] = useState(false)
   const supabase = createClient()
+
+  const ALLOWED_MEDIA = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
 
   function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -251,6 +297,7 @@ function AddItemModal({ onClose, onAdded }: { onClose: () => void; onAdded: () =
     } else {
       setImageFile(file)
       setImagePreview(URL.createObjectURL(file))
+      runAutoTag(file)
     }
   }
 
@@ -262,9 +309,11 @@ function AddItemModal({ onClose, onAdded }: { onClose: () => void; onAdded: () =
       const result = await removeBg(file, msg => setProcessMsg(msg))
       setImageFile(result)
       setImagePreview(URL.createObjectURL(result))
+      runAutoTag(result)
     } catch {
       setImageFile(file)
       setImagePreview(URL.createObjectURL(file))
+      runAutoTag(file)
     } finally {
       setProcessing(false)
       setProcessMsg('')
@@ -278,6 +327,52 @@ function AddItemModal({ onClose, onAdded }: { onClose: () => void; onAdded: () =
       if (next) processBg(originalFile)
       else { setImageFile(originalFile); setImagePreview(URL.createObjectURL(originalFile)) }
     }
+  }
+
+  function blobToBase64(blob: Blob): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onloadend = () => resolve((reader.result as string).split(',')[1])
+      reader.onerror = reject
+      reader.readAsDataURL(blob)
+    })
+  }
+
+  // Suggest name/category/colour/tags from the photo via the Claude vision
+  // edge function. Suggestions only — every field stays user-editable, and a
+  // failure is silent (the user just fills the form manually).
+  async function runAutoTag(blob: Blob) {
+    const mediaType = ALLOWED_MEDIA.includes(blob.type) ? blob.type : 'image/png'
+    setAutoTagging(true)
+    setAutoTagged(false)
+    try {
+      const imageBase64 = await blobToBase64(blob)
+      const { data, error } = await supabase.functions.invoke('auto-tag', {
+        body: { imageBase64, mediaType },
+      })
+      if (error || !data || data.error) return
+      setName(prev => prev || data.name || '')
+      if (data.category) setCategory(data.category)
+      setBrand(prev => prev || data.brand || '')
+      if (typeof data.primary_color_hex === 'string' && /^#[0-9a-fA-F]{6}$/.test(data.primary_color_hex)) {
+        setColor(data.primary_color_hex)
+        setHasColor(true)
+      }
+      if (Array.isArray(data.tags)) {
+        setTags(prev => Array.from(new Set([...prev, ...data.tags.filter((x: unknown) => typeof x === 'string')])))
+      }
+      setAutoTagged(true)
+    } catch {
+      // ignore — manual entry still works
+    } finally {
+      setAutoTagging(false)
+    }
+  }
+
+  function addTag(raw: string) {
+    const tag = raw.trim().replace(/^#/, '')
+    if (tag && !tags.includes(tag)) setTags(prev => [...prev, tag])
+    setTagInput('')
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -307,6 +402,7 @@ function AddItemModal({ onClose, onAdded }: { onClose: () => void; onAdded: () =
       brand: brand || null,
       color: hasColor ? color : null,
       image_url,
+      tags: tags.length ? tags : null,
     })
     onAdded()
     onClose()
@@ -364,6 +460,18 @@ function AddItemModal({ onClose, onAdded }: { onClose: () => void; onAdded: () =
             <span className="text-sm text-gray-700">✂️ Remove background automatically</span>
           </label>
 
+          {/* Auto-tag status */}
+          {(autoTagging || autoTagged) && (
+            <div className={`flex items-center gap-2 text-sm rounded-xl px-3 py-2 ${autoTagging ? 'bg-gray-50 text-gray-500' : 'bg-amber-50 text-amber-700'}`}>
+              {autoTagging ? (
+                <div className="w-3.5 h-3.5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <span>✨</span>
+              )}
+              {autoTagging ? t.wardrobe.autoTagging : t.wardrobe.autoTagged}
+            </div>
+          )}
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">
               Name <span className="text-red-500">*</span>
@@ -414,6 +522,30 @@ function AddItemModal({ onClose, onAdded }: { onClose: () => void; onAdded: () =
                 <span className="text-sm text-gray-600 font-mono">{color}</span>
               </div>
             )}
+          </div>
+
+          {/* Tags */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">{t.wardrobe.tagsLabel}</label>
+            {tags.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mb-2">
+                {tags.map(tag => (
+                  <span key={tag} className="inline-flex items-center gap-1 text-xs bg-gray-100 text-gray-700 px-2.5 py-1 rounded-full">
+                    #{tag}
+                    <button type="button" onClick={() => setTags(prev => prev.filter(x => x !== tag))} className="text-gray-400 hover:text-gray-700">✕</button>
+                  </span>
+                ))}
+              </div>
+            )}
+            <Input
+              value={tagInput}
+              onChange={e => setTagInput(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); addTag(tagInput) }
+              }}
+              onBlur={() => tagInput && addTag(tagInput)}
+              placeholder={t.wardrobe.addTagPlaceholder}
+            />
           </div>
 
           <div className="flex gap-3 pt-2">
