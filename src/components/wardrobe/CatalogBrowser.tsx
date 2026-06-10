@@ -96,6 +96,14 @@ export function CatalogBrowser({ category, search, onImported }: Props) {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not authenticated')
 
+      // Required by Unsplash API guidelines: register the download so photographers
+      // receive credit. Fire-and-forget — don't block import on failure.
+      fetch('/api/clothing-catalog/trigger', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ downloadLocation: item.downloadLocation }),
+      }).catch(() => {})
+
       // Fetch image via our proxy (avoids CORS issues)
       const imgRes = await fetch(`/api/clothing-catalog/proxy?url=${encodeURIComponent(item.imageUrl)}`)
       if (!imgRes.ok) throw new Error('Image fetch failed')
@@ -235,15 +243,15 @@ export function CatalogBrowser({ category, search, onImported }: Props) {
 
               <div className="p-3">
                 <p className="text-sm font-medium text-gray-900 truncate capitalize">{item.name}</p>
-                <a
-                  href={item.attributionUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs text-gray-400 truncate flex items-center gap-0.5 hover:text-gray-600 transition-colors"
-                >
-                  {t.catalog.photoBy} {item.attribution}
-                  <ExternalLink size={9} className="flex-shrink-0" />
-                </a>
+                <p className="text-xs text-gray-400 truncate">
+                  <a href={item.attributionUrl} target="_blank" rel="noopener noreferrer" className="hover:text-gray-600 transition-colors">
+                    {item.attribution}
+                  </a>
+                  {' · '}
+                  <a href="https://unsplash.com/?utm_source=outfit_app&utm_medium=referral" target="_blank" rel="noopener noreferrer" className="hover:text-gray-600 transition-colors">
+                    Unsplash
+                  </a>
+                </p>
               </div>
             </div>
           )
@@ -352,15 +360,15 @@ function ImportModal({
             />
             <div className="min-w-0 flex flex-col justify-center">
               <p className="text-sm font-medium text-gray-900 truncate capitalize">{item.name}</p>
-              <a
-                href={item.attributionUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs text-gray-400 hover:text-gray-600 flex items-center gap-0.5 mt-0.5"
-              >
-                {t.catalog.photoBy} {item.attribution}
-                <ExternalLink size={9} />
-              </a>
+              <p className="text-xs text-gray-400 mt-0.5">
+                <a href={item.attributionUrl} target="_blank" rel="noopener noreferrer" className="hover:text-gray-600">
+                  {item.attribution}
+                </a>
+                {' · '}
+                <a href="https://unsplash.com/?utm_source=outfit_app&utm_medium=referral" target="_blank" rel="noopener noreferrer" className="hover:text-gray-600">
+                  Unsplash
+                </a>
+              </p>
             </div>
           </div>
 
