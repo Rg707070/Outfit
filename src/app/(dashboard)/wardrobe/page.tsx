@@ -8,6 +8,9 @@ import { Input } from '@/components/ui/input'
 import { useToast } from '@/components/ui/toast'
 import { Plus, Search, Heart, Upload, Trash2, AlertTriangle } from 'lucide-react'
 import { useLang } from '@/lib/lang-context'
+import { CatalogBrowser } from '@/components/wardrobe/CatalogBrowser'
+
+type ViewMode = 'mine' | 'discover'
 
 export default function WardrobePage() {
   const [items, setItems] = useState<WardrobeItem[]>([])
@@ -16,6 +19,7 @@ export default function WardrobePage() {
   const [activeCategory, setActiveCategory] = useState<ClothingCategory | 'all'>('all')
   const [showAdd, setShowAdd] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [view, setView] = useState<ViewMode>('mine')
   const { toast } = useToast()
   const { t } = useLang()
   const supabase = createClient()
@@ -63,18 +67,44 @@ export default function WardrobePage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{t.wardrobe.title}</h1>
           <p className="text-gray-500 text-sm mt-1">{t.wardrobe.itemsTotal(items.length)}</p>
         </div>
-        <Button onClick={() => setShowAdd(true)}>
-          <Plus size={16} />
-          {t.wardrobe.addItem}
-        </Button>
+        {view === 'mine' && (
+          <Button onClick={() => setShowAdd(true)}>
+            <Plus size={16} />
+            {t.wardrobe.addItem}
+          </Button>
+        )}
       </div>
 
-      {/* Category filters */}
+      {/* View toggle — My Wardrobe / Discover */}
+      <div className="flex gap-1 p-1 bg-gray-100 rounded-2xl w-fit mb-6">
+        <button
+          onClick={() => setView('mine')}
+          className={`px-5 py-2 rounded-xl text-sm font-medium transition-all ${
+            view === 'mine'
+              ? 'bg-white text-gray-900 shadow-sm'
+              : 'text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          {t.catalog.myWardrobe}
+        </button>
+        <button
+          onClick={() => setView('discover')}
+          className={`px-5 py-2 rounded-xl text-sm font-medium transition-all ${
+            view === 'discover'
+              ? 'bg-white text-gray-900 shadow-sm'
+              : 'text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          {t.catalog.discover}
+        </button>
+      </div>
+
+      {/* Category filters — shared between both views */}
       <div className="flex gap-2 overflow-x-auto scrollbar-hide mb-6 pb-2">
         <button
           onClick={() => setActiveCategory('all')}
@@ -82,7 +112,7 @@ export default function WardrobePage() {
             activeCategory === 'all' ? 'bg-black text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
           }`}
         >
-          {t.wardrobe.all(items.length)}
+          {view === 'mine' ? t.wardrobe.all(items.length) : t.wardrobe.all(0).replace(' (0)', '')}
         </button>
         {CLOTHING_CATEGORIES.map(cat => (
           <button
@@ -94,7 +124,7 @@ export default function WardrobePage() {
           >
             <span>{cat.emoji}</span>
             {t.categories[cat.value as keyof typeof t.categories] ?? cat.label}
-            {counts[cat.value] > 0 && (
+            {view === 'mine' && counts[cat.value] > 0 && (
               <span className={`text-xs rounded-full px-1.5 ${activeCategory === cat.value ? 'bg-white/20' : 'bg-gray-100'}`}>
                 {counts[cat.value]}
               </span>
@@ -103,7 +133,7 @@ export default function WardrobePage() {
         ))}
       </div>
 
-      {/* Search */}
+      {/* Search — shared between both views */}
       <div className="relative mb-6">
         <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
         <Input
@@ -114,34 +144,47 @@ export default function WardrobePage() {
         />
       </div>
 
-      {/* Grid */}
-      {loading ? (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-          {Array.from({ length: 10 }).map((_, i) => (
-            <div key={i} className="aspect-square bg-gray-100 rounded-2xl animate-pulse" />
-          ))}
-        </div>
-      ) : items.length === 0 ? (
-        <div className="text-center py-20">
-          <span className="text-5xl">👗</span>
-          <p className="text-gray-500 mt-4 text-lg font-medium">{t.wardrobe.noItems}</p>
-          <p className="text-gray-400 text-sm mt-1">{t.wardrobe.noItemsSub}</p>
-          <Button className="mt-6" onClick={() => setShowAdd(true)}>
-            <Plus size={16} />
-            {t.wardrobe.addFirstItem}
-          </Button>
-        </div>
-      ) : filtered.length === 0 ? (
-        <div className="text-center py-16">
-          <span className="text-4xl">🔍</span>
-          <p className="text-gray-500 mt-3 font-medium">{t.wardrobe.noItems}</p>
-          <button onClick={() => { setSearch(''); setActiveCategory('all') }} className="text-sm text-gray-400 underline mt-2">
-            {t.wardrobe.all(0)}
-          </button>
-        </div>
-      ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-          {filtered.map(item => (
+      {/* Discover view */}
+      {view === 'discover' && (
+        <CatalogBrowser
+          category={activeCategory}
+          search={search}
+          onImported={() => {
+            loadItems()
+            toast(t.catalog.addToWardrobe + ' ✅')
+          }}
+        />
+      )}
+
+      {/* My Wardrobe grid */}
+      {view === 'mine' && (
+        loading ? (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            {Array.from({ length: 10 }).map((_, i) => (
+              <div key={i} className="aspect-square bg-gray-100 rounded-2xl animate-pulse" />
+            ))}
+          </div>
+        ) : items.length === 0 ? (
+          <div className="text-center py-20">
+            <span className="text-5xl">👗</span>
+            <p className="text-gray-500 mt-4 text-lg font-medium">{t.wardrobe.noItems}</p>
+            <p className="text-gray-400 text-sm mt-1">{t.wardrobe.noItemsSub}</p>
+            <Button className="mt-6" onClick={() => setShowAdd(true)}>
+              <Plus size={16} />
+              {t.wardrobe.addFirstItem}
+            </Button>
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="text-center py-16">
+            <span className="text-4xl">🔍</span>
+            <p className="text-gray-500 mt-3 font-medium">{t.wardrobe.noItems}</p>
+            <button onClick={() => { setSearch(''); setActiveCategory('all') }} className="text-sm text-gray-400 underline mt-2">
+              {t.wardrobe.all(0)}
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            {filtered.map(item => (
             <div key={item.id} className="group relative bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
               <div className="aspect-square bg-gray-50 relative">
                 {item.image_url ? (
@@ -190,8 +233,9 @@ export default function WardrobePage() {
                 )}
               </div>
             </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )
       )}
 
       {/* Add Item Modal */}
