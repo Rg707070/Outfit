@@ -55,11 +55,12 @@ export default function CalendarPage() {
   }
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
+    <div className="min-h-screen pb-nav">
+      <div className="bg-white px-5 pt-12 pb-4">
         <h1 className="text-2xl font-bold text-gray-900">{t.calendar.title}</h1>
-        <WeatherWidget />
       </div>
+      <div className="px-4 mt-3">
+      <WeatherWidget />
 
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
         {/* Month navigation */}
@@ -157,6 +158,7 @@ export default function CalendarPage() {
           }}
         />
       )}
+      </div>
     </div>
   )
 }

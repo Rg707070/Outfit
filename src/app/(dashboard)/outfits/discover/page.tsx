@@ -313,9 +313,9 @@ export default function DiscoverPage() {
   )
 
   return (
-    <div className="flex flex-col" style={{ height: 'calc(100vh - 5rem)' }}>
+    <div className="flex flex-col" style={{ height: '100dvh' }}>
       {/* Header */}
-      <div className="flex items-center justify-between mb-4 flex-shrink-0">
+      <div className="flex items-center justify-between mb-4 flex-shrink-0 px-4 pt-12 md:pt-4">
         <Link href="/outfits" className="flex items-center gap-2 text-gray-500 hover:text-gray-900 transition-colors">
           <ArrowRight size={18} />
           <span className="text-sm font-medium">חזרה</span>

@@ -34,7 +34,7 @@ export default function InsightsPage() {
 
   if (loading) {
     return (
-      <div className="space-y-4">
+      <div className="min-h-screen pb-nav px-4 pt-16 space-y-4">
         {Array.from({ length: 4 }).map((_, i) => (
           <div key={i} className="h-32 bg-gray-100 rounded-2xl animate-pulse" />
         ))}
@@ -87,11 +87,12 @@ export default function InsightsPage() {
   ]
 
   return (
-    <div>
-      <div className="mb-8">
+    <div className="min-h-screen pb-nav">
+      <div className="bg-white px-5 pt-12 pb-5">
         <h1 className="text-2xl font-bold text-gray-900">תובנות סגנון</h1>
-        <p className="text-gray-500 text-sm mt-1">מה הארון שלך אומר עליך</p>
+        <p className="text-gray-400 text-sm mt-1">מה הארון שלך אומר עליך</p>
       </div>
+      <div className="px-4 mt-3">
 
       {/* Stat cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -262,6 +263,7 @@ export default function InsightsPage() {
             </Link>
           </div>
         )}
+      </div>
       </div>
     </div>
   )
