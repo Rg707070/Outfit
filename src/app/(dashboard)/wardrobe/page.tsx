@@ -105,12 +105,12 @@ export default function WardrobePage() {
 
       {/* Search */}
       <div className="relative mb-6">
-        <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+        <Search size={16} className="absolute start-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
         <Input
           placeholder={t.wardrobe.search}
           value={search}
           onChange={e => setSearch(e.target.value)}
-          className="pl-9"
+          className="ps-9"
         />
       </div>
 
@@ -154,7 +154,7 @@ export default function WardrobePage() {
                   </div>
                 )}
                 {/* Action buttons — always visible on mobile, hover on desktop */}
-                <div className="absolute top-2 right-2 flex flex-col gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                <div className="absolute top-2 end-2 flex flex-col gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                   <button
                     onClick={() => toggleFavorite(item)}
                     className="p-1.5 bg-white rounded-full shadow-sm hover:scale-110 transition-transform"
@@ -171,7 +171,7 @@ export default function WardrobePage() {
                   </button>
                 </div>
                 {item.is_favorite && (
-                  <div className="absolute top-2 left-2">
+                  <div className="absolute top-2 start-2">
                     <Heart size={14} className="fill-red-500 text-red-500" />
                   </div>
                 )}

@@ -171,11 +171,11 @@ function SwipeCard({
     >
       <div className="w-full h-full bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col">
         {/* Swipe labels */}
-        <div className="absolute top-6 left-6 z-20 border-4 border-green-400 text-green-400 rounded-2xl px-4 py-2 text-xl font-black rotate-[-15deg]"
+        <div className="absolute top-6 start-6 z-20 border-4 border-green-400 text-green-400 rounded-2xl px-4 py-2 text-xl font-black rotate-[-15deg]"
           style={{ opacity: likeOpacity, transition: 'opacity 0.08s' }}>
           שמור ❤️
         </div>
-        <div className="absolute top-6 right-6 z-20 border-4 border-red-400 text-red-400 rounded-2xl px-4 py-2 text-xl font-black rotate-[15deg]"
+        <div className="absolute top-6 end-6 z-20 border-4 border-red-400 text-red-400 rounded-2xl px-4 py-2 text-xl font-black rotate-[15deg]"
           style={{ opacity: nopeOpacity, transition: 'opacity 0.08s' }}>
           דלג ✕
         </div>

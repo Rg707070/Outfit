@@ -82,6 +82,7 @@ export function Sidebar() {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
+  const { lang } = useLang()
   const [isOpen, setIsOpen] = useState(false)
 
   async function handleSignOut() {
@@ -120,8 +121,8 @@ export function Sidebar() {
       <div
         className="md:hidden fixed top-0 bottom-0 bg-white flex flex-col z-50 shadow-2xl"
         style={{
-          right: 0, width: '100%', maxWidth: '20rem',
-          transform: isOpen ? 'translateX(0)' : 'translateX(100%)',
+          insetInlineStart: 0, width: '100%', maxWidth: '20rem',
+          transform: isOpen ? 'translateX(0)' : `translateX(${lang === 'he' ? '100%' : '-100%'})`,
           transition: 'transform 0.3s ease-in-out',
         }}
       >
@@ -139,7 +140,7 @@ export function Sidebar() {
       </div>
 
       {/* Desktop fixed sidebar */}
-      <aside className="hidden md:flex fixed top-0 bottom-0 right-0 w-64 bg-white border-s border-gray-100 flex-col z-40">
+      <aside className="hidden md:flex fixed top-0 bottom-0 start-0 w-64 bg-white border-e border-gray-100 flex-col z-40">
         <div className="p-6 border-b border-gray-100">
           <Link href="/outfits" className="flex items-center gap-2">
             <span className="text-2xl">👗</span>

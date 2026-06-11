@@ -116,7 +116,7 @@ export default function CalendarPage() {
                     {/* Remove button */}
                     <button
                       onClick={(e) => removeFromDay(day, e)}
-                      className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                      className="absolute -top-1 -end-1 w-4 h-4 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
                       title={t.calendar.outfit + ' הסר'}
                     >
                       <X size={10} />

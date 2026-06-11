@@ -315,7 +315,7 @@ export default function CanvasBuilderPage() {
                 >
                   <Trash2 size={11} /> הסר
                 </button>
-                <button onClick={() => setSelectedId(null)} className="text-xs text-gray-400 hover:text-gray-600 mr-1">
+                <button onClick={() => setSelectedId(null)} className="text-xs text-gray-400 hover:text-gray-600 me-1">
                   ✕
                 </button>
               </>
