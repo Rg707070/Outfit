@@ -43,28 +43,31 @@ export default function FavoritesPage() {
   }
 
   return (
-    <div>
-      <div className="flex items-center gap-3 mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">{t.favorites.title}</h1>
-        <span className="text-2xl">❤️</span>
-      </div>
+    <div className="min-h-screen pb-nav">
+      <div className="bg-white px-5 pt-12 pb-4">
+        <div className="flex items-center gap-3 mb-4">
+          <h1 className="text-2xl font-bold text-gray-900">{t.favorites.title}</h1>
+          <span className="text-2xl">❤️</span>
+        </div>
 
-      <div className="flex gap-2 mb-6">
-        {[
-          { key: 'outfits', label: t.favorites.outfits(favoriteOutfits.length) },
-          { key: 'items', label: t.favorites.items(favoriteItems.length) },
-        ].map(({ key, label }) => (
-          <button
-            key={key}
-            onClick={() => setTab(key as 'outfits' | 'items')}
-            className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
-              tab === key ? 'bg-black text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
-            }`}
-          >
-            {label}
-          </button>
-        ))}
+        <div className="flex gap-2">
+          {[
+            { key: 'outfits', label: t.favorites.outfits(favoriteOutfits.length) },
+            { key: 'items', label: t.favorites.items(favoriteItems.length) },
+          ].map(({ key, label }) => (
+            <button
+              key={key}
+              onClick={() => setTab(key as 'outfits' | 'items')}
+              className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
+                tab === key ? 'bg-black text-white' : 'bg-gray-100 text-gray-600'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
+      <div className="px-4 mt-3">
 
       {loading ? (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -141,6 +144,7 @@ export default function FavoritesPage() {
           </div>
         )
       )}
+      </div>
     </div>
   )
 }

@@ -180,7 +180,7 @@ export default function CanvasBuilderPage() {
   const selected = canvasItems.find(i => i.id === selectedId)
 
   return (
-    <div className="flex flex-col" style={{ height: 'calc(100vh - 5rem)' }}>
+    <div className="flex flex-col md:h-[calc(100vh-5rem)] h-screen">
       {/* Top bar */}
       <div className="flex items-center gap-3 mb-4 flex-shrink-0">
         <Link href="/outfits" className="flex items-center gap-1.5 text-gray-500 hover:text-gray-900 transition-colors">

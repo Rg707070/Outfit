@@ -48,14 +48,20 @@ export default function HistoryPage() {
   const deletingEntry = deletingId ? history.find(h => h.id === deletingId) : null
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-8">
+    <div className="min-h-screen pb-nav">
+      <div className="bg-white px-5 pt-12 pb-4 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{t.history.title}</h1>
-          <p className="text-gray-500 text-sm mt-1">{t.history.entries(history.length)}</p>
+          <p className="text-gray-400 text-xs mt-0.5">{t.history.entries(history.length)}</p>
         </div>
-        <Button onClick={() => setShowAdd(true)}><Plus size={16} />{t.history.log}</Button>
+        <button
+          onClick={() => setShowAdd(true)}
+          className="w-10 h-10 rounded-2xl bg-black flex items-center justify-center shadow-sm"
+        >
+          <Plus size={20} className="text-white" />
+        </button>
       </div>
+      <div className="px-4 mt-3">
 
       {/* Category filters */}
       <div className="flex gap-2 overflow-x-auto scrollbar-hide mb-6 pb-2">
@@ -142,6 +148,7 @@ export default function HistoryPage() {
           </div>
         </div>
       )}
+      </div>
     </div>
   )
 }

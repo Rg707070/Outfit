@@ -77,7 +77,7 @@ export default function ProfilePage() {
 
   if (loadingProfile) {
     return (
-      <div className="max-w-2xl mx-auto space-y-4">
+      <div className="min-h-screen pb-nav px-4 pt-16 max-w-2xl mx-auto space-y-4">
         {Array.from({ length: 3 }).map((_, i) => (
           <div key={i} className="h-32 bg-gray-100 rounded-2xl animate-pulse" />
         ))}
@@ -86,11 +86,12 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <div className="mb-8">
+    <div className="min-h-screen pb-nav max-w-2xl mx-auto">
+      <div className="px-5 pt-12 pb-5 bg-white">
         <h1 className="text-2xl font-bold text-gray-900">הפרופיל שלי</h1>
-        <p className="text-gray-500 text-sm mt-1">{email}</p>
+        <p className="text-gray-400 text-sm mt-1">{email}</p>
       </div>
+      <div className="px-4 mt-3">
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4 mb-8">
@@ -174,6 +175,7 @@ export default function ProfilePage() {
             {savingPassword ? 'מעדכן…' : 'עדכן סיסמה'}
           </Button>
         </form>
+      </div>
       </div>
     </div>
   )
