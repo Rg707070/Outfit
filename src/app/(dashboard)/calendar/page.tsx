@@ -51,7 +51,7 @@ export default function CalendarPage() {
     const dateStr = format(date, 'yyyy-MM-dd')
     await supabase.from('calendar_outfits').delete().eq('user_id', user.id).eq('date', dateStr)
     setCalendarItems(prev => prev.filter(c => c.date !== dateStr))
-    toast(t.calendar.outfit + ' הוסר מהיום', 'info')
+    toast(t.calendar.removed, 'info')
   }
 
   return (
@@ -116,8 +116,8 @@ export default function CalendarPage() {
                     {/* Remove button */}
                     <button
                       onClick={(e) => removeFromDay(day, e)}
-                      className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
-                      title={t.calendar.outfit + ' הסר'}
+                      className="absolute -top-1 -end-1 w-4 h-4 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                      title={t.calendar.removeTitle}
                     >
                       <X size={10} />
                     </button>
@@ -137,11 +137,11 @@ export default function CalendarPage() {
       <div className="mt-4 flex items-center gap-4 text-xs text-gray-400">
         <div className="flex items-center gap-1.5">
           <div className="w-5 h-5 rounded-full bg-black flex items-center justify-center text-white text-xs font-bold">1</div>
-          <span>{t.calendar.title}</span>
+          <span>{t.calendar.legendScheduled}</span>
         </div>
         <div className="flex items-center gap-1.5">
           <Plus size={12} />
-          <span>{t.calendar.assign}</span>
+          <span>{t.calendar.legendAdd}</span>
         </div>
       </div>
 
@@ -153,7 +153,7 @@ export default function CalendarPage() {
           onClose={() => setShowAssign(false)}
           onAssigned={() => {
             loadData()
-            toast(`${t.calendar.outfit} ${format(selectedDate, 'd/M')} 📅`)
+            toast(t.calendar.assignedToast(format(selectedDate, 'd/M')))
           }}
         />
       )}
@@ -208,7 +208,7 @@ function AssignOutfitModal({
             <button
               key={outfit.id}
               onClick={() => setSelected(outfit.id)}
-              className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-colors text-right ${
+              className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-colors text-start ${
                 selected === outfit.id ? 'border-black bg-gray-50' : 'border-gray-100 hover:border-gray-200 hover:bg-gray-50'
               }`}
             >
@@ -217,7 +217,7 @@ function AssignOutfitModal({
                   <img src={outfit.image_url} alt="" className="w-full h-full object-cover" />
                 ) : <span>👔</span>}
               </div>
-              <div className="flex-1 min-w-0 text-right">
+              <div className="flex-1 min-w-0 text-start">
                 <p className="text-sm font-medium text-gray-900 truncate">{outfit.name}</p>
                 {outfit.occasion && <p className="text-xs text-gray-400">{outfit.occasion}</p>}
               </div>

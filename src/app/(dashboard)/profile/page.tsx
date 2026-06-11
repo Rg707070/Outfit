@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useToast } from '@/components/ui/toast'
 import { User, Mail, Lock, Eye, EyeOff, Shirt, LayoutGrid, Clock } from 'lucide-react'
+import { useLang } from '@/lib/lang-context'
 
 interface Stats {
   wardrobeCount: number
@@ -22,6 +23,7 @@ export default function ProfilePage() {
   const [savingName, setSavingName] = useState(false)
   const [savingPassword, setSavingPassword] = useState(false)
   const { toast } = useToast()
+  const { t } = useLang()
   const supabase = createClient()
 
   useEffect(() => { loadProfile() }, [])
@@ -55,13 +57,13 @@ export default function ProfilePage() {
     await supabase.from('profiles').upsert({ id: user.id, full_name: fullName })
     await supabase.auth.updateUser({ data: { full_name: fullName } })
     setSavingName(false)
-    toast('השם עודכן בהצלחה ✓')
+    toast(t.profile.nameUpdated)
   }
 
   async function savePassword(e: React.FormEvent) {
     e.preventDefault()
     if (newPassword.length < 6) {
-      toast('הסיסמה חייבת להיות לפחות 6 תווים', 'error')
+      toast(t.profile.passwordTooShort, 'error')
       return
     }
     setSavingPassword(true)
@@ -71,7 +73,7 @@ export default function ProfilePage() {
       toast(error.message, 'error')
     } else {
       setNewPassword('')
-      toast('הסיסמה עודכנה בהצלחה 🔒')
+      toast(t.profile.passwordUpdated)
     }
   }
 
@@ -88,16 +90,16 @@ export default function ProfilePage() {
   return (
     <div className="max-w-2xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">הפרופיל שלי</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t.profile.title}</h1>
         <p className="text-gray-500 text-sm mt-1">{email}</p>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4 mb-8">
         {[
-          { icon: Shirt, label: 'פריטי לבוש', value: stats.wardrobeCount, href: '/wardrobe' },
-          { icon: LayoutGrid, label: 'לוקים שמורים', value: stats.outfitsCount, href: '/outfits' },
-          { icon: Clock, label: 'פעמים שנלבש', value: stats.historyCount, href: '/history' },
+          { icon: Shirt, label: t.profile.statItems, value: stats.wardrobeCount, href: '/wardrobe' },
+          { icon: LayoutGrid, label: t.profile.statOutfits, value: stats.outfitsCount, href: '/outfits' },
+          { icon: Clock, label: t.profile.statWorn, value: stats.historyCount, href: '/history' },
         ].map(({ icon: Icon, label, value, href }) => (
           <a key={label} href={href} className="bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-sm transition-shadow text-center group">
             <div className="w-10 h-10 rounded-xl bg-gray-50 group-hover:bg-gray-100 flex items-center justify-center mx-auto mb-3 transition-colors">
@@ -113,32 +115,32 @@ export default function ProfilePage() {
       <div className="bg-white rounded-2xl border border-gray-100 p-6 mb-4">
         <h2 className="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
           <User size={16} />
-          פרטים אישיים
+          {t.profile.personalInfo}
         </h2>
         <form onSubmit={saveName} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">שם מלא</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">{t.profile.fullName}</label>
             <Input
               value={fullName}
               onChange={e => setFullName(e.target.value)}
-              placeholder="השם שלך"
+              placeholder={t.profile.namePlaceholder}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">אימייל</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">{t.profile.email}</label>
             <div className="relative">
-              <Mail size={16} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+              <Mail size={16} className="absolute end-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
                 type="email"
                 value={email}
                 disabled
-                className="w-full rounded-xl border border-gray-100 bg-gray-50 px-4 py-2.5 pr-9 text-sm text-gray-400 cursor-not-allowed"
+                className="w-full rounded-xl border border-gray-100 bg-gray-50 px-4 py-2.5 pe-9 text-sm text-gray-400 cursor-not-allowed"
               />
             </div>
-            <p className="text-xs text-gray-400 mt-1">לא ניתן לשנות את האימייל כרגע</p>
+            <p className="text-xs text-gray-400 mt-1">{t.profile.emailLocked}</p>
           </div>
           <Button type="submit" disabled={savingName}>
-            {savingName ? 'שומר…' : 'שמור שינויים'}
+            {savingName ? t.profile.saving : t.profile.saveChanges}
           </Button>
         </form>
       </div>
@@ -147,31 +149,31 @@ export default function ProfilePage() {
       <div className="bg-white rounded-2xl border border-gray-100 p-6">
         <h2 className="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
           <Lock size={16} />
-          שינוי סיסמה
+          {t.profile.changePassword}
         </h2>
         <form onSubmit={savePassword} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">סיסמה חדשה</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">{t.profile.newPassword}</label>
             <div className="relative">
               <Input
                 type={showPassword ? 'text' : 'password'}
                 value={newPassword}
                 onChange={e => setNewPassword(e.target.value)}
-                placeholder="לפחות 6 תווים"
-                className="pl-10"
+                placeholder={t.profile.passwordPlaceholder}
+                className="ps-10"
                 minLength={6}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                className="absolute start-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
               >
                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
           </div>
           <Button type="submit" disabled={savingPassword || !newPassword} variant="secondary">
-            {savingPassword ? 'מעדכן…' : 'עדכן סיסמה'}
+            {savingPassword ? t.profile.updating : t.profile.updatePassword}
           </Button>
         </form>
       </div>

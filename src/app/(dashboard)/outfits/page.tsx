@@ -34,7 +34,7 @@ export default function OutfitsPage() {
   async function toggleFavorite(outfit: Outfit) {
     await supabase.from('outfits').update({ is_favorite: !outfit.is_favorite }).eq('id', outfit.id)
     setOutfits(prev => prev.map(o => o.id === outfit.id ? { ...o, is_favorite: !o.is_favorite } : o))
-    toast(outfit.is_favorite ? 'הוסר מהמועדפים' : 'נוסף למועדפים ❤️')
+    toast(outfit.is_favorite ? t.outfits.favRemoved : t.outfits.favAdded)
   }
 
   async function shareOutfit(outfit: Outfit) {
@@ -44,14 +44,14 @@ export default function OutfitsPage() {
     }
     const url = `${window.location.origin}/share/${outfit.share_token}`
     await navigator.clipboard.writeText(url)
-    toast('קישור השיתוף הועתק!')
+    toast(t.outfits.linkCopied)
   }
 
   async function confirmDelete(outfit: Outfit) {
     await supabase.from('outfits').delete().eq('id', outfit.id)
     setOutfits(prev => prev.filter(o => o.id !== outfit.id))
     setDeletingId(null)
-    toast('הלוק נמחק', 'info')
+    toast(t.outfits.deleted, 'info')
   }
 
   async function scheduleToday(outfit: Outfit) {
@@ -63,7 +63,7 @@ export default function OutfitsPage() {
       outfit_id: outfit.id,
       date: today,
     }, { onConflict: 'user_id,date' })
-    toast(`"${outfit.name}" שויך להיום! 📅`)
+    toast(t.outfits.scheduledToday(outfit.name))
   }
 
   return (
@@ -173,31 +173,31 @@ function OutfitCard({
         ) : (
           <span className="text-5xl">👔</span>
         )}
-        <div className="absolute top-3 left-3 flex gap-1.5">
+        <div className="absolute top-3 start-3 flex gap-1.5">
           {outfit.is_public && (
             <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">{t.outfits.public}</span>
           )}
         </div>
         {/* Action buttons — always visible */}
-        <div className="absolute top-3 right-3 flex gap-1.5">
+        <div className="absolute top-3 end-3 flex gap-1.5">
           <button
             onClick={() => onToggleFavorite(outfit)}
             className="p-1.5 bg-white rounded-full shadow-sm hover:scale-110 transition-transform"
-            title={outfit.is_favorite ? 'הסר ממועדפים' : 'הוסף למועדפים'}
+            title={outfit.is_favorite ? t.outfits.favoriteRemove : t.outfits.favoriteAdd}
           >
             <Heart size={14} className={outfit.is_favorite ? 'fill-red-500 text-red-500' : 'text-gray-400'} />
           </button>
           <button
             onClick={() => onShare(outfit)}
             className="p-1.5 bg-white rounded-full shadow-sm hover:scale-110 transition-transform"
-            title="העתק קישור שיתוף"
+            title={t.outfits.shareTitle}
           >
             <Share2 size={14} className="text-gray-400" />
           </button>
           <button
             onClick={() => onDelete(outfit)}
             className="p-1.5 bg-white rounded-full shadow-sm hover:scale-110 transition-transform hover:bg-red-50"
-            title="מחק לוק"
+            title={t.outfits.deleteTitle}
           >
             <Trash2 size={14} className="text-gray-400 hover:text-red-500" />
           </button>
@@ -212,7 +212,7 @@ function OutfitCard({
             <span className="text-xs bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full">{outfit.occasion}</span>
           )}
           {outfit.season && (
-            <span className="text-xs bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full capitalize">{outfit.season}</span>
+            <span className="text-xs bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full">{t.seasons[outfit.season as keyof typeof t.seasons] ?? outfit.season}</span>
           )}
         </div>
         <Button size="sm" variant="secondary" className="w-full mt-4" onClick={() => onScheduleToday(outfit)}>

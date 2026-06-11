@@ -33,13 +33,13 @@ export default function FavoritesPage() {
   async function unfavoriteOutfit(outfit: Outfit) {
     await supabase.from('outfits').update({ is_favorite: false }).eq('id', outfit.id)
     setFavoriteOutfits(prev => prev.filter(o => o.id !== outfit.id))
-    toast(`"${outfit.name}" ${t.favorites.noFavOutfitsSub}`)
+    toast(`"${outfit.name}" — ${t.favorites.removed}`)
   }
 
   async function unfavoriteItem(item: WardrobeItem) {
     await supabase.from('wardrobe_items').update({ is_favorite: false }).eq('id', item.id)
     setFavoriteItems(prev => prev.filter(i => i.id !== item.id))
-    toast(`"${item.name}" ${t.favorites.noFavItemsSub}`)
+    toast(`"${item.name}" — ${t.favorites.removed}`)
   }
 
   return (
@@ -90,7 +90,7 @@ export default function FavoritesPage() {
                     : <span className="text-4xl">👔</span>}
                   <button
                     onClick={() => unfavoriteOutfit(outfit)}
-                    className="absolute top-3 right-3 p-1.5 bg-white rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity hover:scale-110"
+                    className="absolute top-3 end-3 p-1.5 bg-white rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity hover:scale-110"
                   >
                     <Heart size={14} className="fill-red-500 text-red-500" />
                   </button>
@@ -124,7 +124,7 @@ export default function FavoritesPage() {
                     : <span className="text-3xl">👗</span>}
                   <button
                     onClick={() => unfavoriteItem(item)}
-                    className="absolute top-2 right-2 p-1.5 bg-white rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity hover:scale-110"
+                    className="absolute top-2 end-2 p-1.5 bg-white rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity hover:scale-110"
                   >
                     <Heart size={12} className="fill-red-500 text-red-500" />
                   </button>

@@ -6,6 +6,7 @@ import { CLOTHING_CATEGORIES } from '@/lib/utils'
 import { Shirt, TrendingUp, Package, CalendarDays, Moon } from 'lucide-react'
 import Link from 'next/link'
 import { format, subDays } from 'date-fns'
+import { useLang } from '@/lib/lang-context'
 
 type HistoryRow = OutfitHistory & { outfits: { name: string } | null }
 
@@ -14,6 +15,7 @@ export default function InsightsPage() {
   const [history, setHistory] = useState<HistoryRow[]>([])
   const [outfits, setOutfits] = useState<Outfit[]>([])
   const [loading, setLoading] = useState(true)
+  const { t } = useLang()
   const supabase = createClient()
 
   useEffect(() => { loadData() }, [])
@@ -80,17 +82,17 @@ export default function InsightsPage() {
     .slice(0, 6)
 
   const statCards = [
-    { label: 'פריטים בארון', value: items.length, icon: Shirt, bg: 'bg-purple-50', fg: 'text-purple-600', href: '/wardrobe' },
-    { label: 'לוקים שמורים', value: outfits.length, icon: Package, bg: 'bg-blue-50', fg: 'text-blue-600', href: '/outfits' },
-    { label: 'סך הכל לבשת', value: history.length, icon: TrendingUp, bg: 'bg-green-50', fg: 'text-green-600', href: '/history' },
-    { label: 'החודש', value: thisMonthWears, icon: CalendarDays, bg: 'bg-orange-50', fg: 'text-orange-600', href: '/calendar' },
+    { label: t.insights.statItems, value: items.length, icon: Shirt, bg: 'bg-purple-50', fg: 'text-purple-600', href: '/wardrobe' },
+    { label: t.insights.statOutfits, value: outfits.length, icon: Package, bg: 'bg-blue-50', fg: 'text-blue-600', href: '/outfits' },
+    { label: t.insights.statWears, value: history.length, icon: TrendingUp, bg: 'bg-green-50', fg: 'text-green-600', href: '/history' },
+    { label: t.insights.statThisMonth, value: thisMonthWears, icon: CalendarDays, bg: 'bg-orange-50', fg: 'text-orange-600', href: '/calendar' },
   ]
 
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">תובנות סגנון</h1>
-        <p className="text-gray-500 text-sm mt-1">מה הארון שלך אומר עליך</p>
+        <h1 className="text-2xl font-bold text-gray-900">{t.insights.title}</h1>
+        <p className="text-gray-500 text-sm mt-1">{t.insights.subtitle}</p>
       </div>
 
       {/* Stat cards */}
@@ -109,18 +111,18 @@ export default function InsightsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Category breakdown */}
         <div className="bg-white rounded-2xl border border-gray-100 p-6">
-          <h2 className="text-base font-semibold text-gray-900 mb-5">פילוח הארון לפי קטגוריה</h2>
+          <h2 className="text-base font-semibold text-gray-900 mb-5">{t.insights.categoryBreakdown}</h2>
           {categoryCounts.length === 0 ? (
             <div className="text-center py-6">
-              <p className="text-gray-400 text-sm">עדיין אין פריטים</p>
-              <Link href="/wardrobe" className="text-xs text-gray-400 underline mt-1 inline-block">הוסף לארון →</Link>
+              <p className="text-gray-400 text-sm">{t.insights.noItems}</p>
+              <Link href="/wardrobe" className="text-xs text-gray-400 underline mt-1 inline-block">{t.insights.addToWardrobe}</Link>
             </div>
           ) : (
             <div className="space-y-4">
               {categoryCounts.map(cat => (
                 <div key={cat.value}>
                   <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-sm text-gray-700">{cat.emoji} {cat.label}</span>
+                    <span className="text-sm text-gray-700">{cat.emoji} {t.categories[cat.value as keyof typeof t.categories]}</span>
                     <span className="text-sm font-semibold text-gray-900">{cat.count}</span>
                   </div>
                   <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
@@ -137,11 +139,11 @@ export default function InsightsPage() {
 
         {/* Color DNA */}
         <div className="bg-white rounded-2xl border border-gray-100 p-6">
-          <h2 className="text-base font-semibold text-gray-900 mb-5">פלטת הצבעים שלך</h2>
+          <h2 className="text-base font-semibold text-gray-900 mb-5">{t.insights.colorPalette}</h2>
           {topColors.length === 0 ? (
             <div className="text-center py-6">
-              <p className="text-gray-400 text-sm">אין נתוני צבע עדיין</p>
-              <p className="text-gray-400 text-xs mt-1">הוסף צבעים לפריטים בארון כדי לראות את הפלטה שלך</p>
+              <p className="text-gray-400 text-sm">{t.insights.noColors}</p>
+              <p className="text-gray-400 text-xs mt-1">{t.insights.noColorsSub}</p>
             </div>
           ) : (
             <div>
@@ -157,7 +159,7 @@ export default function InsightsPage() {
                   </div>
                 ))}
               </div>
-              <p className="text-xs text-gray-400">{topColors.length} צבעים ייחודיים בארון</p>
+              <p className="text-xs text-gray-400">{t.insights.uniqueColors(topColors.length)}</p>
             </div>
           )}
         </div>
@@ -165,21 +167,21 @@ export default function InsightsPage() {
         {/* Wear heatmap */}
         <div className="bg-white rounded-2xl border border-gray-100 p-6 lg:col-span-2">
           <div className="flex items-center justify-between mb-5">
-            <h2 className="text-base font-semibold text-gray-900">תדירות לבישה</h2>
-            <span className="text-xs text-gray-400">12 שבועות אחרונים</span>
+            <h2 className="text-base font-semibold text-gray-900">{t.insights.wearFrequency}</h2>
+            <span className="text-xs text-gray-400">{t.insights.last12Weeks}</span>
           </div>
           {history.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-gray-400 text-sm">אין היסטוריית לבישה עדיין</p>
+              <p className="text-gray-400 text-sm">{t.insights.noWearHistory}</p>
               <Link href="/history" className="text-xs text-gray-400 underline mt-1 inline-block">
-                התחל לרשום לוקים ←
+                {t.insights.startLogging}
               </Link>
             </div>
           ) : (
             <div>
               <div className="flex gap-1 mb-1">
-                <div className="flex flex-col gap-1 mr-1">
-                  {['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש'].map((d, i) => (
+                <div className="flex flex-col gap-1 me-1">
+                  {t.insights.heatmapDays.map((d, i) => (
                     <div key={i} className="w-3 h-3 flex items-center justify-center">
                       <span className="text-[9px] text-gray-300 leading-none">{d}</span>
                     </div>
@@ -195,7 +197,7 @@ export default function InsightsPage() {
                           <div
                             key={dateStr}
                             className="w-3 h-3 rounded-sm"
-                            title={`${format(day, 'dd/MM')}${isWorn ? ' · לבשת' : ''}`}
+                            title={`${format(day, 'dd/MM')}${isWorn ? ` · ${t.insights.wornTooltip}` : ''}`}
                             style={{ backgroundColor: isWorn ? '#111827' : '#f0f0f0' }}
                           />
                         )
@@ -207,11 +209,11 @@ export default function InsightsPage() {
               <div className="flex items-center gap-3 mt-3">
                 <div className="flex items-center gap-1.5">
                   <div className="w-3 h-3 rounded-sm bg-gray-100" />
-                  <span className="text-xs text-gray-400">לא נלבש</span>
+                  <span className="text-xs text-gray-400">{t.insights.notWorn}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <div className="w-3 h-3 rounded-sm bg-gray-900" />
-                  <span className="text-xs text-gray-400">לבשת לוק</span>
+                  <span className="text-xs text-gray-400">{t.insights.worn}</span>
                 </div>
               </div>
             </div>
@@ -223,10 +225,10 @@ export default function InsightsPage() {
           <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl border border-amber-100 p-6 lg:col-span-2">
             <div className="flex items-center gap-2 mb-2">
               <Moon size={18} className="text-amber-500" />
-              <h2 className="text-base font-semibold text-gray-900">פריטים ישנים</h2>
-              <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">תעירו אותם!</span>
+              <h2 className="text-base font-semibold text-gray-900">{t.insights.sleepingItems}</h2>
+              <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">{t.insights.wakeThem}</span>
             </div>
-            <p className="text-sm text-gray-600 mb-4">פריטים שלא הוגדרו כמועדפים — אולי שכחת מהם?</p>
+            <p className="text-sm text-gray-600 mb-4">{t.insights.sleepingSub}</p>
             <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
               {sleepingItems.map(item => (
                 <Link key={item.id} href="/outfits/new" className="group">
@@ -242,7 +244,7 @@ export default function InsightsPage() {
                     </div>
                     <div className="p-2">
                       <p className="text-xs font-medium text-gray-900 truncate">{item.name}</p>
-                      <p className="text-xs text-amber-600 group-hover:text-amber-700 transition-colors">בנה לוק →</p>
+                      <p className="text-xs text-amber-600 group-hover:text-amber-700 transition-colors">{t.insights.buildOutfit}</p>
                     </div>
                   </div>
                 </Link>
@@ -255,10 +257,10 @@ export default function InsightsPage() {
         {items.length === 0 && (
           <div className="lg:col-span-2 text-center py-16">
             <span className="text-5xl">📊</span>
-            <p className="text-gray-500 mt-4 text-lg font-medium">אין נתונים עדיין</p>
-            <p className="text-gray-400 text-sm mt-1">הוסף פריטים לארון ורשום לוקים כדי לראות תובנות כאן</p>
+            <p className="text-gray-500 mt-4 text-lg font-medium">{t.insights.noData}</p>
+            <p className="text-gray-400 text-sm mt-1">{t.insights.noDataSub}</p>
             <Link href="/wardrobe" className="inline-block mt-6 bg-black text-white px-6 py-3 rounded-2xl font-medium hover:bg-gray-800 transition-colors">
-              בנה את הארון שלך
+              {t.insights.buildWardrobe}
             </Link>
           </div>
         )}

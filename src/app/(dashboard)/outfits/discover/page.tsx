@@ -6,6 +6,8 @@ import { CLOTHING_CATEGORIES } from '@/lib/utils'
 import { useToast } from '@/components/ui/toast'
 import { X, Heart, Calendar, ArrowRight, RefreshCw, Shuffle } from 'lucide-react'
 import Link from 'next/link'
+import { useLang } from '@/lib/lang-context'
+import type { Translations } from '@/lib/translations'
 
 type Combo = { id: string; items: WardrobeItem[] }
 
@@ -62,13 +64,13 @@ function generateCombos(items: WardrobeItem[]): Combo[] {
   return shuffle(combos).slice(0, 40)
 }
 
-function getComboName(items: WardrobeItem[]): string {
+function getComboName(items: WardrobeItem[], d: Translations['discover']): string {
   const cats = items.map(i => i.category)
-  if (cats.includes('dresses')) return 'לוק שמלה'
-  if (cats.includes('activewear')) return 'לוק ספורטיבי'
-  if (cats.includes('outerwear') && cats.includes('tops')) return 'לוק שכבות'
-  if (cats.includes('accessories')) return 'לוק מסוגנן'
-  return 'לוק יומי'
+  if (cats.includes('dresses')) return d.comboDress
+  if (cats.includes('activewear')) return d.comboSporty
+  if (cats.includes('outerwear') && cats.includes('tops')) return d.comboLayered
+  if (cats.includes('accessories')) return d.comboStyled
+  return d.comboDaily
 }
 
 function getCatEmoji(cat: string): string {
@@ -90,6 +92,7 @@ function SwipeCard({
   triggerDir: 'left' | 'right' | 'up' | null
   onTriggered: () => void
 }) {
+  const { t } = useLang()
   const [x, setX] = useState(0)
   const [y, setY] = useState(0)
   const [dragging, setDragging] = useState(false)
@@ -173,15 +176,15 @@ function SwipeCard({
         {/* Swipe labels */}
         <div className="absolute top-6 left-6 z-20 border-4 border-green-400 text-green-400 rounded-2xl px-4 py-2 text-xl font-black rotate-[-15deg]"
           style={{ opacity: likeOpacity, transition: 'opacity 0.08s' }}>
-          שמור ❤️
+          {t.discover.labelSave}
         </div>
         <div className="absolute top-6 right-6 z-20 border-4 border-red-400 text-red-400 rounded-2xl px-4 py-2 text-xl font-black rotate-[15deg]"
           style={{ opacity: nopeOpacity, transition: 'opacity 0.08s' }}>
-          דלג ✕
+          {t.discover.labelSkip}
         </div>
         <div className="absolute top-6 left-1/2 -translate-x-1/2 z-20 border-4 border-blue-400 text-blue-400 rounded-2xl px-4 py-2 text-xl font-black"
           style={{ opacity: wearOpacity, transition: 'opacity 0.08s' }}>
-          לביש היום 📅
+          {t.discover.labelWear}
         </div>
 
         {/* Item grid */}
@@ -202,7 +205,7 @@ function SwipeCard({
 
         {/* Footer */}
         <div className="p-5 bg-white border-t border-gray-50 flex-shrink-0">
-          <h3 className="text-xl font-bold text-gray-900">{getComboName(combo.items)}</h3>
+          <h3 className="text-xl font-bold text-gray-900">{getComboName(combo.items, t.discover)}</h3>
           <div className="flex flex-wrap gap-1.5 mt-2">
             {combo.items.slice(0, 5).map(item => (
               <span key={item.id} className="text-xs bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full">
@@ -225,6 +228,7 @@ export default function DiscoverPage() {
   const [skipped, setSkipped] = useState(0)
   const [triggerDir, setTriggerDir] = useState<'left' | 'right' | 'up' | null>(null)
   const { toast } = useToast()
+  const { t, lang } = useLang()
   const supabase = createClient()
 
   useEffect(() => { loadItems() }, [])
@@ -252,8 +256,8 @@ export default function DiscoverPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    const now = new Date().toLocaleDateString('he-IL', { month: 'short', day: 'numeric' })
-    const name = `${getComboName(combo.items)} · ${now}`
+    const now = new Date().toLocaleDateString(lang === 'he' ? 'he-IL' : 'en-US', { month: 'short', day: 'numeric' })
+    const name = `${getComboName(combo.items, t.discover)} · ${now}`
     const { data: outfit } = await supabase.from('outfits').insert({
       user_id: user.id,
       name,
@@ -269,7 +273,7 @@ export default function DiscoverPage() {
         }))
       )
     }
-    toast('הלוק נשמר! ❤️')
+    toast(t.discover.savedToast)
   }
 
   async function handleWearToday() {
@@ -280,9 +284,9 @@ export default function DiscoverPage() {
     await supabase.from('outfit_history').insert({
       user_id: user.id,
       worn_date: new Date().toISOString().slice(0, 10),
-      category_label: getComboName(combo.items),
+      category_label: getComboName(combo.items, t.discover),
     })
-    toast('נרשם כלוק של היום! 📅')
+    toast(t.discover.wornToast)
   }
 
   function handleSkip() {
@@ -318,17 +322,17 @@ export default function DiscoverPage() {
       <div className="flex items-center justify-between mb-4 flex-shrink-0">
         <Link href="/outfits" className="flex items-center gap-2 text-gray-500 hover:text-gray-900 transition-colors">
           <ArrowRight size={18} />
-          <span className="text-sm font-medium">חזרה</span>
+          <span className="text-sm font-medium">{t.discover.back}</span>
         </Link>
         <div className="text-center">
-          <h1 className="text-lg font-bold text-gray-900">גלה לוקים</h1>
+          <h1 className="text-lg font-bold text-gray-900">{t.discover.title}</h1>
           {!isDone && !loading && (
-            <p className="text-xs text-gray-400">{index + 1} מתוך {combos.length}</p>
+            <p className="text-xs text-gray-400">{t.discover.progress(index + 1, combos.length)}</p>
           )}
         </div>
         <button onClick={reshuffle} className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900 transition-colors">
           <RefreshCw size={15} />
-          ערבב
+          {t.discover.reshuffle}
         </button>
       </div>
 
@@ -337,11 +341,11 @@ export default function DiscoverPage() {
         <div className="flex gap-4 mb-3 flex-shrink-0">
           <span className="flex items-center gap-1.5 text-sm text-gray-500">
             <span className="w-5 h-5 bg-green-50 text-green-600 rounded-full flex items-center justify-center text-xs font-bold">{saved}</span>
-            נשמרו
+            {t.discover.saved}
           </span>
           <span className="flex items-center gap-1.5 text-sm text-gray-500">
             <span className="w-5 h-5 bg-gray-100 text-gray-500 rounded-full flex items-center justify-center text-xs font-bold">{skipped}</span>
-            דולגו
+            {t.discover.skipped}
           </span>
         </div>
       )}
@@ -353,25 +357,25 @@ export default function DiscoverPage() {
         ) : !hasEnoughItems ? (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-white rounded-3xl border-2 border-dashed border-gray-200 gap-4 p-8 text-center">
             <span className="text-5xl">👗</span>
-            <p className="text-xl font-bold text-gray-900">צריך עוד בגדים</p>
+            <p className="text-xl font-bold text-gray-900">{t.discover.needMore}</p>
             <p className="text-gray-500 text-sm">
-              הוסף חולצות + מכנסיים, שמלה, או בגדי ספורט כדי להתחיל לגלות קומבינציות.
+              {t.discover.needMoreSub}
             </p>
             <Link href="/wardrobe" className="bg-black text-white px-6 py-3 rounded-2xl font-medium hover:bg-gray-800 transition-colors">
-              הוסף לארון
+              {t.discover.addToWardrobe}
             </Link>
           </div>
         ) : isDone ? (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-white rounded-3xl border-2 border-dashed border-gray-200 gap-4 p-8 text-center">
             <span className="text-5xl">🎉</span>
-            <p className="text-xl font-bold text-gray-900">ראית הכל!</p>
+            <p className="text-xl font-bold text-gray-900">{t.discover.doneTitle}</p>
             <p className="text-gray-500 text-sm">
-              {saved > 0 && `שמרת ${saved} ${saved === 1 ? 'לוק' : 'לוקים'}. `}
-              ערבב שוב לקומבינציות חדשות.
+              {saved > 0 && t.discover.doneSaved(saved)}
+              {t.discover.doneSub}
             </p>
             <button onClick={reshuffle} className="flex items-center gap-2 bg-black text-white px-6 py-3 rounded-2xl font-medium hover:bg-gray-800 transition-colors">
               <Shuffle size={16} />
-              קומבינציות חדשות
+              {t.discover.newCombos}
             </button>
           </div>
         ) : (
@@ -406,26 +410,26 @@ export default function DiscoverPage() {
             <button
               onClick={() => triggerSwipe('left')}
               className="w-14 h-14 bg-white border-2 border-gray-200 rounded-full flex items-center justify-center shadow-sm hover:border-red-300 hover:bg-red-50 transition-all group"
-              title="דלג"
+              title={t.discover.skipTitle}
             >
               <X size={22} className="text-gray-400 group-hover:text-red-400 transition-colors" />
             </button>
             <button
               onClick={() => triggerSwipe('up')}
               className="w-12 h-12 bg-white border-2 border-gray-200 rounded-full flex items-center justify-center shadow-sm hover:border-blue-300 hover:bg-blue-50 transition-all group"
-              title="לביש היום"
+              title={t.discover.wearTitle}
             >
               <Calendar size={18} className="text-gray-400 group-hover:text-blue-500 transition-colors" />
             </button>
             <button
               onClick={() => triggerSwipe('right')}
               className="w-14 h-14 bg-black rounded-full flex items-center justify-center shadow-lg hover:bg-gray-800 transition-all"
-              title="שמור לוק"
+              title={t.discover.saveTitle}
             >
               <Heart size={22} className="text-white" />
             </button>
           </div>
-          <p className="text-center text-xs text-gray-400">← דלג · ↑ לביש היום · שמור →</p>
+          <p className="text-center text-xs text-gray-400">{t.discover.hint}</p>
         </div>
       )}
     </div>
