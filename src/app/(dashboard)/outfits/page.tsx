@@ -5,14 +5,16 @@ import { Outfit } from '@/types/database'
 import { Button } from '@/components/ui/button'
 import { WeatherWidget } from '@/components/weather/weather-widget'
 import { useToast } from '@/components/ui/toast'
-import { Plus, Heart, Share2, Calendar, Trash2, AlertTriangle, Zap } from 'lucide-react'
+import { Plus, Heart, Share2, Calendar, Trash2, AlertTriangle, Zap, Eye } from 'lucide-react'
 import Link from 'next/link'
 import { useLang } from '@/lib/lang-context'
+import { OutfitViewModal } from '@/components/outfit/outfit-view-modal'
 
 export default function OutfitsPage() {
   const [outfits, setOutfits] = useState<Outfit[]>([])
   const [loading, setLoading] = useState(true)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [viewingId, setViewingId] = useState<string | null>(null)
   const { toast } = useToast()
   const { t } = useLang()
   const supabase = createClient()
@@ -117,6 +119,7 @@ export default function OutfitsPage() {
                 onShare={shareOutfit}
                 onDelete={() => setDeletingId(outfit.id)}
                 onScheduleToday={scheduleToday}
+                onView={() => setViewingId(outfit.id)}
               />
             ))}
           </div>
@@ -147,6 +150,19 @@ export default function OutfitsPage() {
           </div>
         )
       })()}
+
+      {/* Outfit preview (flat-lay / on-model) */}
+      {viewingId && (() => {
+        const outfit = outfits.find(o => o.id === viewingId)
+        if (!outfit) return null
+        return (
+          <OutfitViewModal
+            outfit={outfit}
+            onClose={() => setViewingId(null)}
+            onShare={shareOutfit}
+          />
+        )
+      })()}
     </div>
   )
 }
@@ -157,29 +173,44 @@ function OutfitCard({
   onShare,
   onDelete,
   onScheduleToday,
+  onView,
 }: {
   outfit: Outfit
   onToggleFavorite: (o: Outfit) => void
   onShare: (o: Outfit) => void
   onDelete: (o: Outfit) => void
   onScheduleToday: (o: Outfit) => void
+  onView: (o: Outfit) => void
 }) {
   const { t } = useLang()
   return (
     <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
-      <div className="h-48 bg-gradient-to-br from-gray-50 to-gray-100 relative flex items-center justify-center">
-        {outfit.image_url ? (
-          <img src={outfit.image_url} alt={outfit.name} className="w-full h-full object-cover" />
-        ) : (
-          <span className="text-5xl">👔</span>
-        )}
-        <div className="absolute top-3 left-3 flex gap-1.5">
+      <div className="relative h-48 bg-gradient-to-br from-gray-50 to-gray-100">
+        <button
+          type="button"
+          onClick={() => onView(outfit)}
+          className="group absolute inset-0 flex items-center justify-center cursor-pointer"
+          title={t.preview.view}
+        >
+          {outfit.image_url ? (
+            <img src={outfit.image_url} alt={outfit.name} className="w-full h-full object-cover" />
+          ) : (
+            <span className="text-5xl">👔</span>
+          )}
+          <span className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/30 transition-colors">
+            <span className="flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 text-xs font-medium text-gray-900 opacity-0 group-hover:opacity-100 transition-opacity">
+              <Eye size={14} />
+              {t.preview.view}
+            </span>
+          </span>
+        </button>
+        <div className="absolute top-3 left-3 flex gap-1.5 pointer-events-none">
           {outfit.is_public && (
             <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">{t.outfits.public}</span>
           )}
         </div>
-        {/* Action buttons — always visible */}
-        <div className="absolute top-3 right-3 flex gap-1.5">
+        {/* Action buttons — always visible, above the thumbnail */}
+        <div className="absolute top-3 right-3 flex gap-1.5 z-10">
           <button
             onClick={() => onToggleFavorite(outfit)}
             className="p-1.5 bg-white rounded-full shadow-sm hover:scale-110 transition-transform"

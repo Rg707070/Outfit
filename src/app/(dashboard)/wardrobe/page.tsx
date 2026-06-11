@@ -37,14 +37,14 @@ export default function WardrobePage() {
   async function toggleFavorite(item: WardrobeItem) {
     await supabase.from('wardrobe_items').update({ is_favorite: !item.is_favorite }).eq('id', item.id)
     setItems(prev => prev.map(i => i.id === item.id ? { ...i, is_favorite: !i.is_favorite } : i))
-    toast(item.is_favorite ? 'Removed from favorites' : 'Added to favorites ❤️')
+    toast(item.is_favorite ? t.wardrobe.favRemoved : t.wardrobe.favAdded)
   }
 
   async function confirmDelete(item: WardrobeItem) {
     await supabase.from('wardrobe_items').delete().eq('id', item.id)
     setItems(prev => prev.filter(i => i.id !== item.id))
     setDeletingId(null)
-    toast('Item removed from wardrobe', 'info')
+    toast(t.wardrobe.itemRemoved, 'info')
   }
 
   const filtered = items.filter(item => {
@@ -198,7 +198,7 @@ export default function WardrobePage() {
       {showAdd && (
         <AddItemModal
           onClose={() => setShowAdd(false)}
-          onAdded={() => { loadItems(); toast('Item added to wardrobe! 🎉') }}
+          onAdded={() => { loadItems(); toast(t.wardrobe.itemAdded) }}
         />
       )}
 
@@ -211,13 +211,13 @@ export default function WardrobePage() {
                 <AlertTriangle size={18} className="text-red-600" />
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900">{t.wardrobe.addItem}</h3>
-                <p className="text-sm text-gray-500">"{deletingItem.name}"</p>
+                <h3 className="font-semibold text-gray-900">{t.wardrobe.deleteTitle}</h3>
+                <p className="text-sm text-gray-500">{t.wardrobe.deleteSub(deletingItem.name)}</p>
               </div>
             </div>
             <div className="flex gap-3">
               <Button variant="secondary" className="flex-1" onClick={() => setDeletingId(null)}>{t.wardrobe.cancel}</Button>
-              <Button variant="danger" className="flex-1" onClick={() => confirmDelete(deletingItem)}>Remove</Button>
+              <Button variant="danger" className="flex-1" onClick={() => confirmDelete(deletingItem)}>{t.wardrobe.remove}</Button>
             </div>
           </div>
         </div>
@@ -338,7 +338,7 @@ function AddItemModal({ onClose, onAdded }: { onClose: () => void; onAdded: () =
                 <div className="text-center">
                   <Upload size={24} className="mx-auto text-gray-400 mb-2" />
                   <p className="text-sm text-gray-500 font-medium">{t.wardrobe.uploadPhoto}</p>
-                  <p className="text-xs text-gray-400 mt-1">JPG, PNG, WEBP accepted</p>
+                  <p className="text-xs text-gray-400 mt-1">{t.wardrobe.fileTypes}</p>
                 </div>
               )}
               {processing && (
@@ -361,19 +361,19 @@ function AddItemModal({ onClose, onAdded }: { onClose: () => void; onAdded: () =
             >
               <div className={`w-4 h-4 bg-white rounded-full shadow transition-transform mx-1 ${removeBgEnabled ? 'translate-x-4' : 'translate-x-0'}`} />
             </button>
-            <span className="text-sm text-gray-700">✂️ Remove background automatically</span>
+            <span className="text-sm text-gray-700">{t.wardrobe.removeBgToggle}</span>
           </label>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Name <span className="text-red-500">*</span>
+              {t.wardrobe.nameLabel}
             </label>
-            <Input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. White linen shirt" required />
+            <Input value={name} onChange={e => setName(e.target.value)} placeholder={t.wardrobe.namePlaceholder} required />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Category <span className="text-red-500">*</span>
+              {t.wardrobe.categoryLabel}
             </label>
             <select
               value={category}
@@ -381,26 +381,26 @@ function AddItemModal({ onClose, onAdded }: { onClose: () => void; onAdded: () =
               className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black"
             >
               {CLOTHING_CATEGORIES.map(c => (
-                <option key={c.value} value={c.value}>{c.emoji} {c.label}</option>
+                <option key={c.value} value={c.value}>{c.emoji} {t.categories[c.value as keyof typeof t.categories] ?? c.label}</option>
               ))}
             </select>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Brand</label>
-            <Input value={brand} onChange={e => setBrand(e.target.value)} placeholder="e.g. Zara, H&M…" />
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">{t.wardrobe.brandLabel}</label>
+            <Input value={brand} onChange={e => setBrand(e.target.value)} placeholder={t.wardrobe.brandPlaceholder} />
           </div>
 
           {/* Color picker */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <label className="text-sm font-medium text-gray-700">Color</label>
+              <label className="text-sm font-medium text-gray-700">{t.wardrobe.colorLabel}</label>
               <button
                 type="button"
                 onClick={() => setHasColor(!hasColor)}
                 className="text-xs text-gray-400 hover:text-gray-600"
               >
-                {hasColor ? 'Remove color' : '+ Add color'}
+                {hasColor ? '−' : '+'}
               </button>
             </div>
             {hasColor && (
@@ -417,9 +417,9 @@ function AddItemModal({ onClose, onAdded }: { onClose: () => void; onAdded: () =
           </div>
 
           <div className="flex gap-3 pt-2">
-            <Button type="button" variant="secondary" onClick={onClose} className="flex-1">Cancel</Button>
+            <Button type="button" variant="secondary" onClick={onClose} className="flex-1">{t.wardrobe.cancel}</Button>
             <Button type="submit" disabled={loading || processing || !name} className="flex-1">
-              {loading ? 'Adding…' : 'Add item'}
+              {loading ? t.wardrobe.adding : t.wardrobe.addItemBtn}
             </Button>
           </div>
         </form>
