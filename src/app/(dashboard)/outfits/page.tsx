@@ -173,13 +173,13 @@ function OutfitCard({
         ) : (
           <span className="text-5xl">👔</span>
         )}
-        <div className="absolute top-3 left-3 flex gap-1.5">
+        <div className="absolute top-3 start-3 flex gap-1.5">
           {outfit.is_public && (
             <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">{t.outfits.public}</span>
           )}
         </div>
         {/* Action buttons — always visible */}
-        <div className="absolute top-3 right-3 flex gap-1.5">
+        <div className="absolute top-3 end-3 flex gap-1.5">
           <button
             onClick={() => onToggleFavorite(outfit)}
             className="p-1.5 bg-white rounded-full shadow-sm hover:scale-110 transition-transform"

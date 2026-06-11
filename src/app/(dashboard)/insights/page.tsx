@@ -180,7 +180,7 @@ export default function InsightsPage() {
           ) : (
             <div>
               <div className="flex gap-1 mb-1">
-                <div className="flex flex-col gap-1 mr-1">
+                <div className="flex flex-col gap-1 me-1">
                   {t.insights.heatmapDays.map((d, i) => (
                     <div key={i} className="w-3 h-3 flex items-center justify-center">
                       <span className="text-[9px] text-gray-300 leading-none">{d}</span>

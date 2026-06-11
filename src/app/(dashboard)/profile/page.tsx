@@ -129,12 +129,12 @@ export default function ProfilePage() {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">{t.profile.email}</label>
             <div className="relative">
-              <Mail size={16} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+              <Mail size={16} className="absolute end-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
                 type="email"
                 value={email}
                 disabled
-                className="w-full rounded-xl border border-gray-100 bg-gray-50 px-4 py-2.5 pr-9 text-sm text-gray-400 cursor-not-allowed"
+                className="w-full rounded-xl border border-gray-100 bg-gray-50 px-4 py-2.5 pe-9 text-sm text-gray-400 cursor-not-allowed"
               />
             </div>
             <p className="text-xs text-gray-400 mt-1">{t.profile.emailLocked}</p>
@@ -160,13 +160,13 @@ export default function ProfilePage() {
                 value={newPassword}
                 onChange={e => setNewPassword(e.target.value)}
                 placeholder={t.profile.passwordPlaceholder}
-                className="pl-10"
+                className="ps-10"
                 minLength={6}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                className="absolute start-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
               >
                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>

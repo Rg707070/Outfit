@@ -231,7 +231,7 @@ export default function CanvasBuilderPage() {
               <div className="flex flex-col gap-0.5 p-2 border-b border-gray-100 flex-shrink-0">
                 <button
                   onClick={() => setActiveCategory('all')}
-                  className={`text-xs px-3 py-1.5 rounded-lg text-right font-medium transition-colors ${activeCategory === 'all' ? 'bg-black text-white' : 'text-gray-600 hover:bg-gray-50'}`}
+                  className={`text-xs px-3 py-1.5 rounded-lg text-start font-medium transition-colors ${activeCategory === 'all' ? 'bg-black text-white' : 'text-gray-600 hover:bg-gray-50'}`}
                 >
                   {t.newOutfit.all}
                 </button>
@@ -239,7 +239,7 @@ export default function CanvasBuilderPage() {
                   <button
                     key={cat.value}
                     onClick={() => setActiveCategory(cat.value as ClothingCategory)}
-                    className={`text-xs px-3 py-1.5 rounded-lg text-right transition-colors flex items-center gap-1.5 ${activeCategory === cat.value ? 'bg-black text-white' : 'text-gray-600 hover:bg-gray-50'}`}
+                    className={`text-xs px-3 py-1.5 rounded-lg text-start transition-colors flex items-center gap-1.5 ${activeCategory === cat.value ? 'bg-black text-white' : 'text-gray-600 hover:bg-gray-50'}`}
                   >
                     <span>{cat.emoji}</span>
                     {t.categories[cat.value as keyof typeof t.categories]}
@@ -317,7 +317,7 @@ export default function CanvasBuilderPage() {
                 >
                   <Trash2 size={11} /> {t.newOutfit.remove}
                 </button>
-                <button onClick={() => setSelectedId(null)} className="text-xs text-gray-400 hover:text-gray-600 mr-1">
+                <button onClick={() => setSelectedId(null)} className="text-xs text-gray-400 hover:text-gray-600 me-1">
                   ✕
                 </button>
               </>
