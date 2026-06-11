@@ -40,7 +40,7 @@ export default function HistoryPage() {
     await supabase.from('outfit_history').delete().eq('id', id)
     setHistory(prev => prev.filter(h => h.id !== id))
     setDeletingId(null)
-    toast(t.history.title, 'info')
+    toast(t.history.removed, 'info')
   }
 
   const categories = ['all', ...Array.from(new Set(history.map(h => h.category_label).filter(Boolean) as string[]))]

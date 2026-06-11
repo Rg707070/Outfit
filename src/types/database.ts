@@ -56,6 +56,90 @@ export type Database = {
           },
         ]
       }
+      catalog_items: {
+        Row: {
+          brand: string | null
+          category: string
+          color: string | null
+          created_at: string
+          currency: string
+          description: string | null
+          embedding: string | null
+          external_ref: string | null
+          fts: unknown
+          fts_norm: unknown
+          gender: string | null
+          id: string
+          image_path: string
+          image_url: string
+          is_active: boolean
+          name: string
+          price: number | null
+          search_norm: string | null
+          search_text: string | null
+          seasons: string[]
+          source_name: string | null
+          source_url: string | null
+          subcategory: string | null
+          tags: string[]
+          updated_at: string
+        }
+        Insert: {
+          brand?: string | null
+          category: string
+          color?: string | null
+          created_at?: string
+          currency?: string
+          description?: string | null
+          embedding?: string | null
+          external_ref?: string | null
+          fts?: unknown
+          fts_norm?: unknown
+          gender?: string | null
+          id?: string
+          image_path: string
+          image_url: string
+          is_active?: boolean
+          name: string
+          price?: number | null
+          search_norm?: string | null
+          search_text?: string | null
+          seasons?: string[]
+          source_name?: string | null
+          source_url?: string | null
+          subcategory?: string | null
+          tags?: string[]
+          updated_at?: string
+        }
+        Update: {
+          brand?: string | null
+          category?: string
+          color?: string | null
+          created_at?: string
+          currency?: string
+          description?: string | null
+          embedding?: string | null
+          external_ref?: string | null
+          fts?: unknown
+          fts_norm?: unknown
+          gender?: string | null
+          id?: string
+          image_path?: string
+          image_url?: string
+          is_active?: boolean
+          name?: string
+          price?: number | null
+          search_norm?: string | null
+          search_text?: string | null
+          seasons?: string[]
+          source_name?: string | null
+          source_url?: string | null
+          subcategory?: string | null
+          tags?: string[]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       outfit_history: {
         Row: {
           category_label: string | null
@@ -103,30 +187,43 @@ export type Database = {
       }
       outfit_items: {
         Row: {
+          catalog_item_id: string | null
           id: string
           outfit_id: string
           position_x: number | null
           position_y: number | null
-          wardrobe_item_id: string
+          scale: number
+          wardrobe_item_id: string | null
           z_index: number | null
         }
         Insert: {
+          catalog_item_id?: string | null
           id?: string
           outfit_id: string
           position_x?: number | null
           position_y?: number | null
-          wardrobe_item_id: string
+          scale?: number
+          wardrobe_item_id?: string | null
           z_index?: number | null
         }
         Update: {
+          catalog_item_id?: string | null
           id?: string
           outfit_id?: string
           position_x?: number | null
           position_y?: number | null
-          wardrobe_item_id?: string
+          scale?: number
+          wardrobe_item_id?: string | null
           z_index?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "outfit_items_catalog_item_id_fkey"
+            columns: ["catalog_item_id"]
+            isOneToOne: false
+            referencedRelation: "catalog_items"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "outfit_items_outfit_id_fkey"
             columns: ["outfit_id"]
@@ -330,6 +427,7 @@ export type Database = {
           id: string
           image_url: string | null
           is_favorite: boolean | null
+          location: string | null
           name: string
           notes: string | null
           purchase_date: string | null
@@ -347,6 +445,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_favorite?: boolean | null
+          location?: string | null
           name: string
           notes?: string | null
           purchase_date?: string | null
@@ -364,6 +463,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_favorite?: boolean | null
+          location?: string | null
           name?: string
           notes?: string | null
           purchase_date?: string | null
@@ -413,6 +513,7 @@ export type CalendarOutfit = Tables<"calendar_outfits">
 export type ShoppingItem = Tables<"shopping_list">
 export type OutfitHistory = Tables<"outfit_history">
 export type OutfitShare = Tables<"outfit_shares">
+export type CatalogItem = Tables<"catalog_items">
 
 // App-level types
 export type ClothingCategory =

@@ -37,7 +37,7 @@ export default function WishlistPage() {
   async function deleteItem(id: string) {
     await supabase.from('shopping_list').delete().eq('id', id)
     setItems(prev => prev.filter(i => i.id !== id))
-    toast(t.wishlist.addItem, 'info')
+    toast(t.wishlist.removed, 'info')
   }
 
   const filtered = items.filter(i => tab === 'wishlist' ? i.is_wishlist : !i.is_wishlist)

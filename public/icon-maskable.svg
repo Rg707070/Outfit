@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Outfit">
+  <!-- Full-bleed background for maskable safe area -->
+  <rect width="512" height="512" fill="#111827"/>
+  <!-- Content kept within the central 80% safe zone -->
+  <g fill="none" stroke="#ffffff" stroke-width="20" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M256 188 q0 -26 -26 -26 a19 19 0 1 0 -19 19"/>
+    <path d="M256 188 L168 256 q-12 9 3 15 L341 322 q15 6 3 -15 Z" fill="#ffffff" stroke="none"/>
+    <path d="M256 188 L168 256 q-12 9 3 15 L341 322 q15 6 3 -15 Z"/>
+  </g>
+</svg>
