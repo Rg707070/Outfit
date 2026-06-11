@@ -242,15 +242,17 @@ function AddItemModal({ onClose, onAdded }: { onClose: () => void; onAdded: () =
   const [originalFile, setOriginalFile] = useState<File | null>(null)
   const supabase = createClient()
 
-  function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
     setOriginalFile(file)
     if (removeBgEnabled) {
       processBg(file)
     } else {
-      setImageFile(file)
-      setImagePreview(URL.createObjectURL(file))
+      const { resizeImage } = await import('@/lib/remove-bg')
+      const resized = await resizeImage(file)
+      setImageFile(resized)
+      setImagePreview(URL.createObjectURL(resized))
     }
   }
 
@@ -271,12 +273,18 @@ function AddItemModal({ onClose, onAdded }: { onClose: () => void; onAdded: () =
     }
   }
 
-  function toggleRemoveBg() {
+  async function toggleRemoveBg() {
     const next = !removeBgEnabled
     setRemoveBgEnabled(next)
     if (originalFile) {
-      if (next) processBg(originalFile)
-      else { setImageFile(originalFile); setImagePreview(URL.createObjectURL(originalFile)) }
+      if (next) {
+        processBg(originalFile)
+      } else {
+        const { resizeImage } = await import('@/lib/remove-bg')
+        const resized = await resizeImage(originalFile)
+        setImageFile(resized)
+        setImagePreview(URL.createObjectURL(resized))
+      }
     }
   }
 
