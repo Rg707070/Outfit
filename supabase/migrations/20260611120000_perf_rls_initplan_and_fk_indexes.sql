@@ -39,6 +39,10 @@ create policy "history_own" on public.outfit_history
 -- ── profiles: own (write) + public read, merged SELECT ──────────────────────
 drop policy if exists "profiles_own" on public.profiles;
 drop policy if exists "profiles_public_read" on public.profiles;
+drop policy if exists "profiles_select" on public.profiles;
+drop policy if exists "profiles_insert" on public.profiles;
+drop policy if exists "profiles_update" on public.profiles;
+drop policy if exists "profiles_delete" on public.profiles;
 create policy "profiles_select" on public.profiles
   for select to public
   using (id = (select auth.uid()) or is_public = true);
@@ -56,6 +60,10 @@ create policy "profiles_delete" on public.profiles
 -- ── outfits: own (write) + public read, merged SELECT ───────────────────────
 drop policy if exists "outfits_own" on public.outfits;
 drop policy if exists "outfits_public_read" on public.outfits;
+drop policy if exists "outfits_select" on public.outfits;
+drop policy if exists "outfits_insert" on public.outfits;
+drop policy if exists "outfits_update" on public.outfits;
+drop policy if exists "outfits_delete" on public.outfits;
 create policy "outfits_select" on public.outfits
   for select to public
   using (user_id = (select auth.uid()) or is_public = true);
@@ -73,6 +81,10 @@ create policy "outfits_delete" on public.outfits
 -- ── outfit_items: own (write) + public read, merged SELECT ──────────────────
 drop policy if exists "outfit_items_own" on public.outfit_items;
 drop policy if exists "outfit_items_public_read" on public.outfit_items;
+drop policy if exists "outfit_items_select" on public.outfit_items;
+drop policy if exists "outfit_items_insert" on public.outfit_items;
+drop policy if exists "outfit_items_update" on public.outfit_items;
+drop policy if exists "outfit_items_delete" on public.outfit_items;
 create policy "outfit_items_select" on public.outfit_items
   for select to public
   using (
@@ -93,6 +105,10 @@ create policy "outfit_items_delete" on public.outfit_items
 -- ── outfit_shares: own (write) + token read (public SELECT) ─────────────────
 drop policy if exists "shares_own" on public.outfit_shares;
 drop policy if exists "shares_token_read" on public.outfit_shares;
+drop policy if exists "shares_select" on public.outfit_shares;
+drop policy if exists "shares_insert" on public.outfit_shares;
+drop policy if exists "shares_update" on public.outfit_shares;
+drop policy if exists "shares_delete" on public.outfit_shares;
 create policy "shares_select" on public.outfit_shares
   for select to public
   using (true);
