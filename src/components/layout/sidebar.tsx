@@ -82,6 +82,7 @@ export function Sidebar() {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
+  const { t } = useLang()
   const [isOpen, setIsOpen] = useState(false)
 
   async function handleSignOut() {
@@ -98,7 +99,7 @@ export function Sidebar() {
         <button
           onClick={() => setIsOpen(true)}
           className="p-2 rounded-xl hover:bg-gray-50 text-gray-600"
-          aria-label="פתח תפריט"
+          aria-label={t.nav.openMenu}
         >
           <Menu size={22} />
         </button>
@@ -130,7 +131,7 @@ export function Sidebar() {
             <span className="text-2xl">👗</span>
             <span className="text-xl font-bold text-gray-900">Outfit</span>
           </Link>
-          <button onClick={close} className="p-2 rounded-lg hover:bg-gray-100 transition-colors" aria-label="סגור תפריט">
+          <button onClick={close} className="p-2 rounded-lg hover:bg-gray-100 transition-colors" aria-label={t.nav.closeMenu}>
             <X size={20} />
           </button>
         </div>

@@ -115,9 +115,9 @@ export default function SignupPage() {
                     passwordStrength === 'medium' ? 'text-yellow-600' :
                     'text-green-600'
                   }`}>
-                    {passwordStrength === 'weak' ? 'סיסמה חלשה' :
-                     passwordStrength === 'medium' ? 'סיסמה בינונית' :
-                     '✓ סיסמה חזקה'}
+                    {passwordStrength === 'weak' ? t.auth.pwWeak :
+                     passwordStrength === 'medium' ? t.auth.pwMedium :
+                     t.auth.pwStrong}
                   </p>
                 </div>
               )}
@@ -136,7 +136,7 @@ export default function SignupPage() {
 
           {/* Benefits */}
           <div className="mt-6 pt-6 border-t border-gray-100 space-y-2">
-            {['ארון בגדים דיגיטלי מלא', 'בניית לוקים בקלות', 'תובנות סגנון אישי'].map(benefit => (
+            {t.auth.benefits.map(benefit => (
               <div key={benefit} className="flex items-center gap-2 text-sm text-gray-500">
                 <Check size={14} className="text-green-500 flex-shrink-0" />
                 {benefit}

@@ -23,7 +23,7 @@ export default function LoginPage() {
     setLoading(true)
     setError('')
     const { error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) { setError('אימייל או סיסמה שגויים'); setLoading(false) }
+    if (error) { setError(t.auth.wrongCredentials); setLoading(false) }
     else router.push('/outfits')
   }
 

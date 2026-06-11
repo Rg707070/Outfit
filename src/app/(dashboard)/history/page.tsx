@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { useToast } from '@/components/ui/toast'
 import { Plus, Tag, Trash2, AlertTriangle } from 'lucide-react'
 import { format } from 'date-fns'
-import { he } from 'date-fns/locale'
+import { he, enUS } from 'date-fns/locale'
 import { useLang } from '@/lib/lang-context'
 
 type HistoryWithOutfit = OutfitHistory & { outfits: { name: string; image_url: string | null } | null }
@@ -19,7 +19,7 @@ export default function HistoryPage() {
   const [showAdd, setShowAdd] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const { toast } = useToast()
-  const { t } = useLang()
+  const { t, lang } = useLang()
   const supabase = createClient()
 
   useEffect(() => { loadData() }, [])
@@ -40,7 +40,7 @@ export default function HistoryPage() {
     await supabase.from('outfit_history').delete().eq('id', id)
     setHistory(prev => prev.filter(h => h.id !== id))
     setDeletingId(null)
-    toast(t.history.title, 'info')
+    toast(t.history.deletedToast, 'info')
   }
 
   const categories = ['all', ...Array.from(new Set(history.map(h => h.category_label).filter(Boolean) as string[]))]
@@ -80,7 +80,7 @@ export default function HistoryPage() {
           <div className="text-center py-16">
             <span className="text-4xl">📅</span>
             <p className="text-gray-500 mt-3 font-medium">{t.history.noHistory}</p>
-            <p className="text-gray-400 text-sm mt-1">{t.history.notesPlaceholder}</p>
+            <p className="text-gray-400 text-sm mt-1">{t.history.noHistorySub}</p>
             <Button className="mt-4" onClick={() => setShowAdd(true)}><Plus size={16} />{t.history.logFirst}</Button>
           </div>
         ) : filtered.map(entry => (
@@ -94,7 +94,7 @@ export default function HistoryPage() {
               <p className="text-sm font-semibold text-gray-900">{entry.outfits?.name ?? t.history.customOutfit}</p>
               <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                 <span className="text-xs text-gray-400">
-                  {format(new Date(entry.worn_date), 'EEEE, d בMMMM yyyy', { locale: he })}
+                  {format(new Date(entry.worn_date), t.history.datePattern, { locale: lang === 'he' ? he : enUS })}
                 </span>
                 {entry.category_label && (
                   <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full flex items-center gap-1">
@@ -107,7 +107,7 @@ export default function HistoryPage() {
             <button
               onClick={() => setDeletingId(entry.id)}
               className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0"
-              title={t.history.logBtn}
+              title={t.history.deleteEntryTitle}
             >
               <Trash2 size={14} />
             </button>
@@ -119,7 +119,7 @@ export default function HistoryPage() {
         <LogOutfitModal
           outfits={outfits}
           onClose={() => setShowAdd(false)}
-          onAdded={() => { loadData(); toast(t.history.log + ' 📅') }}
+          onAdded={() => { loadData(); toast(t.history.loggedToast) }}
         />
       )}
 
@@ -131,13 +131,13 @@ export default function HistoryPage() {
                 <AlertTriangle size={18} className="text-red-600" />
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900">{t.history.title}</h3>
+                <h3 className="font-semibold text-gray-900">{t.history.deleteTitle}</h3>
                 <p className="text-sm text-gray-500">"{deletingEntry.outfits?.name ?? t.history.customOutfit}"</p>
               </div>
             </div>
             <div className="flex gap-3">
               <Button variant="secondary" className="flex-1" onClick={() => setDeletingId(null)}>{t.history.cancel}</Button>
-              <Button variant="danger" className="flex-1" onClick={() => confirmDelete(deletingEntry.id)}>{t.history.logBtn}</Button>
+              <Button variant="danger" className="flex-1" onClick={() => confirmDelete(deletingEntry.id)}>{t.history.delete}</Button>
             </div>
           </div>
         </div>
@@ -203,7 +203,7 @@ function LogOutfitModal({ outfits, onClose, onAdded }: { outfits: Outfit[]; onCl
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">{t.history.categoryLabel}</label>
             <div className="flex gap-2 flex-wrap mb-2">
-              {['עבודה', 'קז׳ואל', 'ערב', 'ספורט', 'דייט'].map(tag => (
+              {t.history.quickTags.map(tag => (
                 <button
                   key={tag}
                   type="button"
