@@ -1,14 +1,42 @@
 'use client'
-import { useEffect, useState, useRef, Suspense } from 'react'
+import { useEffect, useRef, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { WardrobeItem, ClothingCategory } from '@/types/database'
 import { CLOTHING_CATEGORIES } from '@/lib/utils'
 import { useToast } from '@/components/ui/toast'
 import {
-  Plus, Search, Heart, Upload, Trash2, X, Camera, Check,
+  Plus, Search, Heart, Trash2, X, Camera, Check, ImageIcon, RefreshCw,
 } from 'lucide-react'
 import { useLang } from '@/lib/lang-context'
+
+/** Resize + recompress to max 1200 px at 85 % quality — ~20× smaller than raw phone photos. */
+async function compressFile(file: File | Blob, maxDim = 1200, quality = 0.85): Promise<File> {
+  return new Promise(resolve => {
+    const img = new Image()
+    const url = URL.createObjectURL(file)
+    img.onload = () => {
+      URL.revokeObjectURL(url)
+      let { width, height } = img
+      if (width <= maxDim && height <= maxDim) {
+        resolve(file instanceof File ? file : new File([file], 'photo.jpg', { type: 'image/jpeg' }))
+        return
+      }
+      if (width > height) { height = Math.round(height * maxDim / width); width = maxDim }
+      else { width = Math.round(width * maxDim / height); height = maxDim }
+      const canvas = document.createElement('canvas')
+      canvas.width = width
+      canvas.height = height
+      canvas.getContext('2d')!.drawImage(img, 0, 0, width, height)
+      canvas.toBlob(
+        blob => resolve(new File([blob!], file instanceof File ? file.name : 'photo.jpg', { type: 'image/jpeg' })),
+        'image/jpeg',
+        quality,
+      )
+    }
+    img.src = url
+  })
+}
 
 export default function WardrobePageWrapper() {
   return (
@@ -354,13 +382,24 @@ function AddItemModal({
   const [processing, setProcessing] = useState(false)
   const [processMsg, setProcessMsg] = useState('')
   const [originalFile, setOriginalFile] = useState<File | null>(null)
-  const [step, setStep] = useState<'photo' | 'details'>('photo')
+  const [showCamera, setShowCamera] = useState(false)
   const supabase = createClient()
   const { t } = useLang()
 
-  function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
+    const compressed = await compressFile(file)
+    setOriginalFile(compressed)
+    if (removeBgEnabled) processBg(compressed)
+    else {
+      setImageFile(compressed)
+      setImagePreview(URL.createObjectURL(compressed))
+    }
+  }
+
+  function handleCameraCapture(file: File) {
+    setShowCamera(false)
     setOriginalFile(file)
     if (removeBgEnabled) processBg(file)
     else {
@@ -369,7 +408,13 @@ function AddItemModal({
     }
   }
 
-  async function processBg(file: File) {
+  function clearImage() {
+    setImageFile(null)
+    setImagePreview(null)
+    setOriginalFile(null)
+  }
+
+  async function processBg(file: File | Blob) {
     setProcessing(true)
     setProcessMsg('מכין מודל…')
     try {
@@ -430,199 +475,387 @@ function AddItemModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-[#f9fafb]">
-      {/* Modal header */}
-      <div className="flex items-center justify-between px-5 pt-12 pb-4 bg-white border-b border-gray-100">
-        <button
-          onClick={onClose}
-          className="w-10 h-10 rounded-2xl bg-gray-100 flex items-center justify-center"
-        >
-          <X size={20} className="text-gray-600" />
-        </button>
-        <h2 className="font-bold text-gray-900">הוסף פריט לארון</h2>
-        <div className="w-10" />
-      </div>
+    <>
+      <div className="fixed inset-0 z-50 flex flex-col bg-[#f9fafb]">
+        {/* Modal header */}
+        <div className="flex items-center justify-between px-5 pt-12 pb-4 bg-white border-b border-gray-100">
+          <button
+            onClick={onClose}
+            className="w-10 h-10 rounded-2xl bg-gray-100 flex items-center justify-center"
+          >
+            <X size={20} className="text-gray-600" />
+          </button>
+          <h2 className="font-bold text-gray-900">הוסף פריט לארון</h2>
+          <div className="w-10" />
+        </div>
 
-      <div className="flex-1 overflow-y-auto">
-        {/* Photo section */}
-        <div className="bg-white mx-4 mt-4 rounded-2xl overflow-hidden">
-          <label className="block cursor-pointer">
-            <div
-              className="relative overflow-hidden"
-              style={
-                imagePreview
-                  ? {
-                      backgroundImage:
-                        'linear-gradient(45deg,#f3f4f6 25%,transparent 25%),linear-gradient(-45deg,#f3f4f6 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#f3f4f6 75%),linear-gradient(-45deg,transparent 75%,#f3f4f6 75%)',
-                      backgroundSize: '16px 16px',
-                      backgroundPosition: '0 0,0 8px,8px -8px,-8px 0',
-                    }
-                  : undefined
-              }
-            >
-              {imagePreview ? (
+        <div className="flex-1 overflow-y-auto">
+          {/* Photo section */}
+          <div className="bg-white mx-4 mt-4 rounded-2xl overflow-hidden">
+            {!imagePreview ? (
+              /* Two-button picker: Camera vs Gallery */
+              <div className="grid grid-cols-2 divide-x divide-gray-100">
+                {/* Camera */}
+                <button
+                  type="button"
+                  disabled={processing}
+                  onClick={() => setShowCamera(true)}
+                  className="flex flex-col items-center gap-2.5 py-7 px-4 hover:bg-gray-50 active:bg-gray-100 transition-colors disabled:opacity-50 group"
+                >
+                  <div className="w-14 h-14 rounded-2xl bg-black flex items-center justify-center shadow-sm group-active:scale-95 transition-transform">
+                    <Camera size={26} className="text-white" />
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm font-bold text-gray-900">צלם תמונה</p>
+                    <p className="text-xs text-gray-400 mt-0.5">מצלמה אחורית</p>
+                  </div>
+                </button>
+
+                {/* Gallery */}
+                <label className="flex flex-col items-center gap-2.5 py-7 px-4 hover:bg-gray-50 active:bg-gray-100 transition-colors cursor-pointer group">
+                  <div className="w-14 h-14 rounded-2xl bg-gray-100 flex items-center justify-center group-hover:bg-gray-200 transition-colors group-active:scale-95">
+                    <ImageIcon size={26} className="text-gray-600" />
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm font-bold text-gray-900">מהגלריה</p>
+                    <p className="text-xs text-gray-400 mt-0.5">JPG · PNG · WEBP</p>
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFile}
+                    className="sr-only"
+                    disabled={processing}
+                  />
+                </label>
+              </div>
+            ) : (
+              /* Preview with clear button */
+              <div
+                className="relative overflow-hidden"
+                style={{
+                  backgroundImage:
+                    'linear-gradient(45deg,#f3f4f6 25%,transparent 25%),linear-gradient(-45deg,#f3f4f6 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#f3f4f6 75%),linear-gradient(-45deg,transparent 75%,#f3f4f6 75%)',
+                  backgroundSize: '16px 16px',
+                  backgroundPosition: '0 0,0 8px,8px -8px,-8px 0',
+                }}
+              >
                 <img
                   src={imagePreview}
                   alt="תצוגה מקדימה"
                   className="w-full h-56 object-contain"
                 />
-              ) : (
-                <div className="h-48 flex flex-col items-center justify-center gap-3 text-gray-400">
-                  <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center">
-                    <Camera size={28} className="text-gray-400" />
+                <button
+                  type="button"
+                  onClick={clearImage}
+                  disabled={processing}
+                  className="absolute top-3 end-3 w-8 h-8 bg-black/60 hover:bg-black rounded-xl flex items-center justify-center text-white transition-colors disabled:opacity-50"
+                >
+                  <X size={15} />
+                </button>
+                {processing && (
+                  <div className="absolute inset-0 bg-white/90 flex flex-col items-center justify-center gap-2">
+                    <div className="w-8 h-8 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                    <p className="text-xs text-gray-600 font-medium">{processMsg || 'מסיר רקע…'}</p>
                   </div>
-                  <p className="text-sm font-medium">צלם או העלה תמונה</p>
-                  <p className="text-xs text-gray-300">JPG, PNG, WEBP</p>
-                </div>
-              )}
-              {processing && (
-                <div className="absolute inset-0 bg-white/90 flex flex-col items-center justify-center gap-2">
-                  <div className="w-8 h-8 border-2 border-black border-t-transparent rounded-full animate-spin" />
-                  <p className="text-xs text-gray-600 font-medium">{processMsg || 'מסיר רקע…'}</p>
+                )}
+              </div>
+            )}
+
+            {/* Background removal toggle */}
+            <div className="flex items-center justify-between px-4 py-3 border-t border-gray-50">
+              <span className="text-sm text-gray-700">✂️ הסר רקע אוטומטית</span>
+              <button
+                type="button"
+                onClick={toggleRemoveBg}
+                disabled={processing}
+                className={`w-12 h-7 rounded-full transition-colors flex-shrink-0 disabled:opacity-50 relative ${
+                  removeBgEnabled ? 'bg-black' : 'bg-gray-200'
+                }`}
+              >
+                <div
+                  className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow transition-all ${
+                    removeBgEnabled ? 'right-1' : 'left-1'
+                  }`}
+                />
+              </button>
+            </div>
+          </div>
+
+          {/* Details section */}
+          <div className="bg-white mx-4 mt-3 rounded-2xl overflow-hidden mb-4">
+            {/* Category picker */}
+            <div className="px-4 pt-4 pb-2">
+              <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">קטגוריה</p>
+              <div className="grid grid-cols-5 gap-2">
+                {CLOTHING_CATEGORIES.map(cat => (
+                  <button
+                    key={cat.value}
+                    onClick={() => setCategory(cat.value as ClothingCategory)}
+                    className={`flex flex-col items-center gap-1 py-2 rounded-xl border transition-all ${
+                      category === cat.value
+                        ? 'border-black bg-black/5'
+                        : 'border-gray-100'
+                    }`}
+                  >
+                    <span className="text-xl">{cat.emoji}</span>
+                    <span className="text-[9px] font-medium text-gray-600 text-center leading-tight">
+                      {t.categories[cat.value as keyof typeof t.categories]}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="h-px bg-gray-100 mx-4" />
+
+            {/* Name field */}
+            <div className="px-4 py-4">
+              <label className="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-2">
+                שם הפריט *
+              </label>
+              <input
+                value={name}
+                onChange={e => setName(e.target.value)}
+                placeholder="לדוג׳ חולצת פשתן לבנה"
+                className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-black text-right"
+                dir="rtl"
+              />
+            </div>
+
+            <div className="h-px bg-gray-100 mx-4" />
+
+            {/* Brand field */}
+            <div className="px-4 py-4">
+              <label className="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-2">
+                מותג
+              </label>
+              <input
+                value={brand}
+                onChange={e => setBrand(e.target.value)}
+                placeholder="לדוג׳ Zara, H&M…"
+                className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-black text-right"
+                dir="rtl"
+              />
+            </div>
+
+            <div className="h-px bg-gray-100 mx-4" />
+
+            {/* Color picker */}
+            <div className="px-4 py-4">
+              <div className="flex items-center justify-between mb-3">
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-wide">
+                  צבע
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setHasColor(!hasColor)}
+                  className="text-xs text-gray-400 hover:text-gray-600 font-medium"
+                >
+                  {hasColor ? '− הסר' : '+ הוסף'}
+                </button>
+              </div>
+              {hasColor && (
+                <div className="flex items-center gap-3">
+                  <input
+                    type="color"
+                    value={color}
+                    onChange={e => setColor(e.target.value)}
+                    className="w-12 h-12 rounded-xl border border-gray-200 cursor-pointer p-1 bg-white"
+                  />
+                  <div className="flex-1">
+                    <div
+                      className="h-10 rounded-xl border border-gray-200"
+                      style={{ backgroundColor: color }}
+                    />
+                  </div>
+                  <span className="text-sm text-gray-500 font-mono">{color}</span>
                 </div>
               )}
             </div>
-            <input
-              type="file"
-              accept="image/*"
-              capture="environment"
-              onChange={handleFile}
-              className="sr-only"
-              disabled={processing}
-            />
-          </label>
-
-          {/* Background removal toggle */}
-          <div className="flex items-center justify-between px-4 py-3 border-t border-gray-50">
-            <span className="text-sm text-gray-700">✂️ הסר רקע אוטומטית</span>
-            <button
-              type="button"
-              onClick={toggleRemoveBg}
-              disabled={processing}
-              className={`w-12 h-7 rounded-full transition-colors flex-shrink-0 disabled:opacity-50 relative ${
-                removeBgEnabled ? 'bg-black' : 'bg-gray-200'
-              }`}
-            >
-              <div
-                className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow transition-all ${
-                  removeBgEnabled ? 'right-1' : 'left-1'
-                }`}
-              />
-            </button>
           </div>
         </div>
 
-        {/* Details section */}
-        <div className="bg-white mx-4 mt-3 rounded-2xl overflow-hidden mb-4">
-          {/* Category picker */}
-          <div className="px-4 pt-4 pb-2">
-            <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">קטגוריה</p>
-            <div className="grid grid-cols-5 gap-2">
-              {CLOTHING_CATEGORIES.map(cat => (
-                <button
-                  key={cat.value}
-                  onClick={() => setCategory(cat.value as ClothingCategory)}
-                  className={`flex flex-col items-center gap-1 py-2 rounded-xl border transition-all ${
-                    category === cat.value
-                      ? 'border-black bg-black/5'
-                      : 'border-gray-100'
-                  }`}
-                >
-                  <span className="text-xl">{cat.emoji}</span>
-                  <span className="text-[9px] font-medium text-gray-600 text-center leading-tight">
-                    {t.categories[cat.value as keyof typeof t.categories]}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="h-px bg-gray-100 mx-4" />
-
-          {/* Name field */}
-          <div className="px-4 py-4">
-            <label className="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-2">
-              שם הפריט *
-            </label>
-            <input
-              value={name}
-              onChange={e => setName(e.target.value)}
-              placeholder="לדוג׳ חולצת פשתן לבנה"
-              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-black text-right"
-              dir="rtl"
-            />
-          </div>
-
-          <div className="h-px bg-gray-100 mx-4" />
-
-          {/* Brand field */}
-          <div className="px-4 py-4">
-            <label className="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-2">
-              מותג
-            </label>
-            <input
-              value={brand}
-              onChange={e => setBrand(e.target.value)}
-              placeholder="לדוג׳ Zara, H&M…"
-              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-black text-right"
-              dir="rtl"
-            />
-          </div>
-
-          <div className="h-px bg-gray-100 mx-4" />
-
-          {/* Color picker */}
-          <div className="px-4 py-4">
-            <div className="flex items-center justify-between mb-3">
-              <label className="text-xs font-bold text-gray-500 uppercase tracking-wide">
-                צבע
-              </label>
-              <button
-                type="button"
-                onClick={() => setHasColor(!hasColor)}
-                className="text-xs text-gray-400 hover:text-gray-600 font-medium"
-              >
-                {hasColor ? '− הסר' : '+ הוסף'}
-              </button>
-            </div>
-            {hasColor && (
-              <div className="flex items-center gap-3">
-                <input
-                  type="color"
-                  value={color}
-                  onChange={e => setColor(e.target.value)}
-                  className="w-12 h-12 rounded-xl border border-gray-200 cursor-pointer p-1 bg-white"
-                />
-                <div className="flex-1">
-                  <div
-                    className="h-10 rounded-xl border border-gray-200"
-                    style={{ backgroundColor: color }}
-                  />
-                </div>
-                <span className="text-sm text-gray-500 font-mono">{color}</span>
-              </div>
+        {/* Submit */}
+        <div className="px-4 py-4 bg-white border-t border-gray-100 pb-safe">
+          <button
+            onClick={handleSubmit}
+            disabled={loading || processing || !name}
+            className="w-full bg-black text-white py-4 rounded-2xl font-bold text-base disabled:opacity-40 flex items-center justify-center gap-2"
+          >
+            {loading ? (
+              <>
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                מוסיף…
+              </>
+            ) : (
+              <>
+                <Check size={20} />
+                הוסף לארון
+              </>
             )}
-          </div>
+          </button>
         </div>
       </div>
 
-      {/* Submit */}
-      <div className="px-4 py-4 bg-white border-t border-gray-100 pb-safe">
+      {/* Camera modal — renders above the add modal */}
+      {showCamera && (
+        <CameraModal
+          onCapture={handleCameraCapture}
+          onClose={() => setShowCamera(false)}
+        />
+      )}
+    </>
+  )
+}
+
+function CameraModal({ onCapture, onClose }: { onCapture: (file: File) => void; onClose: () => void }) {
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const streamRef = useRef<MediaStream | null>(null)
+  const [facingMode, setFacingMode] = useState<'environment' | 'user'>('environment')
+  const [error, setError] = useState('')
+  const [ready, setReady] = useState(false)
+  const [capturing, setCapturing] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    setReady(false)
+    setError('')
+
+    async function startCamera() {
+      streamRef.current?.getTracks().forEach(t => t.stop())
+      streamRef.current = null
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: { ideal: facingMode },
+            width: { ideal: 1920 },
+            height: { ideal: 1080 },
+          },
+        })
+        if (cancelled) { stream.getTracks().forEach(t => t.stop()); return }
+        streamRef.current = stream
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream
+          videoRef.current.onloadedmetadata = () => { if (!cancelled) setReady(true) }
+        }
+      } catch {
+        if (!cancelled) setError('לא ניתן לגשת למצלמה. אנא אשר הרשאת מצלמה.')
+      }
+    }
+
+    startCamera()
+    return () => {
+      cancelled = true
+      streamRef.current?.getTracks().forEach(t => t.stop())
+    }
+  }, [facingMode])
+
+  function close() {
+    streamRef.current?.getTracks().forEach(t => t.stop())
+    onClose()
+  }
+
+  function capture() {
+    if (!videoRef.current || !ready || capturing) return
+    setCapturing(true)
+    const video = videoRef.current
+    let w = video.videoWidth
+    let h = video.videoHeight
+    const MAX = 1200
+    if (w > MAX || h > MAX) {
+      if (w > h) { h = Math.round(h * MAX / w); w = MAX }
+      else { w = Math.round(w * MAX / h); h = MAX }
+    }
+    const canvas = document.createElement('canvas')
+    canvas.width = w
+    canvas.height = h
+    canvas.getContext('2d')!.drawImage(video, 0, 0, w, h)
+    canvas.toBlob(blob => {
+      setCapturing(false)
+      if (!blob) return
+      streamRef.current?.getTracks().forEach(t => t.stop())
+      onCapture(new File([blob], `photo-${Date.now()}.jpg`, { type: 'image/jpeg' }))
+    }, 'image/jpeg', 0.85)
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black z-[60] flex flex-col">
+      {/* Top bar */}
+      <div className="flex items-center justify-between px-4 py-3 bg-black/60">
         <button
-          onClick={handleSubmit}
-          disabled={loading || processing || !name}
-          className="w-full bg-black text-white py-4 rounded-2xl font-bold text-base disabled:opacity-40 flex items-center justify-center gap-2"
+          onClick={close}
+          className="w-10 h-10 rounded-2xl bg-white/15 flex items-center justify-center text-white hover:bg-white/25 transition-colors"
         >
-          {loading ? (
-            <>
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              מוסיף…
-            </>
-          ) : (
-            <>
-              <Check size={20} />
-              הוסף לארון
-            </>
+          <X size={20} />
+        </button>
+        <span className="text-white text-sm font-semibold">מקם את הבגד במסגרת</span>
+        <button
+          onClick={() => setFacingMode(f => f === 'environment' ? 'user' : 'environment')}
+          className="w-10 h-10 rounded-2xl bg-white/15 flex items-center justify-center text-white hover:bg-white/25 transition-colors"
+          title="הפוך מצלמה"
+        >
+          <RefreshCw size={18} />
+        </button>
+      </div>
+
+      {/* Camera view */}
+      {error ? (
+        <div className="flex-1 flex flex-col items-center justify-center gap-5 px-10 text-center">
+          <div className="w-20 h-20 rounded-3xl bg-white/10 flex items-center justify-center">
+            <Camera size={40} className="text-white/40" />
+          </div>
+          <p className="text-white/70 text-sm leading-relaxed">{error}</p>
+          <button
+            onClick={() => setFacingMode(f => f)}
+            className="px-6 py-3 bg-white/20 hover:bg-white/30 rounded-2xl text-white text-sm font-semibold transition-colors"
+          >
+            נסה שוב
+          </button>
+        </div>
+      ) : (
+        <div className="flex-1 relative overflow-hidden">
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            muted
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+          {/* Clothing frame guide */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div
+              className="relative rounded-3xl border-2 border-white/70"
+              style={{ width: '72%', aspectRatio: '3/4', boxShadow: '0 0 0 9999px rgba(0,0,0,0.40)' }}
+            >
+              <span className="absolute -top-px -left-px w-6 h-6 border-t-4 border-l-4 border-white rounded-tl-3xl" />
+              <span className="absolute -top-px -right-px w-6 h-6 border-t-4 border-r-4 border-white rounded-tr-3xl" />
+              <span className="absolute -bottom-px -left-px w-6 h-6 border-b-4 border-l-4 border-white rounded-bl-3xl" />
+              <span className="absolute -bottom-px -right-px w-6 h-6 border-b-4 border-r-4 border-white rounded-br-3xl" />
+            </div>
+          </div>
+          {!ready && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+              <div className="w-10 h-10 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Shutter */}
+      <div className="bg-black/60 py-8 flex items-center justify-center">
+        <button
+          onClick={capture}
+          disabled={!ready || capturing || !!error}
+          className="relative w-20 h-20 disabled:opacity-40 active:scale-95 transition-transform"
+          aria-label="צלם"
+        >
+          <div className="absolute inset-0 rounded-full border-4 border-white" />
+          <div className={`absolute inset-2 rounded-full bg-white transition-all duration-150 ${capturing ? 'scale-75 opacity-50' : ''}`} />
+          {capturing && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-8 h-8 border-2 border-black border-t-transparent rounded-full animate-spin" />
+            </div>
           )}
         </button>
       </div>
