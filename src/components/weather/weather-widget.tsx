@@ -14,10 +14,10 @@ interface WeatherData {
 function WeatherIcon({ description }: { description: string }) {
   const d = description.toLowerCase()
   if (d.includes('rain') || d.includes('drizzle')) return <CloudRain size={20} className="text-blue-400" />
-  if (d.includes('snow')) return <Snowflake size={20} className="text-blue-200" />
-  if (d.includes('wind')) return <Wind size={20} className="text-gray-400" />
-  if (d.includes('cloud')) return <Cloud size={20} className="text-gray-400" />
-  return <Sun size={20} className="text-yellow-400" />
+  if (d.includes('snow')) return <Snowflake size={20} className="text-blue-300" />
+  if (d.includes('wind')) return <Wind size={20} className="text-stone-400" />
+  if (d.includes('cloud')) return <Cloud size={20} className="text-stone-400" />
+  return <Sun size={20} className="text-amber-400" />
 }
 
 export function WeatherWidget() {
@@ -59,16 +59,18 @@ export function WeatherWidget() {
     )
   }, [t])
 
-  if (loading) return <div className="h-12 bg-gray-100 rounded-xl animate-pulse" />
+  if (loading) return <div className="h-14 bg-stone-100 rounded-2xl animate-shimmer" />
 
   if (!weather) return null
 
   return (
-    <div className="flex items-center gap-3 bg-gradient-to-r from-sky-50 to-blue-50 rounded-xl px-4 py-3 border border-sky-100">
-      <WeatherIcon description={weather.description} />
+    <div className="flex items-center gap-3 bg-gradient-to-r from-sky-50 via-blue-50 to-indigo-50 rounded-2xl px-4 py-3.5 border border-sky-100/80 shadow-sm shadow-sky-100/50 backdrop-blur-sm">
+      <div className="w-9 h-9 bg-white/70 rounded-xl flex items-center justify-center shadow-sm flex-shrink-0">
+        <WeatherIcon description={weather.description} />
+      </div>
       <div>
-        <p className="text-sm font-semibold text-gray-900">{weather.temp}°C — {weather.description}</p>
-        <p className="text-xs text-gray-500">{t.weather.feelsLike(weather.feels_like, weather.city)}</p>
+        <p className="text-sm font-semibold text-stone-800">{weather.temp}°C — {weather.description}</p>
+        <p className="text-xs text-stone-500">{t.weather.feelsLike(weather.feels_like, weather.city)}</p>
       </div>
     </div>
   )
