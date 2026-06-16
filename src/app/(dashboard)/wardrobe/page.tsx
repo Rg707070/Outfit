@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { WardrobeItem, ClothingCategory } from '@/types/database'
 import { CLOTHING_CATEGORIES } from '@/lib/utils'
@@ -15,17 +15,11 @@ export default function WardrobePage() {
   const [activeCategory, setActiveCategory] = useState<ClothingCategory | 'all'>('all')
   const [showAdd, setShowAdd] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
-  const [showSearch, setShowSearch] = useState(false)
-  const searchRef = useRef<HTMLInputElement>(null)
   const { toast } = useToast()
   const { t } = useLang()
   const supabase = createClient()
 
   useEffect(() => { loadItems() }, [])
-
-  useEffect(() => {
-    if (showSearch) searchRef.current?.focus()
-  }, [showSearch])
 
   async function loadItems() {
     const { data: { user } } = await supabase.auth.getUser()
@@ -69,78 +63,55 @@ export default function WardrobePage() {
   return (
     <div className="min-h-screen pb-24 md:pb-8">
 
-      {/* ── Sticky header (mobile) ── */}
-      <div className="sticky top-0 z-20 -mx-4 px-4 pt-2 pb-3 bg-[#fafaf9]/95 backdrop-blur-md md:static md:bg-transparent md:backdrop-blur-none md:mx-0 md:px-0 md:pt-0 md:pb-0">
+      {/* ── Sticky header — sticks BELOW the 56px mobile nav bar ── */}
+      <div className="sticky top-14 md:top-0 z-20 -mx-4 px-4 pt-3 pb-3 bg-[#fafaf9]/96 backdrop-blur-md border-b border-stone-100/80 md:static md:border-none md:bg-transparent md:backdrop-blur-none md:mx-0 md:px-0 md:pt-0 md:pb-0">
 
         {/* Title row */}
-        <div className="flex items-center justify-between mb-2 md:mb-6">
-          <div>
-            <h1 className="text-xl md:text-2xl font-bold text-stone-900 tracking-tight leading-tight">
+        <div className="flex items-center justify-between mb-3 md:mb-6">
+          <div className="min-w-0">
+            <h1 className="text-xl md:text-2xl font-bold text-stone-900 tracking-tight leading-tight truncate">
               {t.wardrobe.title}
             </h1>
-            <p className="text-stone-400 text-xs md:text-sm mt-0.5">
+            <p className="text-stone-400 text-xs mt-0.5 md:text-sm">
               {t.wardrobe.itemsTotal(items.length)}
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
-            {/* Mobile: search toggle */}
-            <button
-              onClick={() => setShowSearch(v => !v)}
-              className="md:hidden w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-stone-200 text-stone-500 shadow-sm active:scale-95 transition-transform"
-              aria-label="חיפוש"
-            >
-              <Search size={16} />
-            </button>
-            {/* Desktop: add button */}
-            <button
-              onClick={() => setShowAdd(true)}
-              className="hidden md:flex items-center gap-1.5 px-4 py-2 rounded-xl bg-stone-900 text-white text-sm font-medium shadow-sm hover:bg-stone-800 transition-colors"
-            >
-              <Plus size={15} strokeWidth={2.5} />
-              {t.wardrobe.addItem}
-            </button>
-          </div>
+          {/* Desktop: add button */}
+          <button
+            onClick={() => setShowAdd(true)}
+            className="hidden md:flex items-center gap-1.5 px-4 py-2 rounded-xl bg-stone-900 text-white text-sm font-medium shadow-sm hover:bg-stone-800 transition-colors flex-shrink-0"
+          >
+            <Plus size={15} strokeWidth={2.5} />
+            {t.wardrobe.addItem}
+          </button>
         </div>
 
-        {/* Mobile search bar — slides in */}
-        <div
-          className={`md:hidden overflow-hidden transition-all duration-200 ${showSearch ? 'max-h-12 opacity-100 mb-2' : 'max-h-0 opacity-0'}`}
-        >
-          <div className="relative">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none" />
-            <input
-              ref={searchRef}
-              type="text"
-              placeholder={t.wardrobe.search}
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="w-full pl-8 pr-8 py-2 text-sm rounded-xl border border-stone-200 bg-white focus:outline-none focus:ring-2 focus:ring-stone-900/15 focus:border-stone-400 placeholder:text-stone-400 transition-all"
-            />
-            {search && (
-              <button
-                onClick={() => setSearch('')}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600"
-              >
-                <X size={14} />
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Desktop search */}
-        <div className="hidden md:block relative mb-6">
-          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none" />
-          <Input
+        {/* Search bar — always visible on mobile */}
+        <div className="relative mb-3 md:mb-6">
+          <Search size={15} className="absolute start-3 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none" />
+          <input
+            type="text"
             placeholder={t.wardrobe.search}
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="pl-9"
+            className="w-full ps-9 pe-8 py-2.5 text-sm rounded-xl border border-stone-200 bg-white/80 focus:outline-none focus:ring-2 focus:ring-stone-900/10 focus:border-stone-400 placeholder:text-stone-400 transition-all"
           />
+          {search && (
+            <button
+              onClick={() => setSearch('')}
+              className="absolute end-2.5 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center rounded-full bg-stone-200 text-stone-500 hover:bg-stone-300 transition-colors"
+            >
+              <X size={11} />
+            </button>
+          )}
         </div>
 
-        {/* Category strip */}
-        <div className="flex gap-1.5 overflow-x-auto scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0 md:gap-2 md:flex-wrap">
+        {/* Category strip — forced LTR so "הכל" is always visible on the left */}
+        <div
+          className="flex gap-1.5 overflow-x-auto scrollbar-hide pb-0.5 md:flex-wrap md:gap-2"
+          style={{ direction: 'ltr' }}
+        >
           <button
             onClick={() => setActiveCategory('all')}
             className={`flex-shrink-0 flex items-center gap-1 px-3 py-1.5 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-medium transition-all duration-200 ${
@@ -149,13 +120,7 @@ export default function WardrobePage() {
                 : 'bg-white border border-stone-200 text-stone-600 hover:bg-stone-50'
             }`}
           >
-            <span className="hidden md:inline">{t.wardrobe.all(items.length)}</span>
-            <span className="md:hidden">הכל</span>
-            {items.length > 0 && (
-              <span className={`md:hidden text-xs rounded-full px-1.5 ${activeCategory === 'all' ? 'bg-white/20' : 'bg-stone-100'}`}>
-                {items.length}
-              </span>
-            )}
+            <span style={{ direction: 'rtl' }}>{t.wardrobe.all(items.length)}</span>
           </button>
 
           {CLOTHING_CATEGORIES.map(cat => (
@@ -169,9 +134,13 @@ export default function WardrobePage() {
               }`}
             >
               <span>{cat.emoji}</span>
-              <span className="hidden sm:inline">{t.categories[cat.value as keyof typeof t.categories] ?? cat.label}</span>
+              <span style={{ direction: 'rtl' }}>
+                {t.categories[cat.value as keyof typeof t.categories] ?? cat.label}
+              </span>
               {counts[cat.value] > 0 && (
-                <span className={`text-xs rounded-full px-1.5 ${activeCategory === cat.value ? 'bg-white/20' : 'bg-stone-100'}`}>
+                <span className={`text-xs rounded-full px-1.5 min-w-[20px] text-center ${
+                  activeCategory === cat.value ? 'bg-white/20' : 'bg-stone-100'
+                }`}>
                   {counts[cat.value]}
                 </span>
               )}
@@ -190,12 +159,12 @@ export default function WardrobePage() {
           </div>
 
         ) : items.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 animate-fade-in">
+          <div className="flex flex-col items-center justify-center py-20 animate-fade-in text-center px-6">
             <div className="w-24 h-24 bg-gradient-to-br from-stone-100 to-stone-50 rounded-3xl flex items-center justify-center shadow-sm mb-5">
               <span className="text-5xl">👗</span>
             </div>
-            <p className="text-stone-700 text-lg font-semibold">{t.wardrobe.noItems}</p>
-            <p className="text-stone-400 text-sm mt-1 text-center max-w-xs">{t.wardrobe.noItemsSub}</p>
+            <p className="text-stone-800 text-lg font-bold">{t.wardrobe.noItems}</p>
+            <p className="text-stone-400 text-sm mt-1 max-w-xs leading-relaxed">{t.wardrobe.noItemsSub}</p>
             <button
               onClick={() => setShowAdd(true)}
               className="mt-6 flex items-center gap-2 px-5 py-2.5 bg-stone-900 text-white rounded-full text-sm font-medium shadow-sm active:scale-95 transition-transform"
@@ -206,11 +175,11 @@ export default function WardrobePage() {
           </div>
 
         ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 animate-fade-in">
+          <div className="flex flex-col items-center justify-center py-20 animate-fade-in text-center px-6">
             <div className="w-16 h-16 bg-stone-100 rounded-2xl flex items-center justify-center mb-3">
               <span className="text-3xl">🔍</span>
             </div>
-            <p className="text-stone-500 font-medium">{t.wardrobe.noItems}</p>
+            <p className="text-stone-600 font-semibold">{t.wardrobe.noItems}</p>
             <button
               onClick={() => { setSearch(''); setActiveCategory('all') }}
               className="mt-3 text-sm text-stone-400 hover:text-stone-700 underline transition-colors"
@@ -238,8 +207,7 @@ export default function WardrobePage() {
       <button
         onClick={() => setShowAdd(true)}
         aria-label={t.wardrobe.addItem}
-        className="md:hidden fixed bottom-6 right-4 w-14 h-14 bg-stone-900 text-white rounded-full shadow-xl shadow-stone-900/30 flex items-center justify-center z-30 active:scale-90 transition-all duration-150"
-        style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 24px)' }}
+        className="md:hidden fixed bottom-6 right-4 w-14 h-14 bg-stone-900 text-white rounded-full shadow-xl shadow-stone-900/25 flex items-center justify-center z-30 active:scale-90 transition-all duration-150"
       >
         <Plus size={22} strokeWidth={2.5} />
       </button>
@@ -253,7 +221,7 @@ export default function WardrobePage() {
         />
       )}
 
-      {/* ── Delete confirmation sheet ── */}
+      {/* ── Delete sheet ── */}
       {deletingItem && (
         <DeleteSheet
           item={deletingItem}
@@ -284,7 +252,6 @@ function WardrobeCard({
       className="group relative overflow-hidden rounded-2xl bg-stone-100 shadow-sm active:scale-[0.98] md:hover:-translate-y-1 md:hover:shadow-lg md:hover:shadow-stone-200/60 transition-all duration-200 animate-fade-in"
       style={{ animationDelay: `${Math.min(index * 25, 250)}ms` }}
     >
-      {/* Image — 3:4 aspect ratio */}
       <div className="aspect-[3/4] relative">
         {item.image_url ? (
           <img
@@ -295,23 +262,20 @@ function WardrobeCard({
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-stone-50 to-stone-100">
-            <span className="text-5xl md:text-4xl opacity-60">{emoji}</span>
+            <span className="text-5xl opacity-60">{emoji}</span>
           </div>
         )}
 
         {/* Gradient overlay */}
         <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/55 via-black/15 to-transparent pointer-events-none" />
 
-        {/* Action buttons — top right corner */}
-        <div className="absolute top-2 right-2 flex flex-col gap-1.5">
+        {/* Action buttons */}
+        <div className="absolute top-2 end-2 flex flex-col gap-1.5">
           <button
             onClick={e => { e.stopPropagation(); onFavorite() }}
             className="w-8 h-8 flex items-center justify-center bg-white/90 backdrop-blur-sm rounded-full shadow-sm active:scale-90 transition-transform"
           >
-            <Heart
-              size={13}
-              className={item.is_favorite ? 'fill-rose-500 text-rose-500' : 'text-stone-400'}
-            />
+            <Heart size={13} className={item.is_favorite ? 'fill-rose-500 text-rose-500' : 'text-stone-400'} />
           </button>
           <button
             onClick={e => { e.stopPropagation(); onDelete() }}
@@ -321,7 +285,7 @@ function WardrobeCard({
           </button>
         </div>
 
-        {/* Item info — bottom overlay */}
+        {/* Item info overlay */}
         <div className="absolute bottom-0 inset-x-0 px-2.5 pb-2.5">
           <p className="text-xs font-semibold text-white truncate leading-tight drop-shadow">{item.name}</p>
           {item.brand && (
@@ -330,13 +294,11 @@ function WardrobeCard({
         </div>
       </div>
 
-      {/* Extra info below — only when no image */}
+      {/* Color chip — only shown when no image */}
       {!item.image_url && item.color && (
-        <div className="px-2.5 py-2">
-          <div className="flex items-center gap-1">
-            <div className="w-2.5 h-2.5 rounded-full border border-stone-200 flex-shrink-0" style={{ backgroundColor: item.color }} />
-            <span className="text-xs text-stone-400 truncate">{item.color}</span>
-          </div>
+        <div className="px-2.5 py-2 flex items-center gap-1.5">
+          <div className="w-3 h-3 rounded-full border border-stone-200 flex-shrink-0" style={{ backgroundColor: item.color }} />
+          <span className="text-xs text-stone-400 truncate">{item.color}</span>
         </div>
       )}
     </div>
@@ -434,10 +396,8 @@ function AddItemSheet({
 
   return (
     <>
-      {/* Backdrop */}
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40" onClick={onClose} />
 
-      {/* Sheet — slides up on mobile, centered on desktop */}
       <div className="fixed inset-x-0 bottom-0 z-50 md:inset-0 md:flex md:items-center md:justify-center md:p-4 animate-sheet-up">
         <div className="bg-white rounded-t-3xl md:rounded-2xl w-full md:max-w-md shadow-2xl shadow-stone-900/20 max-h-[92dvh] md:max-h-[90vh] flex flex-col">
 
@@ -508,7 +468,7 @@ function AddItemSheet({
 
             {/* Name */}
             <div>
-              <label className="block text-xs font-semibold text-stone-600 uppercase tracking-wide mb-1.5">
+              <label className="block text-xs font-semibold text-stone-500 uppercase tracking-wide mb-1.5">
                 {t.wardrobe.nameLabel}
               </label>
               <Input
@@ -521,7 +481,7 @@ function AddItemSheet({
 
             {/* Category — pill picker */}
             <div>
-              <label className="block text-xs font-semibold text-stone-600 uppercase tracking-wide mb-2">
+              <label className="block text-xs font-semibold text-stone-500 uppercase tracking-wide mb-2">
                 {t.wardrobe.categoryLabel}
               </label>
               <div className="flex flex-wrap gap-1.5">
@@ -533,7 +493,7 @@ function AddItemSheet({
                     className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-150 ${
                       category === cat.value
                         ? 'bg-stone-900 text-white shadow-sm'
-                        : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                        : 'bg-stone-100 text-stone-600 hover:bg-stone-200 active:scale-95'
                     }`}
                   >
                     <span>{cat.emoji}</span>
@@ -545,7 +505,7 @@ function AddItemSheet({
 
             {/* Brand */}
             <div>
-              <label className="block text-xs font-semibold text-stone-600 uppercase tracking-wide mb-1.5">
+              <label className="block text-xs font-semibold text-stone-500 uppercase tracking-wide mb-1.5">
                 {t.wardrobe.brandLabel}
               </label>
               <Input
@@ -558,7 +518,7 @@ function AddItemSheet({
             {/* Color */}
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="text-xs font-semibold text-stone-600 uppercase tracking-wide">
+                <label className="text-xs font-semibold text-stone-500 uppercase tracking-wide">
                   {t.wardrobe.colorLabel}
                 </label>
                 <button
