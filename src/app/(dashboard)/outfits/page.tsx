@@ -173,48 +173,74 @@ function OutfitCard({
 }) {
   const { t } = useLang()
   return (
-    <div className="bg-white rounded-2xl border border-stone-100 overflow-hidden shadow-sm hover:shadow-lg hover:shadow-stone-200/60 transition-all duration-300 hover:-translate-y-1">
-      <div className="h-48 bg-gradient-to-br from-stone-50 to-stone-100 relative flex items-center justify-center">
+    <div className="group bg-white rounded-2xl border border-stone-100 overflow-hidden shadow-[0_2px_16px_-4px_rgba(28,15,10,0.08)] hover:shadow-[0_8px_32px_-8px_rgba(28,15,10,0.14)] hover:shadow-rose-100/40 transition-all duration-300 hover:-translate-y-1">
+      <div className="h-56 bg-gradient-to-br from-stone-50 to-rose-50/30 relative flex items-center justify-center overflow-hidden">
         {outfit.image_url ? (
-          <img src={outfit.image_url} alt={outfit.name} className="w-full h-full object-cover" />
+          <img src={outfit.image_url} alt={outfit.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
         ) : (
           <span className="text-5xl">👔</span>
         )}
-        <div className="absolute top-3 left-3 flex gap-1.5">
-          {outfit.is_public && (
+
+        {/* Public badge */}
+        {outfit.is_public && (
+          <div className="absolute top-3 start-3">
             <span className="text-xs bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full font-medium shadow-sm">{t.outfits.public}</span>
+          </div>
+        )}
+
+        {/* Favorite heart — always visible */}
+        <button
+          onClick={() => onToggleFavorite(outfit)}
+          className="absolute top-3 end-3 p-1.5 bg-white/90 backdrop-blur-sm rounded-full shadow-sm hover:scale-110 transition-transform"
+          title={outfit.is_favorite ? 'הסר ממועדפים' : 'הוסף למועדפים'}
+        >
+          <Heart size={14} className={outfit.is_favorite ? 'fill-rose-500 text-rose-500' : 'text-stone-400'} />
+        </button>
+
+        {/* Hover-reveal overlay with name, tags, and actions */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
+          <h3 className="font-semibold text-white text-base leading-tight">{outfit.name}</h3>
+          {(outfit.occasion || outfit.season) && (
+            <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+              {outfit.occasion && (
+                <span className="text-xs bg-white/20 text-white px-2 py-0.5 rounded-full font-medium backdrop-blur-sm">{outfit.occasion}</span>
+              )}
+              {outfit.season && (
+                <span className="text-xs bg-white/20 text-white px-2 py-0.5 rounded-full capitalize font-medium backdrop-blur-sm">{outfit.season}</span>
+              )}
+            </div>
           )}
-        </div>
-        {/* Action buttons — always visible */}
-        <div className="absolute top-3 right-3 flex gap-1.5">
-          <button
-            onClick={() => onToggleFavorite(outfit)}
-            className="p-1.5 bg-white/90 backdrop-blur-sm rounded-full shadow-sm hover:scale-110 transition-transform"
-            title={outfit.is_favorite ? 'הסר ממועדפים' : 'הוסף למועדפים'}
-          >
-            <Heart size={14} className={outfit.is_favorite ? 'fill-rose-500 text-rose-500' : 'text-stone-400'} />
-          </button>
-          <button
-            onClick={() => onShare(outfit)}
-            className="p-1.5 bg-white/90 backdrop-blur-sm rounded-full shadow-sm hover:scale-110 transition-transform"
-            title="העתק קישור שיתוף"
-          >
-            <Share2 size={14} className="text-stone-400" />
-          </button>
-          <button
-            onClick={() => onDelete(outfit)}
-            className="p-1.5 bg-white/90 backdrop-blur-sm rounded-full shadow-sm hover:scale-110 transition-transform hover:bg-red-50"
-            title="מחק לוק"
-          >
-            <Trash2 size={14} className="text-stone-400 hover:text-red-500" />
-          </button>
+          <div className="flex items-center gap-2 mt-3">
+            <button
+              onClick={() => onScheduleToday(outfit)}
+              className="flex-1 flex items-center justify-center gap-1.5 bg-gradient-to-r from-rose-500 to-pink-500 text-white text-xs font-semibold py-2 px-3 rounded-xl shadow-[0_4px_16px_-4px_rgba(244,63,94,0.5)] hover:from-rose-600 hover:to-pink-600 transition-all"
+            >
+              <Calendar size={12} />
+              {t.outfits.wearToday}
+            </button>
+            <button
+              onClick={() => onShare(outfit)}
+              className="p-2 bg-white/20 backdrop-blur-sm rounded-xl hover:bg-white/30 transition-colors"
+              title="העתק קישור שיתוף"
+            >
+              <Share2 size={14} className="text-white" />
+            </button>
+            <button
+              onClick={() => onDelete(outfit)}
+              className="p-2 bg-white/20 backdrop-blur-sm rounded-xl hover:bg-red-500/70 transition-colors"
+              title="מחק לוק"
+            >
+              <Trash2 size={14} className="text-white" />
+            </button>
+          </div>
         </div>
       </div>
 
-      <div className="p-4">
+      {/* Card body — visible when not hovering */}
+      <div className="p-4 group-hover:opacity-0 transition-opacity duration-200">
         <h3 className="font-semibold text-stone-900">{outfit.name}</h3>
-        {outfit.description && <p className="text-sm text-stone-500 mt-1 line-clamp-2">{outfit.description}</p>}
-        <div className="flex items-center gap-2 mt-3 flex-wrap">
+        {outfit.description && <p className="text-sm text-stone-500 mt-1 line-clamp-1">{outfit.description}</p>}
+        <div className="flex items-center gap-2 mt-2 flex-wrap">
           {outfit.occasion && (
             <span className="text-xs bg-stone-100 text-stone-600 px-2.5 py-1 rounded-full font-medium">{outfit.occasion}</span>
           )}
@@ -222,10 +248,6 @@ function OutfitCard({
             <span className="text-xs bg-stone-100 text-stone-600 px-2.5 py-1 rounded-full capitalize font-medium">{outfit.season}</span>
           )}
         </div>
-        <Button size="sm" variant="secondary" className="w-full mt-4" onClick={() => onScheduleToday(outfit)}>
-          <Calendar size={14} />
-          {t.outfits.wearToday}
-        </Button>
       </div>
     </div>
   )

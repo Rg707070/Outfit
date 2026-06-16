@@ -37,14 +37,14 @@ function NavLinks({ pathname, onNavigate }: { pathname: string; onNavigate?: () 
             className={cn(
               'flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200',
               isActive
-                ? 'bg-stone-900 text-white shadow-sm'
-                : 'text-stone-600 hover:bg-stone-50 hover:text-stone-900'
+                ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-[0_4px_16px_-4px_rgba(244,63,94,0.35)]'
+                : 'text-stone-600 hover:bg-rose-50/60 hover:text-stone-900'
             )}
           >
-            <Icon size={18} className={isActive ? 'opacity-90' : 'opacity-70'} />
+            <Icon size={18} className={isActive ? 'opacity-95' : 'opacity-65'} />
             {label}
             {isActive && (
-              <span className="ms-auto w-1.5 h-1.5 rounded-full bg-white/60" />
+              <span className="ms-auto w-1.5 h-1.5 rounded-full bg-white/70" />
             )}
           </Link>
         )
@@ -103,16 +103,16 @@ export function Sidebar() {
       <header className="md:hidden fixed top-0 right-0 left-0 h-14 bg-white/80 backdrop-blur-md border-b border-stone-100 flex items-center justify-between px-4 z-30">
         <button
           onClick={() => setIsOpen(true)}
-          className="p-2 rounded-xl hover:bg-stone-50 text-stone-600 transition-colors"
+          className="p-2 rounded-xl hover:bg-rose-50/60 text-stone-600 transition-colors"
           aria-label="פתח תפריט"
         >
           <Menu size={22} />
         </button>
         <Link href="/outfits" className="flex items-center gap-2">
-          <div className="w-7 h-7 bg-gradient-to-br from-rose-100 to-pink-100 rounded-lg flex items-center justify-center">
+          <div className="w-7 h-7 bg-gradient-to-br from-rose-500 to-pink-500 rounded-lg flex items-center justify-center shadow-[0_2px_8px_-2px_rgba(244,63,94,0.4)]">
             <span className="text-sm">👗</span>
           </div>
-          <span className="text-lg font-bold text-stone-900 tracking-tight">Outfit</span>
+          <span className="text-lg font-bold tracking-tight text-gradient-brand">Outfit</span>
         </Link>
         <div className="w-10" />
       </header>
@@ -135,10 +135,10 @@ export function Sidebar() {
       >
         <div className="p-6 border-b border-stone-100 flex items-center justify-between">
           <Link href="/outfits" onClick={close} className="flex items-center gap-2.5">
-            <div className="w-9 h-9 bg-gradient-to-br from-rose-100 to-pink-100 rounded-xl flex items-center justify-center">
+            <div className="w-9 h-9 bg-gradient-to-br from-rose-500 to-pink-500 rounded-xl flex items-center justify-center shadow-[0_4px_12px_-2px_rgba(244,63,94,0.40)]">
               <span className="text-xl">👗</span>
             </div>
-            <span className="text-xl font-bold text-stone-900 tracking-tight">Outfit</span>
+            <span className="text-xl font-bold tracking-tight text-gradient-brand">Outfit</span>
           </Link>
           <button onClick={close} className="p-2 rounded-lg hover:bg-stone-100 text-stone-500 transition-colors" aria-label="סגור תפריט">
             <X size={20} />
@@ -149,13 +149,13 @@ export function Sidebar() {
       </div>
 
       {/* Desktop fixed sidebar */}
-      <aside className="hidden md:flex fixed top-0 bottom-0 right-0 w-64 bg-[#fafaf9] border-s border-stone-100 flex-col z-40">
+      <aside className="hidden md:flex fixed top-0 bottom-0 right-0 w-64 bg-gradient-to-b from-white to-[#faf9f7] border-s border-stone-100 flex-col z-40">
         <div className="p-6 border-b border-stone-100">
           <Link href="/outfits" className="flex items-center gap-2.5">
-            <div className="w-9 h-9 bg-gradient-to-br from-rose-100 to-pink-100 rounded-xl flex items-center justify-center shadow-sm">
+            <div className="w-9 h-9 bg-gradient-to-br from-rose-500 to-pink-500 rounded-xl flex items-center justify-center shadow-[0_4px_12px_-2px_rgba(244,63,94,0.40)]">
               <span className="text-xl">👗</span>
             </div>
-            <span className="text-xl font-bold text-stone-900 tracking-tight">Outfit</span>
+            <span className="text-xl font-bold tracking-tight text-gradient-brand">Outfit</span>
           </Link>
         </div>
         <NavLinks pathname={pathname} />

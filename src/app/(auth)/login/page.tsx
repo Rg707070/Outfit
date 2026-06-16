@@ -28,17 +28,21 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-stone-50 to-stone-100 px-4">
-      <div className="w-full max-w-md animate-fade-in">
+    <div className="min-h-screen flex items-center justify-center bg-[#faf9f7] bg-fashion-dots px-4 relative overflow-hidden">
+      {/* Accent glow blobs */}
+      <div className="absolute -top-32 -start-32 w-96 h-96 bg-rose-200/30 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-32 -end-32 w-80 h-80 bg-pink-200/25 rounded-full blur-3xl pointer-events-none" />
+
+      <div className="w-full max-w-md animate-slide-up relative z-10">
         <div className="text-center mb-8">
-          <div className="bg-gradient-to-br from-rose-50 to-pink-50 p-4 rounded-2xl inline-block shadow-sm shadow-rose-100/50 mb-4">
+          <div className="bg-gradient-to-br from-rose-500 to-pink-500 p-4 rounded-2xl inline-block shadow-[0_8px_28px_-6px_rgba(244,63,94,0.45)] mb-5">
             <span className="text-5xl">👗</span>
           </div>
-          <h1 className="text-3xl font-bold text-stone-900 tracking-tight">Outfit</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-gradient-brand">Outfit</h1>
           <p className="text-stone-500 mt-2 text-sm">{t.auth.tagline}</p>
         </div>
 
-        <div className="bg-white rounded-2xl border border-stone-100 shadow-xl shadow-stone-200/50 p-8">
+        <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-rose-100/60 shadow-[0_8px_48px_-12px_rgba(28,15,10,0.14)] p-8">
           <h2 className="text-xl font-semibold text-stone-900 mb-6">{t.auth.signIn}</h2>
 
           <form onSubmit={handleLogin} className="space-y-4">
@@ -84,14 +88,14 @@ export default function LoginPage() {
               </div>
             )}
 
-            <Button type="submit" size="lg" disabled={loading} className="w-full">
+            <Button type="submit" variant="brand" size="lg" disabled={loading} className="w-full">
               {loading ? t.auth.signingIn : t.auth.signIn}
             </Button>
           </form>
 
           <p className="text-center text-sm text-stone-500 mt-6">
             {t.auth.noAccount}{' '}
-            <Link href="/signup" className="text-stone-900 font-semibold hover:underline underline-offset-2">
+            <Link href="/signup" className="font-semibold text-rose-500 hover:text-rose-600 transition-colors">
               {t.auth.signUpFree}
             </Link>
           </p>
