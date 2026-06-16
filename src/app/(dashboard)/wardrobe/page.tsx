@@ -63,8 +63,8 @@ export default function WardrobePage() {
   return (
     <div className="min-h-screen pb-24 md:pb-8">
 
-      {/* ── Sticky header — sticks BELOW the 56px mobile nav bar ── */}
-      <div className="sticky top-14 md:top-0 z-20 -mx-4 px-4 pt-3 pb-3 bg-[#fafaf9]/96 backdrop-blur-md border-b border-stone-100/80 md:static md:border-none md:bg-transparent md:backdrop-blur-none md:mx-0 md:px-0 md:pt-0 md:pb-0">
+      {/* ── Header — sticky below the 56px mobile nav, NO backdrop-blur/z-index to avoid sidebar stacking context issues ── */}
+      <div className="sticky top-14 md:static -mx-4 px-4 pt-3 pb-3 bg-[#fafaf9] border-b border-stone-100 md:border-none md:bg-transparent md:mx-0 md:px-0 md:pt-0 md:pb-0">
 
         {/* Title row */}
         <div className="flex items-center justify-between mb-3 md:mb-6">
