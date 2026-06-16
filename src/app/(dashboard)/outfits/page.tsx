@@ -70,16 +70,21 @@ export default function OutfitsPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t.outfits.title}</h1>
-          <p className="text-gray-500 text-sm mt-1">{t.outfits.saved(outfits.length)}</p>
+          <h1 className="text-2xl font-bold text-stone-900 tracking-tight">{t.outfits.title}</h1>
+          <p className="text-stone-500 text-sm mt-1">{t.outfits.saved(outfits.length)}</p>
         </div>
-        <Link href="/outfits/new"><Button><Plus size={16} />{t.outfits.create}</Button></Link>
+        <Link href="/outfits/new">
+          <Button>
+            <Plus size={16} />
+            {t.outfits.create}
+          </Button>
+        </Link>
       </div>
 
       <WeatherWidget />
 
       {/* Discover banner */}
-      <Link href="/outfits/discover" className="group mt-6 flex items-center gap-4 bg-gradient-to-r from-gray-900 to-gray-700 text-white rounded-2xl p-5 hover:from-black hover:to-gray-800 transition-all">
+      <Link href="/outfits/discover" className="group mt-6 flex items-center gap-4 bg-gradient-to-r from-stone-900 via-stone-800 to-stone-700 text-white rounded-2xl p-5 hover:from-stone-950 hover:via-stone-900 hover:to-stone-800 transition-all duration-300 shadow-lg shadow-stone-900/20">
         <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-white/20 transition-colors">
           <Zap size={22} className="text-white" />
         </div>
@@ -94,14 +99,16 @@ export default function OutfitsPage() {
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="bg-gray-100 rounded-2xl h-64 animate-pulse" />
+              <div key={i} className="bg-stone-100 rounded-2xl h-64 animate-shimmer" />
             ))}
           </div>
         ) : outfits.length === 0 ? (
-          <div className="text-center py-20">
-            <span className="text-5xl">✨</span>
-            <p className="text-gray-500 mt-4 text-lg font-medium">{t.outfits.noOutfits}</p>
-            <p className="text-gray-400 text-sm mt-1">{t.outfits.noOutfitsSub2}</p>
+          <div className="text-center py-20 animate-fade-in">
+            <div className="w-20 h-20 bg-gradient-to-br from-stone-100 to-stone-50 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
+              <span className="text-4xl">✨</span>
+            </div>
+            <p className="text-stone-600 mt-4 text-lg font-semibold">{t.outfits.noOutfits}</p>
+            <p className="text-stone-400 text-sm mt-1">{t.outfits.noOutfitsSub2}</p>
             <div className="flex items-center justify-center gap-3 mt-6">
               <Link href="/wardrobe"><Button variant="secondary"><Plus size={16} />{t.outfits.addToWardrobe}</Button></Link>
               <Link href="/outfits/new"><Button><Plus size={16} />{t.outfits.create}</Button></Link>
@@ -128,15 +135,15 @@ export default function OutfitsPage() {
         const outfit = outfits.find(o => o.id === deletingId)
         if (!outfit) return null
         return (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-xl shadow-stone-900/10 w-full max-w-sm p-6 animate-fade-in">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
                   <AlertTriangle size={18} className="text-red-600" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900">{t.outfits.deleteOutfit}</h3>
-                  <p className="text-sm text-gray-500">{t.outfits.deleteConfirmSub(outfit.name)}</p>
+                  <h3 className="font-semibold text-stone-900">{t.outfits.deleteOutfit}</h3>
+                  <p className="text-sm text-stone-500">{t.outfits.deleteConfirmSub(outfit.name)}</p>
                 </div>
               </div>
               <div className="flex gap-3">
@@ -166,8 +173,8 @@ function OutfitCard({
 }) {
   const { t } = useLang()
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
-      <div className="h-48 bg-gradient-to-br from-gray-50 to-gray-100 relative flex items-center justify-center">
+    <div className="bg-white rounded-2xl border border-stone-100 overflow-hidden shadow-sm hover:shadow-lg hover:shadow-stone-200/60 transition-all duration-300 hover:-translate-y-1">
+      <div className="h-48 bg-gradient-to-br from-stone-50 to-stone-100 relative flex items-center justify-center">
         {outfit.image_url ? (
           <img src={outfit.image_url} alt={outfit.name} className="w-full h-full object-cover" />
         ) : (
@@ -175,44 +182,44 @@ function OutfitCard({
         )}
         <div className="absolute top-3 left-3 flex gap-1.5">
           {outfit.is_public && (
-            <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">{t.outfits.public}</span>
+            <span className="text-xs bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full font-medium shadow-sm">{t.outfits.public}</span>
           )}
         </div>
         {/* Action buttons — always visible */}
         <div className="absolute top-3 right-3 flex gap-1.5">
           <button
             onClick={() => onToggleFavorite(outfit)}
-            className="p-1.5 bg-white rounded-full shadow-sm hover:scale-110 transition-transform"
+            className="p-1.5 bg-white/90 backdrop-blur-sm rounded-full shadow-sm hover:scale-110 transition-transform"
             title={outfit.is_favorite ? 'הסר ממועדפים' : 'הוסף למועדפים'}
           >
-            <Heart size={14} className={outfit.is_favorite ? 'fill-red-500 text-red-500' : 'text-gray-400'} />
+            <Heart size={14} className={outfit.is_favorite ? 'fill-rose-500 text-rose-500' : 'text-stone-400'} />
           </button>
           <button
             onClick={() => onShare(outfit)}
-            className="p-1.5 bg-white rounded-full shadow-sm hover:scale-110 transition-transform"
+            className="p-1.5 bg-white/90 backdrop-blur-sm rounded-full shadow-sm hover:scale-110 transition-transform"
             title="העתק קישור שיתוף"
           >
-            <Share2 size={14} className="text-gray-400" />
+            <Share2 size={14} className="text-stone-400" />
           </button>
           <button
             onClick={() => onDelete(outfit)}
-            className="p-1.5 bg-white rounded-full shadow-sm hover:scale-110 transition-transform hover:bg-red-50"
+            className="p-1.5 bg-white/90 backdrop-blur-sm rounded-full shadow-sm hover:scale-110 transition-transform hover:bg-red-50"
             title="מחק לוק"
           >
-            <Trash2 size={14} className="text-gray-400 hover:text-red-500" />
+            <Trash2 size={14} className="text-stone-400 hover:text-red-500" />
           </button>
         </div>
       </div>
 
       <div className="p-4">
-        <h3 className="font-semibold text-gray-900">{outfit.name}</h3>
-        {outfit.description && <p className="text-sm text-gray-500 mt-1 line-clamp-2">{outfit.description}</p>}
+        <h3 className="font-semibold text-stone-900">{outfit.name}</h3>
+        {outfit.description && <p className="text-sm text-stone-500 mt-1 line-clamp-2">{outfit.description}</p>}
         <div className="flex items-center gap-2 mt-3 flex-wrap">
           {outfit.occasion && (
-            <span className="text-xs bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full">{outfit.occasion}</span>
+            <span className="text-xs bg-stone-100 text-stone-600 px-2.5 py-1 rounded-full font-medium">{outfit.occasion}</span>
           )}
           {outfit.season && (
-            <span className="text-xs bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full capitalize">{outfit.season}</span>
+            <span className="text-xs bg-stone-100 text-stone-600 px-2.5 py-1 rounded-full capitalize font-medium">{outfit.season}</span>
           )}
         </div>
         <Button size="sm" variant="secondary" className="w-full mt-4" onClick={() => onScheduleToday(outfit)}>

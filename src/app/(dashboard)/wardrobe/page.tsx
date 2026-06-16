@@ -65,8 +65,8 @@ export default function WardrobePage() {
     <div>
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t.wardrobe.title}</h1>
-          <p className="text-gray-500 text-sm mt-1">{t.wardrobe.itemsTotal(items.length)}</p>
+          <h1 className="text-2xl font-bold text-stone-900 tracking-tight">{t.wardrobe.title}</h1>
+          <p className="text-stone-500 text-sm mt-1">{t.wardrobe.itemsTotal(items.length)}</p>
         </div>
         <Button onClick={() => setShowAdd(true)}>
           <Plus size={16} />
@@ -78,8 +78,10 @@ export default function WardrobePage() {
       <div className="flex gap-2 overflow-x-auto scrollbar-hide mb-6 pb-2">
         <button
           onClick={() => setActiveCategory('all')}
-          className={`flex-shrink-0 px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
-            activeCategory === 'all' ? 'bg-black text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+          className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+            activeCategory === 'all'
+              ? 'bg-stone-900 text-white shadow-sm'
+              : 'bg-white border border-stone-200 text-stone-600 hover:bg-stone-50 hover:border-stone-300'
           }`}
         >
           {t.wardrobe.all(items.length)}
@@ -88,14 +90,16 @@ export default function WardrobePage() {
           <button
             key={cat.value}
             onClick={() => setActiveCategory(cat.value as ClothingCategory)}
-            className={`flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
-              activeCategory === cat.value ? 'bg-black text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+            className={`flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+              activeCategory === cat.value
+                ? 'bg-stone-900 text-white shadow-sm'
+                : 'bg-white border border-stone-200 text-stone-600 hover:bg-stone-50 hover:border-stone-300'
             }`}
           >
             <span>{cat.emoji}</span>
             {t.categories[cat.value as keyof typeof t.categories] ?? cat.label}
             {counts[cat.value] > 0 && (
-              <span className={`text-xs rounded-full px-1.5 ${activeCategory === cat.value ? 'bg-white/20' : 'bg-gray-100'}`}>
+              <span className={`text-xs rounded-full px-1.5 ${activeCategory === cat.value ? 'bg-white/20' : 'bg-stone-100'}`}>
                 {counts[cat.value]}
               </span>
             )}
@@ -105,7 +109,7 @@ export default function WardrobePage() {
 
       {/* Search */}
       <div className="relative mb-6">
-        <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+        <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none" />
         <Input
           placeholder={t.wardrobe.search}
           value={search}
@@ -118,32 +122,36 @@ export default function WardrobePage() {
       {loading ? (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
           {Array.from({ length: 10 }).map((_, i) => (
-            <div key={i} className="aspect-square bg-gray-100 rounded-2xl animate-pulse" />
+            <div key={i} className="aspect-square bg-stone-100 rounded-2xl animate-shimmer" />
           ))}
         </div>
       ) : items.length === 0 ? (
-        <div className="text-center py-20">
-          <span className="text-5xl">👗</span>
-          <p className="text-gray-500 mt-4 text-lg font-medium">{t.wardrobe.noItems}</p>
-          <p className="text-gray-400 text-sm mt-1">{t.wardrobe.noItemsSub}</p>
+        <div className="text-center py-20 animate-fade-in">
+          <div className="w-20 h-20 bg-gradient-to-br from-stone-100 to-stone-50 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
+            <span className="text-4xl">👗</span>
+          </div>
+          <p className="text-stone-600 mt-4 text-lg font-semibold">{t.wardrobe.noItems}</p>
+          <p className="text-stone-400 text-sm mt-1">{t.wardrobe.noItemsSub}</p>
           <Button className="mt-6" onClick={() => setShowAdd(true)}>
             <Plus size={16} />
             {t.wardrobe.addFirstItem}
           </Button>
         </div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-16">
-          <span className="text-4xl">🔍</span>
-          <p className="text-gray-500 mt-3 font-medium">{t.wardrobe.noItems}</p>
-          <button onClick={() => { setSearch(''); setActiveCategory('all') }} className="text-sm text-gray-400 underline mt-2">
+        <div className="text-center py-16 animate-fade-in">
+          <div className="w-14 h-14 bg-stone-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
+            <span className="text-3xl">🔍</span>
+          </div>
+          <p className="text-stone-500 mt-3 font-medium">{t.wardrobe.noItems}</p>
+          <button onClick={() => { setSearch(''); setActiveCategory('all') }} className="text-sm text-stone-400 hover:text-stone-600 underline mt-2 transition-colors">
             {t.wardrobe.all(0)}
           </button>
         </div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
           {filtered.map(item => (
-            <div key={item.id} className="group relative bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
-              <div className="aspect-square bg-gray-50 relative">
+            <div key={item.id} className="group relative bg-white rounded-2xl border border-stone-100 overflow-hidden shadow-sm hover:shadow-lg hover:shadow-stone-200/60 transition-all duration-300 hover:-translate-y-1">
+              <div className="aspect-square bg-stone-50 relative">
                 {item.image_url ? (
                   <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
                 ) : (
@@ -154,38 +162,38 @@ export default function WardrobePage() {
                   </div>
                 )}
                 {/* Action buttons — always visible on mobile, hover on desktop */}
-                <div className="absolute top-2 right-2 flex flex-col gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                <div className="absolute top-2 right-2 flex flex-col gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200">
                   <button
                     onClick={() => toggleFavorite(item)}
-                    className="p-1.5 bg-white rounded-full shadow-sm hover:scale-110 transition-transform"
+                    className="p-1.5 bg-white/90 backdrop-blur-sm rounded-full shadow-sm hover:scale-110 transition-transform"
                     title={item.is_favorite ? 'Remove from favorites' : 'Add to favorites'}
                   >
-                    <Heart size={12} className={item.is_favorite ? 'fill-red-500 text-red-500' : 'text-gray-400'} />
+                    <Heart size={12} className={item.is_favorite ? 'fill-rose-500 text-rose-500' : 'text-stone-400'} />
                   </button>
                   <button
                     onClick={() => setDeletingId(item.id)}
-                    className="p-1.5 bg-white rounded-full shadow-sm hover:bg-red-50 hover:scale-110 transition-all"
+                    className="p-1.5 bg-white/90 backdrop-blur-sm rounded-full shadow-sm hover:bg-red-50 hover:scale-110 transition-all"
                     title="Remove item"
                   >
-                    <Trash2 size={12} className="text-gray-400 hover:text-red-500" />
+                    <Trash2 size={12} className="text-stone-400 hover:text-red-500" />
                   </button>
                 </div>
                 {item.is_favorite && (
                   <div className="absolute top-2 left-2">
-                    <Heart size={14} className="fill-red-500 text-red-500" />
+                    <Heart size={14} className="fill-rose-500 text-rose-500 drop-shadow-sm" />
                   </div>
                 )}
               </div>
               <div className="p-3">
-                <p className="text-sm font-medium text-gray-900 truncate">{item.name}</p>
-                {item.brand && <p className="text-xs text-gray-400 truncate">{item.brand}</p>}
+                <p className="text-sm font-medium text-stone-900 truncate">{item.name}</p>
+                {item.brand && <p className="text-xs text-stone-400 truncate">{item.brand}</p>}
                 {item.color && (
                   <div className="flex items-center gap-1 mt-1.5">
                     <div
-                      className="w-3 h-3 rounded-full border border-gray-200 flex-shrink-0"
+                      className="w-3 h-3 rounded-full border border-stone-200 flex-shrink-0 shadow-sm"
                       style={{ backgroundColor: item.color }}
                     />
-                    <span className="text-xs text-gray-400 truncate">{item.color}</span>
+                    <span className="text-xs text-stone-400 truncate">{item.color}</span>
                   </div>
                 )}
               </div>
@@ -204,15 +212,15 @@ export default function WardrobePage() {
 
       {/* Delete confirmation */}
       {deletingItem && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl shadow-stone-900/10 w-full max-w-sm p-6 animate-fade-in">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
                 <AlertTriangle size={18} className="text-red-600" />
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900">{t.wardrobe.addItem}</h3>
-                <p className="text-sm text-gray-500">"{deletingItem.name}"</p>
+                <h3 className="font-semibold text-stone-900">{t.wardrobe.addItem}</h3>
+                <p className="text-sm text-stone-500">"{deletingItem.name}"</p>
               </div>
             </div>
             <div className="flex gap-3">
@@ -313,18 +321,18 @@ function AddItemModal({ onClose, onAdded }: { onClose: () => void; onAdded: () =
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl w-full max-w-md shadow-xl max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-6 border-b border-gray-100 sticky top-0 bg-white rounded-t-2xl">
-          <h2 className="text-lg font-semibold">{t.wardrobe.modalTitle}</h2>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors">✕</button>
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl w-full max-w-md shadow-xl shadow-stone-900/10 max-h-[90vh] overflow-y-auto animate-fade-in">
+        <div className="flex items-center justify-between p-6 border-b border-stone-100 sticky top-0 bg-white rounded-t-2xl">
+          <h2 className="text-lg font-semibold text-stone-900">{t.wardrobe.modalTitle}</h2>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-stone-100 text-stone-400 hover:text-stone-600 transition-colors">✕</button>
         </div>
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {/* Image upload */}
           <label className="block">
             <div
               className={`border-2 border-dashed rounded-2xl flex items-center justify-center cursor-pointer transition-colors relative overflow-hidden ${
-                imagePreview ? 'border-transparent' : 'border-gray-200 hover:border-gray-300 h-40'
+                imagePreview ? 'border-transparent' : 'border-stone-200 hover:border-stone-300 h-40'
               }`}
               style={imagePreview ? {
                 backgroundImage: 'linear-gradient(45deg,#f3f4f6 25%,transparent 25%),linear-gradient(-45deg,#f3f4f6 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#f3f4f6 75%),linear-gradient(-45deg,transparent 75%,#f3f4f6 75%)',
@@ -336,15 +344,15 @@ function AddItemModal({ onClose, onAdded }: { onClose: () => void; onAdded: () =
                 <img src={imagePreview} alt="Preview" className="w-full h-40 object-contain" />
               ) : (
                 <div className="text-center">
-                  <Upload size={24} className="mx-auto text-gray-400 mb-2" />
-                  <p className="text-sm text-gray-500 font-medium">{t.wardrobe.uploadPhoto}</p>
-                  <p className="text-xs text-gray-400 mt-1">JPG, PNG, WEBP accepted</p>
+                  <Upload size={24} className="mx-auto text-stone-400 mb-2" />
+                  <p className="text-sm text-stone-500 font-medium">{t.wardrobe.uploadPhoto}</p>
+                  <p className="text-xs text-stone-400 mt-1">JPG, PNG, WEBP accepted</p>
                 </div>
               )}
               {processing && (
                 <div className="absolute inset-0 bg-white/80 flex flex-col items-center justify-center">
-                  <div className="w-6 h-6 border-2 border-black border-t-transparent rounded-full animate-spin" />
-                  <p className="text-xs text-gray-600 mt-2">{processMsg || t.wardrobe.removingBg}</p>
+                  <div className="w-6 h-6 border-2 border-stone-900 border-t-transparent rounded-full animate-spin" />
+                  <p className="text-xs text-stone-600 mt-2">{processMsg || t.wardrobe.removingBg}</p>
                 </div>
               )}
             </div>
@@ -357,28 +365,28 @@ function AddItemModal({ onClose, onAdded }: { onClose: () => void; onAdded: () =
               type="button"
               onClick={toggleRemoveBg}
               disabled={processing}
-              className={`w-10 h-6 rounded-full transition-colors flex-shrink-0 disabled:opacity-50 ${removeBgEnabled ? 'bg-black' : 'bg-gray-200'}`}
+              className={`w-10 h-6 rounded-full transition-colors flex-shrink-0 disabled:opacity-50 ${removeBgEnabled ? 'bg-stone-900' : 'bg-stone-200'}`}
             >
               <div className={`w-4 h-4 bg-white rounded-full shadow transition-transform mx-1 ${removeBgEnabled ? 'translate-x-4' : 'translate-x-0'}`} />
             </button>
-            <span className="text-sm text-gray-700">✂️ Remove background automatically</span>
+            <span className="text-sm text-stone-700">✂️ Remove background automatically</span>
           </label>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            <label className="block text-sm font-medium text-stone-700 mb-1.5">
               Name <span className="text-red-500">*</span>
             </label>
             <Input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. White linen shirt" required />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            <label className="block text-sm font-medium text-stone-700 mb-1.5">
               Category <span className="text-red-500">*</span>
             </label>
             <select
               value={category}
               onChange={e => setCategory(e.target.value as ClothingCategory)}
-              className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black"
+              className="w-full rounded-xl border border-stone-200 bg-stone-50/50 px-4 py-2.5 text-sm text-stone-900 focus:outline-none focus:ring-2 focus:ring-stone-900/20 focus:border-stone-400 hover:border-stone-300 transition-all duration-200"
             >
               {CLOTHING_CATEGORIES.map(c => (
                 <option key={c.value} value={c.value}>{c.emoji} {c.label}</option>
@@ -387,18 +395,18 @@ function AddItemModal({ onClose, onAdded }: { onClose: () => void; onAdded: () =
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Brand</label>
+            <label className="block text-sm font-medium text-stone-700 mb-1.5">Brand</label>
             <Input value={brand} onChange={e => setBrand(e.target.value)} placeholder="e.g. Zara, H&M…" />
           </div>
 
           {/* Color picker */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <label className="text-sm font-medium text-gray-700">Color</label>
+              <label className="text-sm font-medium text-stone-700">Color</label>
               <button
                 type="button"
                 onClick={() => setHasColor(!hasColor)}
-                className="text-xs text-gray-400 hover:text-gray-600"
+                className="text-xs text-stone-400 hover:text-stone-600 transition-colors"
               >
                 {hasColor ? 'Remove color' : '+ Add color'}
               </button>
@@ -409,9 +417,9 @@ function AddItemModal({ onClose, onAdded }: { onClose: () => void; onAdded: () =
                   type="color"
                   value={color}
                   onChange={e => setColor(e.target.value)}
-                  className="w-10 h-10 rounded-lg border border-gray-200 cursor-pointer p-0.5 bg-white"
+                  className="w-10 h-10 rounded-lg border border-stone-200 cursor-pointer p-0.5 bg-white"
                 />
-                <span className="text-sm text-gray-600 font-mono">{color}</span>
+                <span className="text-sm text-stone-600 font-mono">{color}</span>
               </div>
             )}
           </div>
