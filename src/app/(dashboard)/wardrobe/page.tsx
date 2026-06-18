@@ -1,12 +1,13 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { WardrobeItem, ClothingCategory } from '@/types/database'
 import { CLOTHING_CATEGORIES } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
 import { useToast } from '@/components/ui/toast'
-import { Plus, Search, Heart, Upload, Trash2, X } from 'lucide-react'
+import { Plus, Search, Heart, Upload, Camera, ImageIcon, Trash2, X } from 'lucide-react'
 import { useLang } from '@/lib/lang-context'
+import { useUploadThing } from '@/lib/uploadthing-client'
 
 export default function WardrobePage() {
   const [items, setItems] = useState<WardrobeItem[]>([])
@@ -353,7 +354,10 @@ function AddItemSheet({
   const [processing, setProcessing] = useState(false)
   const [processMsg, setProcessMsg] = useState('')
   const [originalFile, setOriginalFile] = useState<File | null>(null)
+  const galleryInputRef = useRef<HTMLInputElement>(null)
+  const cameraInputRef = useRef<HTMLInputElement>(null)
   const supabase = createClient()
+  const { startUpload, isUploading } = useUploadThing('wardrobeImage')
 
   function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -397,15 +401,11 @@ function AddItemSheet({
 
     let image_url: string | null = null
     if (imageFile) {
-      const ext = imageFile.type === 'image/png' ? 'png' : (originalFile?.name.split('.').pop() ?? 'jpg')
-      const path = `${user.id}/${Date.now()}.${ext}`
-      const { error } = await supabase.storage.from('wardrobe').upload(path, imageFile, {
-        contentType: imageFile.type || 'image/jpeg',
-      })
-      if (!error) {
-        const { data } = supabase.storage.from('wardrobe').getPublicUrl(path)
-        image_url = data.publicUrl
-      }
+      const file = imageFile instanceof File
+        ? imageFile
+        : new File([imageFile], `image.${imageFile.type === 'image/png' ? 'png' : 'jpg'}`, { type: imageFile.type || 'image/jpeg' })
+      const res = await startUpload([file])
+      if (res?.[0]?.url) image_url = res[0].url
     }
 
     const finalCategory = showCustomInput && customCategory.trim() ? customCategory.trim() : category
@@ -449,10 +449,10 @@ function AddItemSheet({
           <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-5 space-y-4">
 
             {/* Image upload */}
-            <label className="block cursor-pointer">
+            <div>
               <div
                 className={`rounded-2xl flex items-center justify-center transition-colors relative overflow-hidden ${
-                  imagePreview ? 'border-0' : 'border-2 border-dashed border-stone-200 hover:border-stone-300 h-44'
+                  imagePreview ? 'border-0' : 'border-2 border-dashed border-stone-200 h-44'
                 }`}
                 style={imagePreview ? {
                   backgroundImage: 'linear-gradient(45deg,#f3f4f6 25%,transparent 25%),linear-gradient(-45deg,#f3f4f6 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#f3f4f6 75%),linear-gradient(-45deg,transparent 75%,#f3f4f6 75%)',
@@ -478,8 +478,33 @@ function AddItemSheet({
                   </div>
                 )}
               </div>
-              <input type="file" accept="image/*" onChange={handleFile} className="sr-only" disabled={processing} />
-            </label>
+
+              {/* Camera / Gallery buttons */}
+              <div className="flex gap-2 mt-2">
+                <button
+                  type="button"
+                  disabled={processing}
+                  onClick={() => cameraInputRef.current?.click()}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl border border-stone-200 text-stone-600 text-xs font-medium hover:bg-stone-50 active:scale-[0.98] transition-all disabled:opacity-40"
+                >
+                  <Camera size={14} />
+                  מצלמה
+                </button>
+                <button
+                  type="button"
+                  disabled={processing}
+                  onClick={() => galleryInputRef.current?.click()}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl border border-stone-200 text-stone-600 text-xs font-medium hover:bg-stone-50 active:scale-[0.98] transition-all disabled:opacity-40"
+                >
+                  <ImageIcon size={14} />
+                  גלריה
+                </button>
+              </div>
+
+              {/* Hidden inputs */}
+              <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" onChange={handleFile} className="sr-only" disabled={processing} />
+              <input ref={galleryInputRef} type="file" accept="image/*" onChange={handleFile} className="sr-only" disabled={processing} />
+            </div>
 
             {/* Remove background toggle */}
             <label className="flex items-center gap-3 cursor-pointer">
@@ -602,7 +627,7 @@ function AddItemSheet({
               </button>
               <button
                 type="submit"
-                disabled={loading || processing || !name}
+                disabled={loading || processing || isUploading || !name}
                 className="flex-1 py-3 rounded-xl bg-stone-900 text-white text-sm font-medium shadow-sm disabled:opacity-50 active:scale-[0.98] transition-all"
               >
                 {loading ? t.wardrobe.adding : t.wardrobe.addItemBtn}
