@@ -7,7 +7,6 @@ import { Input } from '@/components/ui/input'
 import { useToast } from '@/components/ui/toast'
 import { Plus, Search, Heart, Upload, Camera, ImageIcon, Trash2, X } from 'lucide-react'
 import { useLang } from '@/lib/lang-context'
-import { useUploadThing } from '@/lib/uploadthing-client'
 
 export default function WardrobePage() {
   const [items, setItems] = useState<WardrobeItem[]>([])
@@ -349,15 +348,16 @@ function AddItemSheet({
   const [hasColor, setHasColor] = useState(false)
   const [imageFile, setImageFile] = useState<File | Blob | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [unsplashUrl, setUnsplashUrl] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [removeBgEnabled, setRemoveBgEnabled] = useState(true)
   const [processing, setProcessing] = useState(false)
   const [processMsg, setProcessMsg] = useState('')
   const [originalFile, setOriginalFile] = useState<File | null>(null)
+  const [showUnsplash, setShowUnsplash] = useState(false)
   const galleryInputRef = useRef<HTMLInputElement>(null)
   const cameraInputRef = useRef<HTMLInputElement>(null)
   const supabase = createClient()
-  const { startUpload, isUploading } = useUploadThing('wardrobeImage')
 
   function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -399,13 +399,17 @@ function AddItemSheet({
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    let image_url: string | null = null
-    if (imageFile) {
-      const file = imageFile instanceof File
-        ? imageFile
-        : new File([imageFile], `image.${imageFile.type === 'image/png' ? 'png' : 'jpg'}`, { type: imageFile.type || 'image/jpeg' })
-      const res = await startUpload([file])
-      if (res?.[0]?.url) image_url = res[0].url
+    let image_url: string | null = unsplashUrl
+    if (!image_url && imageFile) {
+      const ext = imageFile.type === 'image/png' ? 'png' : (originalFile?.name.split('.').pop() ?? 'jpg')
+      const path = `${user.id}/${Date.now()}.${ext}`
+      const { error } = await supabase.storage.from('wardrobe').upload(path, imageFile, {
+        contentType: imageFile.type || 'image/jpeg',
+      })
+      if (!error) {
+        const { data } = supabase.storage.from('wardrobe').getPublicUrl(path)
+        image_url = data.publicUrl
+      }
     }
 
     const finalCategory = showCustomInput && customCategory.trim() ? customCategory.trim() : category
@@ -479,7 +483,7 @@ function AddItemSheet({
                 )}
               </div>
 
-              {/* Camera / Gallery buttons */}
+              {/* Camera / Gallery / Unsplash buttons */}
               <div className="flex gap-2 mt-2">
                 <button
                   type="button"
@@ -498,6 +502,15 @@ function AddItemSheet({
                 >
                   <ImageIcon size={14} />
                   גלריה
+                </button>
+                <button
+                  type="button"
+                  disabled={processing}
+                  onClick={() => setShowUnsplash(true)}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl border border-stone-200 text-stone-600 text-xs font-medium hover:bg-stone-50 active:scale-[0.98] transition-all disabled:opacity-40"
+                >
+                  <Search size={14} />
+                  Unsplash
                 </button>
               </div>
 
@@ -627,7 +640,7 @@ function AddItemSheet({
               </button>
               <button
                 type="submit"
-                disabled={loading || processing || isUploading || !name}
+                disabled={loading || processing || !name}
                 className="flex-1 py-3 rounded-xl bg-stone-900 text-white text-sm font-medium shadow-sm disabled:opacity-50 active:scale-[0.98] transition-all"
               >
                 {loading ? t.wardrobe.adding : t.wardrobe.addItemBtn}
@@ -636,7 +649,108 @@ function AddItemSheet({
           </form>
         </div>
       </div>
+
+      {/* Unsplash picker */}
+      {showUnsplash && (
+        <UnsplashPicker
+          onSelect={(url) => {
+            setUnsplashUrl(url)
+            setImagePreview(url)
+            setImageFile(null)
+            setShowUnsplash(false)
+          }}
+          onClose={() => setShowUnsplash(false)}
+        />
+      )}
     </>
+  )
+}
+
+/* ─────────────────────────────────────────
+   Unsplash Picker
+───────────────────────────────────────── */
+function UnsplashPicker({
+  onSelect, onClose
+}: {
+  onSelect: (url: string) => void
+  onClose: () => void
+}) {
+  const [query, setQuery] = useState('')
+  const [results, setResults] = useState<{ id: string; thumb: string; full: string; alt: string }[]>([])
+  const [searching, setSearching] = useState(false)
+  const [error, setError] = useState('')
+
+  async function search() {
+    if (!query.trim()) return
+    setSearching(true)
+    setError('')
+    try {
+      const res = await fetch(
+        `/api/unsplash?q=${encodeURIComponent(query)}`
+      )
+      if (!res.ok) throw new Error()
+      const data = await res.json()
+      setResults(data)
+    } catch {
+      setError('שגיאה בחיפוש. בדוק את מפתח ה-API.')
+    } finally {
+      setSearching(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-60 flex items-end md:items-center justify-center">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative bg-white rounded-t-3xl md:rounded-2xl w-full md:max-w-lg shadow-2xl max-h-[85dvh] flex flex-col z-10 animate-sheet-up">
+        {/* Header */}
+        <div className="flex items-center gap-3 px-4 pt-4 pb-3 border-b border-stone-100 flex-shrink-0">
+          <div className="flex-1 relative">
+            <Search size={14} className="absolute start-3 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none" />
+            <input
+              autoFocus
+              type="text"
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && search()}
+              placeholder="חפש תמונה... (באנגלית)"
+              className="w-full ps-8 pe-3 py-2 text-sm rounded-xl border border-stone-200 bg-stone-50 focus:outline-none focus:ring-2 focus:ring-stone-900/10 focus:border-stone-400 placeholder:text-stone-400"
+            />
+          </div>
+          <button
+            onClick={search}
+            disabled={searching}
+            className="px-4 py-2 bg-stone-900 text-white text-sm rounded-xl font-medium disabled:opacity-50 active:scale-95 transition-all"
+          >
+            {searching ? '...' : 'חפש'}
+          </button>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full bg-stone-100 text-stone-500">
+            <X size={15} />
+          </button>
+        </div>
+
+        {/* Results */}
+        <div className="flex-1 overflow-y-auto p-3">
+          {error && <p className="text-xs text-red-500 text-center py-4">{error}</p>}
+          {results.length === 0 && !searching && !error && (
+            <p className="text-xs text-stone-400 text-center py-8">חפש בגדים, נעליים, תיקים...</p>
+          )}
+          <div className="grid grid-cols-3 gap-2">
+            {results.map(img => (
+              <button
+                key={img.id}
+                type="button"
+                onClick={() => onSelect(img.full)}
+                className="aspect-square rounded-xl overflow-hidden hover:ring-2 hover:ring-stone-900 active:scale-95 transition-all"
+              >
+                <img src={img.thumb} alt={img.alt} className="w-full h-full object-cover" />
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <p className="text-center text-xs text-stone-300 pb-3 flex-shrink-0">Photos by Unsplash</p>
+      </div>
+    </div>
   )
 }
 
