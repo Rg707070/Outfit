@@ -12,7 +12,7 @@ export default function WardrobePage() {
   const [items, setItems] = useState<WardrobeItem[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
-  const [activeCategory, setActiveCategory] = useState<ClothingCategory | 'all'>('all')
+  const [activeCategory, setActiveCategory] = useState<string>('all')
   const [showAdd, setShowAdd] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const { toast } = useToast()
@@ -53,10 +53,13 @@ export default function WardrobePage() {
     return matchesSearch && matchesCategory
   })
 
-  const counts = CLOTHING_CATEGORIES.reduce((acc, cat) => {
-    acc[cat.value] = items.filter(i => i.category === cat.value).length
+  const counts = items.reduce((acc, item) => {
+    acc[item.category] = (acc[item.category] ?? 0) + 1
     return acc
   }, {} as Record<string, number>)
+
+  const knownCategoryValues = new Set(CLOTHING_CATEGORIES.map(c => c.value))
+  const customCategories = [...new Set(items.map(i => i.category).filter(c => !knownCategoryValues.has(c)))]
 
   const deletingItem = deletingId ? items.find(i => i.id === deletingId) : null
 
@@ -126,7 +129,7 @@ export default function WardrobePage() {
           {CLOTHING_CATEGORIES.map(cat => (
             <button
               key={cat.value}
-              onClick={() => setActiveCategory(cat.value as ClothingCategory)}
+              onClick={() => setActiveCategory(cat.value)}
               className={`flex-shrink-0 flex items-center gap-1 px-3 py-1.5 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-medium transition-all duration-200 ${
                 activeCategory === cat.value
                   ? 'bg-stone-900 text-white shadow-sm'
@@ -142,6 +145,27 @@ export default function WardrobePage() {
                   activeCategory === cat.value ? 'bg-white/20' : 'bg-stone-100'
                 }`}>
                   {counts[cat.value]}
+                </span>
+              )}
+            </button>
+          ))}
+
+          {customCategories.map(cat => (
+            <button
+              key={cat}
+              onClick={() => setActiveCategory(cat)}
+              className={`flex-shrink-0 flex items-center gap-1 px-3 py-1.5 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-medium transition-all duration-200 ${
+                activeCategory === cat
+                  ? 'bg-stone-900 text-white shadow-sm'
+                  : 'bg-white border border-stone-200 text-stone-600 hover:bg-stone-50'
+              }`}
+            >
+              <span style={{ direction: 'rtl' }}>{cat}</span>
+              {counts[cat] > 0 && (
+                <span className={`text-xs rounded-full px-1.5 min-w-[20px] text-center ${
+                  activeCategory === cat ? 'bg-white/20' : 'bg-stone-100'
+                }`}>
+                  {counts[cat]}
                 </span>
               )}
             </button>
@@ -316,7 +340,9 @@ function AddItemSheet({
   t: ReturnType<typeof useLang>['t']
 }) {
   const [name, setName] = useState('')
-  const [category, setCategory] = useState<ClothingCategory>('tops')
+  const [category, setCategory] = useState<string>('tops')
+  const [customCategory, setCustomCategory] = useState('')
+  const [showCustomInput, setShowCustomInput] = useState(false)
   const [brand, setBrand] = useState('')
   const [color, setColor] = useState('#000000')
   const [hasColor, setHasColor] = useState(false)
@@ -382,10 +408,12 @@ function AddItemSheet({
       }
     }
 
+    const finalCategory = showCustomInput && customCategory.trim() ? customCategory.trim() : category
+
     await supabase.from('wardrobe_items').insert({
       user_id: user.id,
       name,
-      category,
+      category: finalCategory,
       brand: brand || null,
       color: hasColor ? color : null,
       image_url,
@@ -489,9 +517,9 @@ function AddItemSheet({
                   <button
                     key={cat.value}
                     type="button"
-                    onClick={() => setCategory(cat.value as ClothingCategory)}
+                    onClick={() => { setCategory(cat.value); setShowCustomInput(false) }}
                     className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-150 ${
-                      category === cat.value
+                      !showCustomInput && category === cat.value
                         ? 'bg-stone-900 text-white shadow-sm'
                         : 'bg-stone-100 text-stone-600 hover:bg-stone-200 active:scale-95'
                     }`}
@@ -500,7 +528,28 @@ function AddItemSheet({
                     {t.categories[cat.value as keyof typeof t.categories] ?? cat.label}
                   </button>
                 ))}
+                <button
+                  type="button"
+                  onClick={() => { setShowCustomInput(true); setCategory('') }}
+                  className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-150 ${
+                    showCustomInput
+                      ? 'bg-stone-900 text-white shadow-sm'
+                      : 'bg-stone-100 text-stone-600 hover:bg-stone-200 active:scale-95'
+                  }`}
+                >
+                  ✏️ תחום חדש
+                </button>
               </div>
+              {showCustomInput && (
+                <input
+                  type="text"
+                  value={customCategory}
+                  onChange={e => setCustomCategory(e.target.value)}
+                  placeholder="שם התחום החדש..."
+                  className="mt-2 w-full px-3 py-2 text-sm rounded-xl border border-stone-200 bg-white focus:outline-none focus:ring-2 focus:ring-stone-900/10 focus:border-stone-400 placeholder:text-stone-400"
+                  autoFocus
+                />
+              )}
             </div>
 
             {/* Brand */}
