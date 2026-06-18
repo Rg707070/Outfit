@@ -20,7 +20,7 @@ export default async function SharePage({ params }: { params: Promise<{ token: s
 
   const { data: outfitItems } = await supabase
     .from('outfit_items')
-    .select('*, wardrobe_items(*)')
+    .select('*, wardrobe_items(*), catalog_items(*)')
     .eq('outfit_id', outfit.id)
 
   const { data: profile } = await supabase
@@ -29,8 +29,9 @@ export default async function SharePage({ params }: { params: Promise<{ token: s
     .eq('id', outfit.user_id)
     .maybeSingle()
 
+  // A look item references either a wardrobe item or a catalog item.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const items = (outfitItems ?? []).map((oi: any) => oi.wardrobe_items).filter(Boolean)
+  const items = (outfitItems ?? []).map((oi: any) => oi.wardrobe_items ?? oi.catalog_items).filter(Boolean)
 
   return (
     <div className="min-h-screen bg-gray-50">
