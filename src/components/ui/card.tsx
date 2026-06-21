@@ -4,7 +4,7 @@ import { HTMLAttributes } from 'react'
 export function Card({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn('bg-white rounded-2xl border border-gray-100 shadow-sm', className)}
+      className={cn('bg-white rounded-2xl border border-stone-100 shadow-sm hover:shadow-md hover:shadow-stone-200/50 transition-all duration-300', className)}
       {...props}
     />
   )
@@ -19,5 +19,5 @@ export function CardContent({ className, ...props }: HTMLAttributes<HTMLDivEleme
 }
 
 export function CardTitle({ className, ...props }: HTMLAttributes<HTMLHeadingElement>) {
-  return <h3 className={cn('text-lg font-semibold text-gray-900', className)} {...props} />
+  return <h3 className={cn('text-lg font-semibold text-stone-900', className)} {...props} />
 }
