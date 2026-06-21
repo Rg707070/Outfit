@@ -28,22 +28,20 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-stone-50 to-stone-100 px-4">
-      <div className="w-full max-w-md animate-fade-in">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+      <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="bg-gradient-to-br from-rose-50 to-pink-50 p-4 rounded-2xl inline-block shadow-sm shadow-rose-100/50 mb-4">
-            <span className="text-5xl">👗</span>
-          </div>
-          <h1 className="text-3xl font-bold text-stone-900 tracking-tight">Outfit</h1>
-          <p className="text-stone-500 mt-2 text-sm">{t.auth.tagline}</p>
+          <span className="text-5xl">👗</span>
+          <h1 className="text-3xl font-bold text-gray-900 mt-4">Outfit</h1>
+          <p className="text-gray-500 mt-2">{t.auth.tagline}</p>
         </div>
 
-        <div className="bg-white rounded-2xl border border-stone-100 shadow-xl shadow-stone-200/50 p-8">
-          <h2 className="text-xl font-semibold text-stone-900 mb-6">{t.auth.signIn}</h2>
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
+          <h2 className="text-xl font-semibold text-gray-900 mb-6">{t.auth.signIn}</h2>
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-stone-700 mb-1.5">{t.auth.email}</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">{t.auth.email}</label>
               <Input
                 type="email"
                 placeholder="you@example.com"
@@ -55,7 +53,7 @@ export default function LoginPage() {
             </div>
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="text-sm font-medium text-stone-700">{t.auth.password}</label>
+                <label className="text-sm font-medium text-gray-700">{t.auth.password}</label>
               </div>
               <div className="relative">
                 <Input
@@ -70,7 +68,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 transition-colors"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                   tabIndex={-1}
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -89,9 +87,9 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          <p className="text-center text-sm text-stone-500 mt-6">
+          <p className="text-center text-sm text-gray-500 mt-6">
             {t.auth.noAccount}{' '}
-            <Link href="/signup" className="text-stone-900 font-semibold hover:underline underline-offset-2">
+            <Link href="/signup" className="text-black font-medium hover:underline">
               {t.auth.signUpFree}
             </Link>
           </p>

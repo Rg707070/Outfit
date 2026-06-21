@@ -367,5 +367,5 @@ const t = {
   },
 } as const
 
-export type Translations = typeof t.he | typeof t.en
+export type Translations = typeof t.he
 export { t as translations }

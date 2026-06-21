@@ -38,22 +38,20 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-stone-50 to-stone-100 px-4">
-      <div className="w-full max-w-md animate-fade-in">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+      <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="bg-gradient-to-br from-rose-50 to-pink-50 p-4 rounded-2xl inline-block shadow-sm shadow-rose-100/50 mb-4">
-            <span className="text-5xl">👗</span>
-          </div>
-          <h1 className="text-3xl font-bold text-stone-900 tracking-tight">Outfit</h1>
-          <p className="text-stone-500 mt-2 text-sm">{t.auth.signupTagline}</p>
+          <span className="text-5xl">👗</span>
+          <h1 className="text-3xl font-bold text-gray-900 mt-4">Outfit</h1>
+          <p className="text-gray-500 mt-2">{t.auth.signupTagline}</p>
         </div>
 
-        <div className="bg-white rounded-2xl border border-stone-100 shadow-xl shadow-stone-200/50 p-8">
-          <h2 className="text-xl font-semibold text-stone-900 mb-6">{t.auth.createAccount}</h2>
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
+          <h2 className="text-xl font-semibold text-gray-900 mb-6">{t.auth.createAccount}</h2>
 
           <form onSubmit={handleSignup} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-stone-700 mb-1.5">{t.auth.fullName}</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">{t.auth.fullName}</label>
               <Input
                 type="text"
                 placeholder={t.auth.namePlaceholder}
@@ -64,7 +62,7 @@ export default function SignupPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-stone-700 mb-1.5">{t.auth.email}</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">{t.auth.email}</label>
               <Input
                 type="email"
                 placeholder="you@example.com"
@@ -75,7 +73,7 @@ export default function SignupPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-stone-700 mb-1.5">{t.auth.password}</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">{t.auth.password}</label>
               <div className="relative">
                 <Input
                   type={showPassword ? 'text' : 'password'}
@@ -90,7 +88,7 @@ export default function SignupPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 transition-colors"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                   tabIndex={-1}
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -106,8 +104,8 @@ export default function SignupPage() {
                         className={`h-1 flex-1 rounded-full transition-colors ${
                           passwordStrength === 'weak' && i === 0 ? 'bg-red-400' :
                           passwordStrength === 'medium' && i <= 1 ? 'bg-yellow-400' :
-                          passwordStrength === 'strong' ? 'bg-emerald-500' :
-                          'bg-stone-100'
+                          passwordStrength === 'strong' ? 'bg-green-500' :
+                          'bg-gray-100'
                         }`}
                       />
                     ))}
@@ -115,7 +113,7 @@ export default function SignupPage() {
                   <p className={`text-xs ${
                     passwordStrength === 'weak' ? 'text-red-500' :
                     passwordStrength === 'medium' ? 'text-yellow-600' :
-                    'text-emerald-600'
+                    'text-green-600'
                   }`}>
                     {passwordStrength === 'weak' ? 'סיסמה חלשה' :
                      passwordStrength === 'medium' ? 'סיסמה בינונית' :
@@ -137,20 +135,18 @@ export default function SignupPage() {
           </form>
 
           {/* Benefits */}
-          <div className="mt-6 pt-6 border-t border-stone-100 space-y-2">
+          <div className="mt-6 pt-6 border-t border-gray-100 space-y-2">
             {['ארון בגדים דיגיטלי מלא', 'בניית לוקים בקלות', 'תובנות סגנון אישי'].map(benefit => (
-              <div key={benefit} className="flex items-center gap-2 text-sm text-stone-500">
-                <div className="w-4 h-4 rounded-full bg-emerald-50 flex items-center justify-center flex-shrink-0">
-                  <Check size={10} className="text-emerald-500" />
-                </div>
+              <div key={benefit} className="flex items-center gap-2 text-sm text-gray-500">
+                <Check size={14} className="text-green-500 flex-shrink-0" />
                 {benefit}
               </div>
             ))}
           </div>
 
-          <p className="text-center text-sm text-stone-500 mt-6">
+          <p className="text-center text-sm text-gray-500 mt-6">
             {t.auth.alreadyAccount}{' '}
-            <Link href="/login" className="text-stone-900 font-semibold hover:underline underline-offset-2">
+            <Link href="/login" className="text-black font-medium hover:underline">
               {t.auth.signIn}
             </Link>
           </p>
