@@ -5,14 +5,19 @@ import { Outfit } from '@/types/database'
 import { Button } from '@/components/ui/button'
 import { WeatherWidget } from '@/components/weather/weather-widget'
 import { useToast } from '@/components/ui/toast'
-import { Plus, Heart, Share2, Calendar, Trash2, AlertTriangle, Zap } from 'lucide-react'
+import { Plus, Heart, Share2, Calendar, Trash2, AlertTriangle, Zap, User } from 'lucide-react'
 import Link from 'next/link'
 import { useLang } from '@/lib/lang-context'
+import { MannequinView } from '@/components/outfit/mannequin-view'
+import { createClient as createClientForItems } from '@/lib/supabase/client'
+import { WardrobeItem } from '@/types/database'
 
 export default function OutfitsPage() {
   const [outfits, setOutfits] = useState<Outfit[]>([])
   const [loading, setLoading] = useState(true)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [mannequinOutfit, setMannequinOutfit] = useState<{ name: string; items: WardrobeItem[] } | null>(null)
+  const [mannequinLoading, setMannequinLoading] = useState(false)
   const { toast } = useToast()
   const { t } = useLang()
   const supabase = createClient()
@@ -52,6 +57,17 @@ export default function OutfitsPage() {
     setOutfits(prev => prev.filter(o => o.id !== outfit.id))
     setDeletingId(null)
     toast('הלוק נמחק', 'info')
+  }
+
+  async function openMannequin(outfit: Outfit) {
+    setMannequinLoading(true)
+    const { data } = await supabase
+      .from('outfit_items')
+      .select('wardrobe_items(*)')
+      .eq('outfit_id', outfit.id)
+    const items = (data ?? []).map((row: any) => row.wardrobe_items).filter(Boolean) as WardrobeItem[]
+    setMannequinOutfit({ name: outfit.name, items })
+    setMannequinLoading(false)
   }
 
   async function scheduleToday(outfit: Outfit) {
@@ -124,11 +140,38 @@ export default function OutfitsPage() {
                 onShare={shareOutfit}
                 onDelete={() => setDeletingId(outfit.id)}
                 onScheduleToday={scheduleToday}
+                onMannequin={() => openMannequin(outfit)}
               />
             ))}
           </div>
         )}
       </div>
+
+      {/* Mannequin modal */}
+      {mannequinOutfit && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setMannequinOutfit(null)}>
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-5 animate-fade-in" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold text-stone-900 flex items-center gap-2">
+                <User size={18} className="text-stone-500" />
+                {mannequinOutfit.name}
+              </h3>
+              <button onClick={() => setMannequinOutfit(null)} className="text-stone-400 hover:text-stone-600 text-xl leading-none">×</button>
+            </div>
+            <div style={{ height: '420px' }}>
+              <MannequinView items={mannequinOutfit.items} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {mannequinLoading && (
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-6 shadow-xl">
+            <div className="w-8 h-8 border-2 border-stone-900 border-t-transparent rounded-full animate-spin mx-auto" />
+          </div>
+        </div>
+      )}
 
       {/* Delete confirmation dialog */}
       {deletingId && (() => {
@@ -164,12 +207,14 @@ function OutfitCard({
   onShare,
   onDelete,
   onScheduleToday,
+  onMannequin,
 }: {
   outfit: Outfit
   onToggleFavorite: (o: Outfit) => void
   onShare: (o: Outfit) => void
   onDelete: (o: Outfit) => void
   onScheduleToday: (o: Outfit) => void
+  onMannequin: (o: Outfit) => void
 }) {
   const { t } = useLang()
   return (
@@ -222,10 +267,16 @@ function OutfitCard({
             <span className="text-xs bg-stone-100 text-stone-600 px-2.5 py-1 rounded-full capitalize font-medium">{outfit.season}</span>
           )}
         </div>
-        <Button size="sm" variant="secondary" className="w-full mt-4" onClick={() => onScheduleToday(outfit)}>
-          <Calendar size={14} />
-          {t.outfits.wearToday}
-        </Button>
+        <div className="flex gap-2 mt-4">
+          <Button size="sm" variant="secondary" className="flex-1" onClick={() => onMannequin(outfit)}>
+            <User size={14} />
+            על דמות
+          </Button>
+          <Button size="sm" variant="secondary" className="flex-1" onClick={() => onScheduleToday(outfit)}>
+            <Calendar size={14} />
+            {t.outfits.wearToday}
+          </Button>
+        </div>
       </div>
     </div>
   )

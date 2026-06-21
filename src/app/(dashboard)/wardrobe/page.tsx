@@ -59,7 +59,7 @@ export default function WardrobePage() {
   }, {} as Record<string, number>)
 
   const knownCategoryValues = new Set(CLOTHING_CATEGORIES.map(c => c.value))
-  const customCategories = [...new Set(items.map(i => i.category).filter(c => !knownCategoryValues.has(c)))]
+  const customCategories = [...new Set(items.map(i => i.category).filter(c => !knownCategoryValues.has(c as never)))]
 
   const deletingItem = deletingId ? items.find(i => i.id === deletingId) : null
 

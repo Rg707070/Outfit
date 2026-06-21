@@ -6,9 +6,10 @@ import { CLOTHING_CATEGORIES, SEASONS } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useToast } from '@/components/ui/toast'
-import { ArrowRight, Save, Trash2, Plus, ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from 'lucide-react'
+import { ArrowRight, Save, Trash2, Plus, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, User, LayoutGrid } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { MannequinView } from '@/components/outfit/mannequin-view'
 
 type CanvasItem = {
   id: string
@@ -43,6 +44,7 @@ export default function CanvasBuilderPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [showSaveModal, setShowSaveModal] = useState(false)
+  const [viewMode, setViewMode] = useState<'canvas' | 'mannequin'>('canvas')
   const [outfitName, setOutfitName] = useState('')
   const [outfitOccasion, setOutfitOccasion] = useState('')
   const [outfitSeason, setOutfitSeason] = useState<Season | ''>('')
@@ -206,6 +208,24 @@ export default function CanvasBuilderPage() {
           ))}
         </div>
 
+        {/* View mode toggle */}
+        <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1">
+          <button
+            onClick={() => setViewMode('canvas')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${viewMode === 'canvas' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+          >
+            <LayoutGrid size={13} />
+            לוח
+          </button>
+          <button
+            onClick={() => setViewMode('mannequin')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${viewMode === 'mannequin' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+          >
+            <User size={13} />
+            על דמות
+          </button>
+        </div>
+
         <Button onClick={() => setShowSaveModal(true)} disabled={canvasItems.length === 0}>
           <Save size={15} />
           שמור לוק
@@ -288,103 +308,112 @@ export default function CanvasBuilderPage() {
           )}
         </div>
 
-        {/* Canvas column */}
+        {/* Canvas / Mannequin column */}
         <div className="flex-1 flex flex-col min-w-0 gap-2">
-          {/* Context toolbar */}
-          <div className="flex items-center gap-2 h-8 flex-shrink-0">
-            {selected ? (
-              <>
-                <span className="text-xs text-gray-500 truncate max-w-32">
-                  {getCatEmoji(selected.wardrobeItem.category)} {selected.wardrobeItem.name}
-                </span>
-                <button
-                  onClick={() => resizeSelected(-20)}
-                  className="flex items-center gap-1 text-xs px-2.5 py-1 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors whitespace-nowrap"
-                >
-                  <ZoomOut size={11} /> קטן
-                </button>
-                <button
-                  onClick={() => resizeSelected(20)}
-                  className="flex items-center gap-1 text-xs px-2.5 py-1 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors whitespace-nowrap"
-                >
-                  <ZoomIn size={11} /> גדול
-                </button>
-                <button
-                  onClick={deleteSelected}
-                  className="flex items-center gap-1 text-xs px-2.5 py-1 bg-red-50 border border-red-200 text-red-600 rounded-lg hover:bg-red-100 transition-colors whitespace-nowrap"
-                >
-                  <Trash2 size={11} /> הסר
-                </button>
-                <button onClick={() => setSelectedId(null)} className="text-xs text-gray-400 hover:text-gray-600 mr-1">
-                  ✕
-                </button>
-              </>
-            ) : canvasItems.length > 0 ? (
-              <span className="text-xs text-gray-400">לחץ על פריט לבחירה · גרור להזזה · Delete להסרה</span>
-            ) : null}
-          </div>
-
-          {/* Canvas */}
-          <div
-            ref={canvasRef}
-            className="flex-1 rounded-2xl relative overflow-hidden"
-            style={{ backgroundColor: bg }}
-            onClick={() => setSelectedId(null)}
-          >
-            {canvasItems.length === 0 && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none gap-3">
-                <div className="w-20 h-20 rounded-3xl bg-black/5 flex items-center justify-center">
-                  <span className="text-4xl opacity-30">👗</span>
-                </div>
-                <p className="text-sm text-gray-400 font-medium">לחץ על פריטים כדי להוסיף אותם ללוח</p>
-                <p className="text-xs text-gray-300">גרור לסידור · שנה גודל · שמור כשמוכן</p>
+          {viewMode === 'canvas' ? (
+            <>
+              {/* Context toolbar */}
+              <div className="flex items-center gap-2 h-8 flex-shrink-0">
+                {selected ? (
+                  <>
+                    <span className="text-xs text-gray-500 truncate max-w-32">
+                      {getCatEmoji(selected.wardrobeItem.category)} {selected.wardrobeItem.name}
+                    </span>
+                    <button
+                      onClick={() => resizeSelected(-20)}
+                      className="flex items-center gap-1 text-xs px-2.5 py-1 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors whitespace-nowrap"
+                    >
+                      <ZoomOut size={11} /> קטן
+                    </button>
+                    <button
+                      onClick={() => resizeSelected(20)}
+                      className="flex items-center gap-1 text-xs px-2.5 py-1 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors whitespace-nowrap"
+                    >
+                      <ZoomIn size={11} /> גדול
+                    </button>
+                    <button
+                      onClick={deleteSelected}
+                      className="flex items-center gap-1 text-xs px-2.5 py-1 bg-red-50 border border-red-200 text-red-600 rounded-lg hover:bg-red-100 transition-colors whitespace-nowrap"
+                    >
+                      <Trash2 size={11} /> הסר
+                    </button>
+                    <button onClick={() => setSelectedId(null)} className="text-xs text-gray-400 hover:text-gray-600 mr-1">
+                      ✕
+                    </button>
+                  </>
+                ) : canvasItems.length > 0 ? (
+                  <span className="text-xs text-gray-400">לחץ על פריט לבחירה · גרור להזזה · Delete להסרה</span>
+                ) : null}
               </div>
-            )}
 
-            {canvasItems.map(ci => (
+              {/* Canvas */}
               <div
-                key={ci.id}
-                className="absolute"
-                style={{
-                  left: ci.x,
-                  top: ci.y,
-                  width: ci.size,
-                  height: ci.size,
-                  zIndex: ci.zIndex,
-                  outline: selectedId === ci.id ? '2.5px solid #000' : '2.5px solid transparent',
-                  outlineOffset: '3px',
-                  borderRadius: '12px',
-                  cursor: dragRef.current?.id === ci.id ? 'grabbing' : 'grab',
-                  touchAction: 'none',
-                }}
-                onPointerDown={e => handleItemPointerDown(e, ci)}
-                onPointerMove={handleItemPointerMove}
-                onPointerUp={handleItemPointerUp}
-                onClick={e => e.stopPropagation()}
+                ref={canvasRef}
+                className="flex-1 rounded-2xl relative overflow-hidden"
+                style={{ backgroundColor: bg }}
+                onClick={() => setSelectedId(null)}
               >
-                <div className="w-full h-full rounded-xl overflow-hidden">
-                  {ci.wardrobeItem.image_url ? (
-                    <img
-                      src={ci.wardrobeItem.image_url}
-                      alt={ci.wardrobeItem.name}
-                      className="w-full h-full object-contain"
-                      draggable={false}
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gray-50/80">
-                      <span className="text-4xl pointer-events-none">{getCatEmoji(ci.wardrobeItem.category)}</span>
+                {canvasItems.length === 0 && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none gap-3">
+                    <div className="w-20 h-20 rounded-3xl bg-black/5 flex items-center justify-center">
+                      <span className="text-4xl opacity-30">👗</span>
                     </div>
-                  )}
-                </div>
-
-                {selectedId === ci.id && (
-                  <div className="absolute bottom-0 inset-x-0 bg-black/70 text-white text-xs py-1 px-2 truncate text-center pointer-events-none rounded-b-xl">
-                    {ci.wardrobeItem.name}
+                    <p className="text-sm text-gray-400 font-medium">לחץ על פריטים כדי להוסיף אותם ללוח</p>
+                    <p className="text-xs text-gray-300">גרור לסידור · שנה גודל · שמור כשמוכן</p>
                   </div>
                 )}
+
+                {canvasItems.map(ci => (
+                  <div
+                    key={ci.id}
+                    className="absolute"
+                    style={{
+                      left: ci.x,
+                      top: ci.y,
+                      width: ci.size,
+                      height: ci.size,
+                      zIndex: ci.zIndex,
+                      outline: selectedId === ci.id ? '2.5px solid #000' : '2.5px solid transparent',
+                      outlineOffset: '3px',
+                      borderRadius: '12px',
+                      cursor: dragRef.current?.id === ci.id ? 'grabbing' : 'grab',
+                      touchAction: 'none',
+                    }}
+                    onPointerDown={e => handleItemPointerDown(e, ci)}
+                    onPointerMove={handleItemPointerMove}
+                    onPointerUp={handleItemPointerUp}
+                    onClick={e => e.stopPropagation()}
+                  >
+                    <div className="w-full h-full rounded-xl overflow-hidden">
+                      {ci.wardrobeItem.image_url ? (
+                        <img
+                          src={ci.wardrobeItem.image_url}
+                          alt={ci.wardrobeItem.name}
+                          className="w-full h-full object-contain"
+                          draggable={false}
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gray-50/80">
+                          <span className="text-4xl pointer-events-none">{getCatEmoji(ci.wardrobeItem.category)}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {selectedId === ci.id && (
+                      <div className="absolute bottom-0 inset-x-0 bg-black/70 text-white text-xs py-1 px-2 truncate text-center pointer-events-none rounded-b-xl">
+                        {ci.wardrobeItem.name}
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </>
+          ) : (
+            /* Mannequin view */
+            <div className="flex-1 bg-white rounded-2xl border border-gray-100 p-4 overflow-hidden">
+              <MannequinView items={canvasItems.map(ci => ci.wardrobeItem)} />
+            </div>
+          )}
         </div>
       </div>
 
